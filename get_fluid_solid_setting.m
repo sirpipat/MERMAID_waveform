@@ -12,7 +12,7 @@ function [d_fluid, d_solid] = get_fluid_solid_setting(interface_file)
 %
 % Last modified by Sirawich Pipatprathanporn, 02/25/2021
 
-fid = fopen(interface_file);
+fid = fopen(interface_file, 'r');
 % skip to interface number 2: fluid-solid
 for ii = 1:16
     fgetl(fid);
