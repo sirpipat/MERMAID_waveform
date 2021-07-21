@@ -2,6 +2,8 @@ function s = read_sources(source_file)
 % s = READ_SOURCES(source_file)
 %
 % Reads sources from source file.
+% OBSOLETED: use LOADSOURCE instead which can handle multiple sources,
+% more source variables, and flexible comments.
 %
 % INPUT
 % source_file   full filename of a source file
@@ -18,7 +20,10 @@ function s = read_sources(source_file)
 %               - M         moment tensor
 %               - A         amplification factor
 %
-% Last modified by Siraich Pipatprathanporn, 03/03/2021
+% SEE ALSO
+% LOADSOURCE, WRITESOURCE
+%
+% Last modified by Siraich Pipatprathanporn, 07/13/2021
 
 fid = fopen(source_file);
 
