@@ -1,6 +1,8 @@
 function writeinterfacefile(itfs, layers, fname)
 % WRITEINTERFACEFILE(itfs, layers, fname)
 %
+% Writes interfaces and layers to an interface file.
+%
 % INPUT:
 % itfs          interfaces, an array of struct with following fields
 %                   npts    the number of points
@@ -11,7 +13,7 @@ function writeinterfacefile(itfs, layers, fname)
 % SEE ALSO:
 % LOADINTERFACEFILE
 %
-% Last modified by Sirawich Pipatprathanporn, 06/05/2021
+% Last modified by Sirawich Pipatprathanporn, 07/22/2021
 
 n = length(itfs);
 
@@ -24,10 +26,10 @@ end
 fprintf(fid, '#\n');
 fprintf(fid, '# number of interfaces\n');
 fprintf(fid, '#\n');
-fprintf(' %d\n', n);
-fprintf(strcat('# for each interface below, we give the number of', ...
+fprintf(fid, ' %d\n', n);
+fprintf(fid, strcat('# for each interface below, we give the number of', ...
     ' points and then x,z for each point\n'));
-fprintf('#\n');
+fprintf(fid, '#\n');
 
 for ii = 1:n
     if ii == 1
@@ -41,7 +43,7 @@ for ii = 1:n
     fprintf(fid, '# interface number %d%s\n', ii, str);
     fprintf(fid, '#\n');
     fprintf(fid, ' %d\n', itfs{ii}.npts);
-    fprintf(fid, ' %6d %6d\n', itfs{ii}.pts');
+    fprintf(fid, ' %6d %6d\n', round(itfs{ii}.pts'));
 end
 
 fprintf(fid, '#\n');
@@ -63,7 +65,7 @@ for ii = 1:length(layers)
     fprintf(fid, ' %d\n', layers(ii));
 end
 
-if fid == 3
+if fid >= 3
     fclose(fid);
 end
 end
