@@ -25,7 +25,7 @@ function specfem2d_input_setup(name, topo, water, solid, source, angle, Par_file
 % Par_file_base     base Par_file to setting up Par_file
 % outputdir         directory for the input files
 %
-% Last modified by Sirawich Pipatprathanporn, 07/21/2021
+% Last modified by sirawich@princeton.edu, 07/26/2021
 
 defval('topo', 'flat')
 defval('water', 'homogeneous')
@@ -96,11 +96,11 @@ itf2.npts = 401;
 x = linspace(xmin, xmax, itf2.npts)';
 switch lower(topo)
     case 'sloped'
-        A = 4000 * random('unif', 0.9, 1.1);
+        A = 3200 * random('unif', 0.9, 1.1);
         B = 4800 * random('unif', 0.9, 1.1);
         x0 = 5400 * random('unif', 0.9, 1.1);
         x1 = 1000 * random('unif', 0.9, 1.1);
-        z = B + A * tanh(- (x - x0) / x1);
+        z = B + A/2 * (1 + tanh(- (x - x0) / x1));
     case 'sinusoidal'
         N = unidrnd(3);
         A = unifrnd(0, 400, [1 N]);
@@ -115,7 +115,7 @@ switch lower(topo)
         z = A * (x - x0) .^ 2 + B;
     case 'hill'
         N = unidrnd(3);
-        A = unifrnd(0, 400, [1 N]);
+        A = unifrnd(200, 1000, [1 N]);
         B = 4800 * random('unif', 0.9, 1.1);
         x0 = unifrnd(xmin, xmax, [1 N]);
         x1 = unifrnd(400, width/10, [1 N]);
@@ -182,30 +182,75 @@ switch lower(water)
 end
 
 %% define SOURCE(s)
-% try on multiple sources
-source1 = struct(...
-    'source_surf'           , false     , ...   % inside the medium
-    'xs'                    , 500      , ...
-    'zs'                    , 720       , ...
-    'source_type'           , 2         , ...   % moment tensor
-    'time_function_type'    , 1         , ...   % Ricker
-    'name_of_source_file'   , '""'      , ...   % blank for now
-    'burst_band_width'      , 0         , ...
-    'f0'                    , 10        , ...   % dominant frequency
-    'tshift'                , 0         , ...
-    'anglesource'           , 0         , ...
-    'Mxx'                   , 1.0       , ...   % explosion
-    'Mzz'                   , 1.0       , ...   % explosion
-    'Mxz'                   , 0.0       , ...   % explosion
-    'factor'                , 1e-9        ...
-);
-
-sources{1} = source1;
-for ii = 1:38
-    source = source1;
-    source.xs = 500 + ii * 500;
-    source.tshift = 0 + ii * 500 * sin(angle * pi / 180) / 3400;
-    sources{ii+1} = source;
+% local, point-like source
+switch lower(source)
+    case 'shallow'
+        sources = struct(...
+            'source_surf'           , false     , ...   % inside the medium
+            'xs'                    , 1000      , ...
+            'zs'                    , 720       , ...
+            'source_type'           , 2         , ...   % moment tensor
+            'time_function_type'    , 1         , ...   % Ricker
+            'name_of_source_file'   , '""'      , ...   % blank for now
+            'burst_band_width'      , 0         , ...
+            'f0'                    , 10        , ...   % dominant frequency
+            'tshift'                , 0         , ...
+            'anglesource'           , 0         , ...
+            'Mxx'                   , 1.0       , ...   % explosion
+            'Mzz'                   , 1.0       , ...   % explosion
+            'Mxz'                   , 0.0       , ...   % explosion
+            'factor'                , 1e-9        ...
+            );
+    otherwise
+        % use multiple sources to imitate plane wave
+        if angle > 5
+            sources = cell(1, 232);
+        else
+            sources = cell(1, 197);
+        end
+        for ii = 1:197
+            tshift = (ii - 1) * 100 * sin(angle * pi / 180) / material1.vp;
+            source = struct(...
+                'source_surf'           , false     , ...   % inside the medium
+                'xs'                    , (ii+1) * 100  , ...
+                'zs'                    , 720       , ...
+                'source_type'           , 2         , ...   % moment tensor
+                'time_function_type'    , 1         , ...   % Ricker
+                'name_of_source_file'   , '""'      , ...   % blank for now
+                'burst_band_width'      , 0         , ...
+                'f0'                    , 10        , ...   % dominant frequency
+                'tshift'                , tshift    , ...
+                'anglesource'           , 0         , ...
+                'Mxx'                   , 1.0       , ...   % explosion
+                'Mzz'                   , 1.0       , ...   % explosion
+                'Mxz'                   , 0.0       , ...   % explosion
+                'factor'                , 1e-9 * cos(angle * pi / 180)  ...
+            );
+            sources{ii} = source;
+        end
+        % add more sources if angle is 5 degrees or above
+        if angle >= 5
+            for ii = 1:35
+                tshift = ii * 100 * cos(angle * pi / 180) / material1.vp;
+                source = struct(...
+                    'source_surf'           , false     , ...   % inside the medium
+                    'xs'                    , 200       , ...
+                    'zs'                    , 720 + ii * 100       , ...
+                    'source_type'           , 2         , ...   % moment tensor
+                    'time_function_type'    , 1         , ...   % Ricker
+                    'name_of_source_file'   , '""'      , ...   % blank for now
+                    'burst_band_width'      , 0         , ...
+                    'f0'                    , 10        , ...   % dominant frequency
+                    'tshift'                , tshift    , ...
+                    'anglesource'           , 0         , ...
+                    'Mxx'                   , 1.0       , ...   % explosion
+                    'Mzz'                   , 1.0       , ...   % explosion
+                    'Mxz'                   , 0.0       , ...   % explosion
+                    'factor'                , 1e-9 * sin(angle * pi / 180)  ...
+                );
+                sources{ii+197} = source;
+            end
+        end
 end
 
 
@@ -218,17 +263,17 @@ writesource(sources, sprintf('%sDATA/SOURCE_%s', outputdir, name));
 
 %% defeine set(s) of RECEIVER(s)
 receiverset1 = struct(...
-    'nrec'                              , 30    , ...
-    'xdeb'                              , 15000 , ...
+    'nrec'                              , 29    , ...
+    'xdeb'                              , 10000 , ...
     'zdeb'                              , 4950  , ...
-    'xfin'                              , 15000 , ...
+    'xfin'                              , 10000 , ...
     'zfin'                              , 9450  , ...
     'record_at_surface_same_vertical'   , false   ...
 );
 
 receiverset2 = struct(...
-    'nrec'                              , 30    , ...
-    'xdeb'                              , 5000  , ...
+    'nrec'                              , 39    , ...
+    'xdeb'                              , 500  , ...
     'zdeb'                              , 8100  , ...
     'xfin'                              , 19500 , ...
     'zfin'                              , 8100  , ...
@@ -241,10 +286,13 @@ params.seismotype = 4;
 params.nreceiversets = 2;
 params.RECEIVERS = receiversets;
 
+% writes STATIONS file to include receiverset information when there are
+% multiple receiversets.
+params = writestations(params, sprintf('%sDATA/STATIONS', outputdir));
 %% define other parameters
 params.title = sprintf('fluid/solid interface : %s', name);
 params.time_stepping_scheme = 1;
-params.NSTEP = 20000;
+params.NSTEP = 25000;
 params.DT = 5e-4;
 %% write Par_file
 writeparfile(params, sprintf('%sDATA/Par_file_%s', outputdir, name));
