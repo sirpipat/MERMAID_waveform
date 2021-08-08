@@ -25,7 +25,7 @@ function specfem2d_input_setup(name, topo, water, solid, source, angle, Par_file
 % Par_file_base     base Par_file to setting up Par_file
 % outputdir         directory for the input files
 %
-% Last modified by sirawich@princeton.edu, 07/26/2021
+% Last modified by sirawich@princeton.edu, 08/07/2021
 
 defval('topo', 'flat')
 defval('water', 'homogeneous')
@@ -68,12 +68,23 @@ material2 = struct(...
     'Qmu'               , 9999        ...
 );
 
+material3 = struct(...
+    'model_number'      , 3         , ...
+    'type_number'       , 1         , ...
+    'type_name'         , 'elastic' , ...
+    'rho'               , 3300      , ...
+    'vp'                , 4400      , ...
+    'vs'                , 2540      , ...
+    'QKappa'            , 9999      , ...
+    'Qmu'               , 9999        ...
+);
+
 % set models
 switch lower(solid)
     % TODO: add the second solid layer and
     case 'layered'
-        params.nbmodels = 2;
-        params.MODELS = {material1, material2};
+        params.nbmodels = 3;
+        params.MODELS = {material1, material2, material3};
     otherwise
         params.nbmodels = 2;
         params.MODELS = {material1, material2};
@@ -129,11 +140,35 @@ zmax = 9600;
 itf3.npts = 2;
 itf3.pts = [xmin zmax; xmax zmax];
 
-itfs = {itf1, itf2, itf3};
 
-% set layers [crust ocean]
-nz = zmax * 9 / 400;
-layers = [nz/2 nz/2];
+
+switch lower(solid)
+    case 'layered'
+        % solid-solid interface for layered crust model
+        itf4.npts = 401;
+        x = linspace(xmin, xmax, itf4.npts)';
+        switch lower(topo)
+            case 'sinusoidal'
+                N = unidrnd(10);
+                A = unifrnd(0, 100, [1 N]);
+                B = 2400 * random('unif', 0.9, 1.1);
+                k = unifrnd(1/10000, 1/1000, [1 N]);
+                c = unifrnd(0, 2*pi, [1 N]);
+                z = B + sum(A .* sin(2 * pi * k .* x + c), 2);
+            otherwise
+                z = 2400 * random('unif', 0.9, 1.1) * ones(size(x));
+        end
+        itf4.pts = [x,z];
+        itfs = {itf1, itf4, itf2, itf3};
+        % set layers [crust1 crust2 ocean]
+        nz = zmax * 9 / 400;
+        layers = [nz/4 nz/4 nz/2];
+    otherwise
+        itfs = {itf1, itf2, itf3};
+        % set layers [crust ocean]
+        nz = zmax * 9 / 400;
+        layers = [nz/2 nz/2];
+end
 
 % write interfaces file
 % set parameters for internal meshing
@@ -162,11 +197,33 @@ region2 = struct(...
     'material_number'   , 2           ...
 );
 
+region1a = struct(...
+    'nxmin'             , 1         , ...
+    'nxmax'             , nx        , ...
+    'nzmin'             , 1         , ...
+    'nzmax'             , nz/4      , ...
+    'material_number'   , 3           ...
+);
 
-regions = {region1, region2};
+region1b = struct(...
+    'nxmin'             , 1         , ...
+    'nxmax'             , nx        , ...
+    'nzmin'             , nz/4 + 1  , ...
+    'nzmax'             , nz/2      , ...
+    'material_number'   , 1           ...
+);
 
-params.nbregions = 2;
-params.REGIONS = regions;
+
+switch lower(solid)
+    case 'layered'
+        regions = {region1a, region1b, region2};
+        params.nbregions = 3;
+        params.REGIONS = regions;
+    otherwise
+        regions = {region1, region2};
+        params.nbregions = 2;
+        params.REGIONS = regions;
+end
 
 %% define water model
 switch lower(water)
@@ -185,7 +242,7 @@ end
 % local, point-like source
 switch lower(source)
     case 'shallow'
-        sources = struct(...
+        source = struct(...
             'source_surf'           , false     , ...   % inside the medium
             'xs'                    , 1000      , ...
             'zs'                    , 720       , ...
@@ -201,6 +258,7 @@ switch lower(source)
             'Mxz'                   , 0.0       , ...   % explosion
             'factor'                , 1e-9        ...
             );
+        sources{1} = source;
     otherwise
         % use multiple sources to imitate plane wave
         if angle > 5
