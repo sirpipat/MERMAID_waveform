@@ -1,5 +1,5 @@
-function specfem2d_input_setup(name, topo, water, solid, source, angle, Par_file_base, outputdir)
-% SPECFEM2D_INPUT_SETUP(name, topo, water, solid, source, angle, Par_file_base, outputdir)
+function specfem2d_input_setup(name, topo, water, solid, source, freq, angle, Par_file_base, outputdir)
+% SPECFEM2D_INPUT_SETUP(name, topo, water, solid, source, freq, angle, Par_file_base, outputdir)
 %
 % Generates Par_file, source file, and interface file for a fluid-solid
 % simulation.
@@ -21,16 +21,18 @@ function specfem2d_input_setup(name, topo, water, solid, source, angle, Par_file
 % source            proximity of the source
 %                       'shallow'
 %                       'deep' -or- 'distant'
+% freq              source frequency [Default: 10 Hz]
 % angle             incident angle in degrees [Default: 0]
 % Par_file_base     base Par_file to setting up Par_file
 % outputdir         directory for the input files
 %
-% Last modified by sirawich@princeton.edu, 08/07/2021
+% Last modified by sirawich-at-princeton.edu, 08/19/2021
 
 defval('topo', 'flat')
 defval('water', 'homogeneous')
 defval('solid', 'homogeneous')
 defval('source', 'shallow')
+defval('freq', 10)
 defval('angle', 0)
 
 % load baseline Par_file
@@ -250,7 +252,7 @@ switch lower(source)
             'time_function_type'    , 1         , ...   % Ricker
             'name_of_source_file'   , '""'      , ...   % blank for now
             'burst_band_width'      , 0         , ...
-            'f0'                    , 10        , ...   % dominant frequency
+            'f0'                    , freq      , ...   % dominant frequency
             'tshift'                , 0         , ...
             'anglesource'           , 0         , ...
             'Mxx'                   , 1.0       , ...   % explosion
@@ -261,13 +263,10 @@ switch lower(source)
         sources{1} = source;
     otherwise
         % use multiple sources to imitate plane wave
-        if angle > 5
-            sources = cell(1, 232);
-        else
-            sources = cell(1, 197);
-        end
+        sources = cell(1, 197);
         for ii = 1:197
-            tshift = (ii - 1) * 100 * sin(angle * pi / 180) / material1.vp;
+            vp = params.MODELS{params.REGIONS{1}.material_number}.vp;
+            tshift = (ii - 1) * 100 * sin(angle * pi / 180) / vp;
             source = struct(...
                 'source_surf'           , false     , ...   % inside the medium
                 'xs'                    , (ii+1) * 100  , ...
@@ -276,7 +275,7 @@ switch lower(source)
                 'time_function_type'    , 1         , ...   % Ricker
                 'name_of_source_file'   , '""'      , ...   % blank for now
                 'burst_band_width'      , 0         , ...
-                'f0'                    , 10        , ...   % dominant frequency
+                'f0'                    , freq      , ...   % dominant frequency
                 'tshift'                , tshift    , ...
                 'anglesource'           , 0         , ...
                 'Mxx'                   , 1.0       , ...   % explosion
@@ -288,17 +287,28 @@ switch lower(source)
         end
         % add more sources if angle is 5 degrees or above
         if angle >= 5
-            for ii = 1:35
-                tshift = ii * 100 * cos(angle * pi / 180) / material1.vp;
+            tshift = 0;
+            pf = depthprofile(200, itfs, 'linear');
+            for ii = 1:50
+                zs = 720 + ii * 100;
+                layer = sum(pf < zs);
+                % stop if the source is above the bottom layer
+                % TODO: figure out how to adjust tshift for sources in
+                % different materials
+                if layer > 1
+                    break
+                end
+                vp = params.MODELS{params.REGIONS{layer}.material_number}.vp;
+                tshift = tshift + 100 * cos(angle * pi / 180) / vp;
                 source = struct(...
                     'source_surf'           , false     , ...   % inside the medium
                     'xs'                    , 200       , ...
-                    'zs'                    , 720 + ii * 100       , ...
+                    'zs'                    , zs        , ...
                     'source_type'           , 2         , ...   % moment tensor
                     'time_function_type'    , 1         , ...   % Ricker
                     'name_of_source_file'   , '""'      , ...   % blank for now
                     'burst_band_width'      , 0         , ...
-                    'f0'                    , 10        , ...   % dominant frequency
+                    'f0'                    , freq      , ...   % dominant frequency
                     'tshift'                , tshift    , ...
                     'anglesource'           , 0         , ...
                     'Mxx'                   , 1.0       , ...   % explosion
