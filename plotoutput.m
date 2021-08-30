@@ -6,7 +6,7 @@ function plotoutput(ddir)
 % INPUT:
 % ddir          simulation directory
 %
-% Last modified by sirawich@princeton.edu, 07/27/2021
+% Last modified by sirawich@princeton.edu, 07/28/2021
 
 example = removepath(ddir(1:end-1));
 
@@ -24,4 +24,7 @@ networks = unique(networks);
 for ii = 1:length(networks)
     plotarray(ddir, networks{ii}, savedir, networks{ii}, true);
 end
+
+% make animation
+animatepropagation(ddir, savedir);
 end
