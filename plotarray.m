@@ -13,7 +13,7 @@ function fig = plotarray(ddir, network, savedir, savename, sv)
 % OUTPUT:
 % fig           figure handle for the plot
 %
-% Last modified by sirawich@princeton.edu, 07/26/2021
+% Last modified by sirawich@princeton.edu, 08/30/2021
 
 defval('savedir', getenv('EPS'))
 defval('savename', network)
@@ -47,7 +47,7 @@ hold on
 xmax_all = 0;
 for ii = 1:length(seisfiles)
     [~, x] = read_seismogram(seisfiles{ii});
-    xmax = 1/2 * max(abs(x), [], 'all');
+    xmax = 1 * max(abs(x), [], 'all');
     if xmax > xmax_all
         xmax_all = xmax;
     end
