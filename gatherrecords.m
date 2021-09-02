@@ -45,7 +45,7 @@ for ii = 1:mndex
                 'uuuu-MM-dd''T''HH:mm:ss.SSSSSS','TimeZone','UTC');
             % skip reading the subdirectory if the report is not between
             % dt_begin and dt_end
-            if dt_dir > dt_end
+            if ~isempty(dt_end) && dt_dir > dt_end
                 continue
             end
             % loop through the surfacing subdirctory
@@ -62,7 +62,9 @@ for ii = 1:mndex
                     continue
                 end
                 % only gather records within [dt_begin, dt_end]
-                if all([strcmp(s{end}, format), dt >= dt_begin, dt <= dt_end])
+                if all([strcmp(s{end}, format), ...
+                        isempty(dt_begin) || dt >= dt_begin, ...
+                        isempty(dt_end) || dt <= dt_end])
                     % check for tipe
                     if isempty(tipe)
                         fndex = fndex + 1;
