@@ -24,6 +24,7 @@ function updateheader(ddirin, arrfile, evtfile, ddirout)
 % - EVLO        earthquake longitude
 % - GCARC       epicentral distance in degrees
 % - MAG         magnitude
+% - STEL        elevation of the seafloor at MERMAID
 % - USER6       eventID (IRIS publicid)
 %
 % Last modified by sirawich-at-princeton.edu, 09/07/2021
