@@ -10,8 +10,23 @@ function updateheader(ddirin, arrfile, evtfile, ddirout)
 % arrfile      full filename to the first arrival picks file
 % evtfile      full filename to the identified earthquakes file
 % ddirout      output directory for the updated SAC files
-% 
-% Last modified by sirawich-at-princeton.edu, 09/01/2021
+%
+% It creates directories <ddirout>/<EventIDs>/ if they do not exist, and
+% saves SAC files containing identifiable arrivals from an earthquake with
+% EventID. It updates the following header fields:
+% - T0          time of the first arrival pick 
+% - KT0         name of the first arrival phase
+% - AZ          azimuth
+% - BAZ         back azimuth
+% - DIST        epicentral distance in km
+% - EVDP        earthquake depth
+% - EVLA        earthquake latitude
+% - EVLO        earthquake longitude
+% - GCARC       epicentral distance in degrees
+% - MAG         magnitude
+% - USER6       eventID (IRIS publicid)
+%
+% Last modified by sirawich-at-princeton.edu, 09/07/2021
 
 [allfiles, fndex] = gatherrecords(ddirin, [], [], 'sac', []);
 
