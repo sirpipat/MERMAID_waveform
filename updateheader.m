@@ -25,9 +25,15 @@ function updateheader(ddirin, arrfile, evtfile, ddirout)
 % - GCARC       epicentral distance in degrees
 % - MAG         magnitude
 % - STEL        elevation of the seafloor at MERMAID
-% - USER6       eventID (IRIS publicid)
+% - USER4       travel time residue: pick - synthetic
+% - USER5       theoretical travel time of the first arrival phase using
+%               taupTime.m and ak135 model
+% - USER6       Time difference between reference model with bathymetry and
+%               reference model w/o bathymetry
+% - USER7       IRIS event ID
+% - USER8       event rupture time relatve to reference time in seconds
 %
-% Last modified by sirawich-at-princeton.edu, 09/07/2021
+% Last modified by sirawich-at-princeton.edu, 09/13/2021
 
 [allfiles, fndex] = gatherrecords(ddirin, [], [], 'sac', []);
 
@@ -41,6 +47,7 @@ function updateheader(ddirin, arrfile, evtfile, ddirout)
 
 for ii = 1:fndex
     [SeisData, HdrData, ~, ~, ~] = readsac(allfiles{ii});
+    [dt_ref, ~, ~, ~, ~, ~, ~] = gethdrinfo(HdrData);
     firstarrival_index = strcmp(s, removepath(allfiles{ii}));
     event_index = strcmp(sac, removepath(allfiles{ii}));
     
@@ -48,6 +55,9 @@ for ii = 1:fndex
     if any(firstarrival_index)
         HdrData.T0 = dat(firstarrival_index);   % first arrival time
         HdrData.KT0 = ph{firstarrival_index};   % first arrival phase
+        HdrData.USER4 = tres(firstarrival_index);
+        HdrData.USER5 = tptime(firstarrival_index);
+        HdrData.USER6 = tadj(firstarrival_index);
     end
     if any(event_index)
         evla = eqlat(event_index);
@@ -68,7 +78,9 @@ for ii = 1:fndex
         HdrData.EVLO = eqlon(event_index);
         HdrData.GCARC = eqdist(event_index);
         HdrData.MAG = eqmag(event_index);
-        HdrData.USER6 = str2double(publicid);
+        HdrData.USER7 = str2double(publicid);
+        dt_event = datetime(eqdate(event_index));
+        HdrData.USER8 = seconds(dt_event - dt_ref);
         foldername = publicid;
     else
         foldername = 'notevent';
