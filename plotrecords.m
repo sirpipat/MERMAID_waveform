@@ -1,5 +1,5 @@
-function [ax1, ax2] = plotrecords(allfiles)
-% [ax1, ax2] = PLOTRECORDS(allfiles)
+function [ax1, ax2] = plotrecords(allfiles, op1, op2, op3, op4, op5)
+% [ax1, ax2] = PLOTRECORDS(allfiles, op1)
 %
 % Plots the seismic traces of all stations (sorted by names?) and the map
 % containing all stations and the source. All first P-wave arrivals of 
@@ -7,12 +7,16 @@ function [ax1, ax2] = plotrecords(allfiles)
 %
 % INPUT:
 % allfiles      full path to all SAC files
+% op1           options for time axis
+%               1  --   relative to picked first P arrival
+%               2  --   relative to model ak135
+%               3  --   absolute time
 %
 % OUTPUT:
 % ax1           axes handle to the seismic trace plot
 % ax2           axes handle to the map
 %
-% Last modified by sirawich-at-princeton.edu, 09/10/2021
+% Last modified by sirawich-at-princeton.edu, 09/13/2021
 
 %% create figures
 fig1 = figure(1);
@@ -46,7 +50,7 @@ window_right = 5;
 for ii = 1:length(allfiles)
     [SeisData, HdrData, ~, ~, tims]=readsac(allfiles{ii});
     [dt_ref, dt_B, dt_E, fs, npts, dts, ~] = gethdrinfo(HdrData);
-    eqid = HdrData.USER6;
+    eqid = HdrData.USER7;
     if ii == 1
         % set the overall y-limit
         dist_limit = [HdrData.GCARC HdrData.GCARC];
@@ -66,14 +70,48 @@ for ii = 1:length(allfiles)
     x = real(counts2pa(SeisData, fs));
     % filter out the ambient noise below 1 Hz
     x = bandpass(x, fs, 1, 2, 2, 1, 'butter', 'linear');
-    wh = and(tims >= HdrData.T0 + window_left, tims <= HdrData.T0 + window_right);
-    x = x(wh);
-    t = tims(wh) - HdrData.T0;
+    % figure out time axis given the option
+    switch op1
+        case 1
+            wh = and(tims >= HdrData.T0 + window_left, ...
+                tims <= HdrData.T0 + window_right);
+            x = x(wh);
+            t = tims(wh) - HdrData.T0;
+            idx = length(t) + 1 - sum(t >= - HdrData.USER4);
+        case 2
+            wh = and(tims >= HdrData.T0 - HdrData.USER4 + window_left, ...
+                tims <= HdrData.T0 - HdrData.USER4 + window_right);
+            x = x(wh);
+            t = tims(wh) - (HdrData.T0 - HdrData.USER4);
+            idx = length(t) + 1 - sum(t >= HdrData.USER4);
+        otherwise
+            t = seconds(tims) + dt_ref;
+            idx = -1;
+            if ii == 1
+                time_limit = [t(1) t(end)];
+            else
+                if t(1) < time_limit(1)
+                    time_limit(1) = t(1);
+                end
+                if t(end) > time_limit(2)
+                    time_limit(2) = t(end);
+                end
+            end
+    end
     x = x / max(abs(x));
-    signalplot(x + HdrData.GCARC, fs, t(1), ax1, [], [], ...
-        rgbcolor(string(mod(ii-1,7)+1)), ...
-        'LineWidth', 1);
-    text(ax1, -8, HdrData.GCARC + 0.7, HdrData.KSTNM, ...
+    if and(idx > 1, idx < length(t))
+        signalplot(x(1:idx) + HdrData.GCARC, fs, t(1), ax1, [], [], ...
+            rgbcolor(string(mod(ii-1,7)+1)), ...
+            'LineWidth', 1);
+        signalplot(x(idx:end) + HdrData.GCARC, fs, t(idx), ax1, [], [], ...
+            rgbcolor(string(mod(ii-1,7)+1)), ...
+            'LineWidth', 2);
+    else
+        signalplot(x + HdrData.GCARC, fs, t(1), ax1, [], [], ...
+            rgbcolor(string(mod(ii-1,7)+1)), ...
+            'LineWidth', 1);
+    end
+    text(ax1, t(40), HdrData.GCARC + 0.7, HdrData.KSTNM, ...
         'Color', rgbcolor(string(mod(ii-1,7)+1)), ...
         'FontSize', 12);
     % plot the path from source to station
@@ -88,13 +126,25 @@ for ii = 1:length(allfiles)
         'MarkerFaceAlpha', 0.7);
 end
 % plot the source
-addfocalmech(ax2, 'PublicID', sprintf('%d', HdrData.USER6));
-ax1.XLim = [window_left window_right];
+addfocalmech(ax2, 'PublicID', sprintf('%d', HdrData.USER7));
+
+%% seismogram plot decoration
+if op1 == 1
+    ax1.XLim = [window_left window_right];
+    ax1.XLabel.String = 'time relative to picked first P-wave arrival (s)';
+elseif op1 == 2
+    ax1.XLim = [window_left window_right];
+    ax1.XLabel.String = 'time relative to predicted first P-wave arrival (s)';    
+else
+    ax1.XLim = time_limit;
+    ax1.XLabel.String = 'absolute time (hh:mm)';
+end
 ax1.YLim = dist_limit + [-1 2];
 ax1.YLabel.String = 'distance (degrees)';
-ax1.XLabel.String = 'time relative to first P-wave arrival (s)';
 ax1.Title.String = sprintf('Event ID: %d, Magnitude: %4.2f, Depth: %6.2f km', eqid, HdrData.MAG, HdrData.EVDP);
 ax1.FontSize = 12;
+
+%% map decoration
 % ticks label
 ax2.XTick = 0:30:360;
 ax2.XTickLabel = {'0', '30', '60', '90', '120', '150', '180', '-150', ...
