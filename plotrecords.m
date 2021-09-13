@@ -12,7 +12,7 @@ function [ax1, ax2] = plotrecords(allfiles)
 % ax1           axes handle to the seismic trace plot
 % ax2           axes handle to the map
 %
-% Last modified by sirawich-at-princeton.edu, 09/03/2021
+% Last modified by sirawich-at-princeton.edu, 09/10/2021
 
 %% create figures
 fig1 = figure(1);
@@ -40,24 +40,17 @@ grid on
 handlp.Color = 'r';
 
 %% plot all seismograms and source, paths, and stations on the map
+% limits of the time window of the seismograms
+window_left = -10;
+window_right = 5;
 for ii = 1:length(allfiles)
     [SeisData, HdrData, ~, ~, tims]=readsac(allfiles{ii});
     [dt_ref, dt_B, dt_E, fs, npts, dts, ~] = gethdrinfo(HdrData);
     eqid = HdrData.USER6;
     if ii == 1
-%         % set the overall x-limit
-%         dt_B_all = dt_B;
-%         dt_E_all = dt_E;
         % set the overall y-limit
         dist_limit = [HdrData.GCARC HdrData.GCARC];
     else
-%         % set the overall x-limit
-%         if dt_B < dt_B_all
-%             dt_B_all = dt_B;
-%         end
-%         if dt_E > dt_E_all
-%             dt_E_all = dt_E;
-%         end
         % set the overall y-limit
         if HdrData.GCARC < dist_limit(1)
             dist_limit(1) = HdrData.GCARC;
@@ -69,9 +62,11 @@ for ii = 1:length(allfiles)
     if isnan(HdrData.T0) || HdrData.T0 == -12345
         continue
     end
+    % convert digital counts to pressure
     x = real(counts2pa(SeisData, fs));
-    x = bandpass(x, fs, 1, 10, 2, 2, 'butter', 'linear');
-    wh = and(tims >= HdrData.T0 - 10, tims <= HdrData.T0 + 20);
+    % filter out the ambient noise below 1 Hz
+    x = bandpass(x, fs, 1, 2, 2, 1, 'butter', 'linear');
+    wh = and(tims >= HdrData.T0 + window_left, tims <= HdrData.T0 + window_right);
     x = x(wh);
     t = tims(wh) - HdrData.T0;
     x = x / max(abs(x));
@@ -91,17 +86,10 @@ for ii = 1:length(allfiles)
         'MarkerEdgeAlpha', 0.7, ...
         'MarkerFaceColor', rgbcolor(string(mod(ii-1,7)+1)), ...
         'MarkerFaceAlpha', 0.7);
-    % plot the source
-%     scatter(ax2, mod(HdrData.EVLO,360), HdrData.EVLA, 80, ...
-%         'Marker', 'p', ...
-%         'MarkerEdgeColor', rgbcolor('k'), ...
-%         'MarkerEdgeAlpha', 0.7, ...
-%         'MarkerFaceColor', 'y', ...
-%         'MarkerFaceAlpha', 0.7);
 end
 % plot the source
 addfocalmech(ax2, 'PublicID', sprintf('%d', HdrData.USER6));
-ax1.XLim = [-10 20];
+ax1.XLim = [window_left window_right];
 ax1.YLim = dist_limit + [-1 2];
 ax1.YLabel.String = 'distance (degrees)';
 ax1.XLabel.String = 'time relative to first P-wave arrival (s)';
