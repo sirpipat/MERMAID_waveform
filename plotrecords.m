@@ -1,5 +1,5 @@
 function [ax1, ax2] = plotrecords(allfiles, op1, op2, op3, op4, op5)
-% [ax1, ax2] = PLOTRECORDS(allfiles, op1)
+% [ax1, ax2] = PLOTRECORDS(allfiles, op1, op2, op3, op4, op5)
 %
 % Plots the seismic traces of all stations (sorted by names?) and the map
 % containing all stations and the source. All first P-wave arrivals of 
@@ -11,6 +11,18 @@ function [ax1, ax2] = plotrecords(allfiles, op1, op2, op3, op4, op5)
 %               1  --   relative to picked first P arrival
 %               2  --   relative to model ak135
 %               3  --   absolute time
+% op2           options for y-axis ticks
+%               1  --   regular spacing (e.g. 10,15,20,25,...)
+%               2  --   at the traces
+% op3           options for y-axis
+%               1  --   distance (degrees)
+%               2  --   azimuth
+% op4           options for trace scalings
+%               1  --   individual
+%               2  --   collective
+% op5           options for Fourier subtractions
+%               1  --   original, no subtract
+%               2  --   Fourier subtraction extension
 %
 % OUTPUT:
 % ax1           axes handle to the seismic trace plot
@@ -44,25 +56,56 @@ grid on
 handlp.Color = 'r';
 
 %% plot all seismograms and source, paths, and stations on the map
+% store distances and azimuths of all traces
+dists = zeros(1, length(allfiles));
+azs = zeros(1, length(allfiles));
+
 % limits of the time window of the seismograms
 window_left = -10;
 window_right = 5;
 for ii = 1:length(allfiles)
     [SeisData, HdrData, ~, ~, tims]=readsac(allfiles{ii});
     [dt_ref, dt_B, dt_E, fs, npts, dts, ~] = gethdrinfo(HdrData);
+    
+    % store distances and azimuths of all traces
+    dists(1, ii) = HdrData.GCARC;
+    azs(1, ii) = HdrData.AZ;
+    
     eqid = HdrData.USER7;
-    if ii == 1
+   
+    if op3 == 1
+        y_offset = HdrData.GCARC;
+        datastring = sprintf('azimuth = %.4f', HdrData.AZ);
+        
         % set the overall y-limit
-        dist_limit = [HdrData.GCARC HdrData.GCARC];
+        if ii == 1
+            y_limit = [HdrData.GCARC HdrData.GCARC];
+        else
+            if HdrData.GCARC < y_limit(1)
+                y_limit(1) = HdrData.GCARC;
+            end
+            if HdrData.GCARC > y_limit(2)
+                y_limit(2) = HdrData.GCARC;
+            end
+        end 
     else
+        y_offset = HdrData.AZ;
+        datastring = sprintf('distance = %.4f', HdrData.GCARC);
+        
         % set the overall y-limit
-        if HdrData.GCARC < dist_limit(1)
-            dist_limit(1) = HdrData.GCARC;
-        end
-        if HdrData.GCARC > dist_limit(2)
-            dist_limit(2) = HdrData.GCARC;
+        if ii == 1
+            y_limit = [HdrData.AZ HdrData.AZ];
+        else
+            if HdrData.AZ < y_limit(1)
+                y_limit(1) = HdrData.AZ;
+            end
+            if HdrData.AZ > y_limit(2)
+                y_limit(2) = HdrData.AZ;
+            end
         end
     end
+
+    
     if isnan(HdrData.T0) || HdrData.T0 == -12345
         continue
     end
@@ -100,18 +143,18 @@ for ii = 1:length(allfiles)
     end
     x = x / max(abs(x));
     if and(idx > 1, idx < length(t))
-        signalplot(x(1:idx) + HdrData.GCARC, fs, t(1), ax1, [], [], ...
+        signalplot(x(1:idx) + y_offset, fs, t(1), ax1, [], [], ...
             rgbcolor(string(mod(ii-1,7)+1)), ...
             'LineWidth', 1);
-        signalplot(x(idx:end) + HdrData.GCARC, fs, t(idx), ax1, [], [], ...
+        signalplot(x(idx:end) + y_offset, fs, t(idx), ax1, [], [], ...
             rgbcolor(string(mod(ii-1,7)+1)), ...
             'LineWidth', 2);
     else
-        signalplot(x + HdrData.GCARC, fs, t(1), ax1, [], [], ...
+        signalplot(x + y_offset, fs, t(1), ax1, [], [], ...
             rgbcolor(string(mod(ii-1,7)+1)), ...
             'LineWidth', 1);
     end
-    text(ax1, t(40), HdrData.GCARC + 0.7, HdrData.KSTNM, ...
+    text(ax1, t(40), y_offset + 0.7, [HdrData.KSTNM ', ' datastring], ...
         'Color', rgbcolor(string(mod(ii-1,7)+1)), ...
         'FontSize', 12);
     % plot the path from source to station
@@ -139,8 +182,22 @@ else
     ax1.XLim = time_limit;
     ax1.XLabel.String = 'absolute time (hh:mm)';
 end
-ax1.YLim = dist_limit + [-1 2];
-ax1.YLabel.String = 'distance (degrees)';
+
+% manage Y-axis (distance or azimuth)
+if op3 == 1
+    ax1.YLim = y_limit + [-1 2];
+    if op2 == 2
+        ax1.YTick = sort(dists);
+    end
+    ax1.YLabel.String = 'distance (degrees)';
+else
+    ax1.YLim = y_limit + [-1 2];
+    if op2 == 2
+        ax1.YTick = sort(azs);
+    end
+    ax1.YLabel.String = 'azimuth (degrees)';
+end
+
 ax1.Title.String = sprintf('Event ID: %d, Magnitude: %4.2f, Depth: %6.2f km', eqid, HdrData.MAG, HdrData.EVDP);
 ax1.FontSize = 12;
 
