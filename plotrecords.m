@@ -69,6 +69,39 @@ azs = zeros(1, length(allfiles));
 % limits of the time window of the seismograms
 window_left = -10;
 window_right = 5;
+
+% find the collective scaling
+if op4 == 2
+    for ii = 1:length(allfiles)
+        [SeisData, HdrData, ~, ~, tims]=readsac(allfiles{ii});
+        [dt_ref, dt_B, dt_E, fs, npts, dts, ~] = gethdrinfo(HdrData);
+        % convert digital counts to pressure
+        x = real(counts2pa(SeisData, fs));
+        % filter out the ambient noise below 1 Hz
+        x = bandpass(x, fs, 1, 2, 2, 1, 'butter', 'linear');
+        % figure out time axis given the option
+        switch op1
+            case 1
+                wh = and(tims >= HdrData.T0 + window_left, ...
+                    tims <= HdrData.T0 + window_right);
+                x = x(wh);
+            case 2
+                wh = and(tims >= HdrData.T0 - HdrData.USER4 + window_left, ...
+                    tims <= HdrData.T0 - HdrData.USER4 + window_right);
+                x = x(wh);
+            otherwise
+        end
+        x_max = max(abs(x));
+        if ii == 1
+            x_scale = x_max;
+        else
+            if x_max > x_scale
+                x_scale = x_max;
+            end
+        end
+    end
+end
+
 for ii = 1:length(allfiles)
     [SeisData, HdrData, ~, ~, tims]=readsac(allfiles{ii});
     [dt_ref, dt_B, dt_E, fs, npts, dts, ~] = gethdrinfo(HdrData);
@@ -147,7 +180,24 @@ for ii = 1:length(allfiles)
                 end
             end
     end
-    x = x / max(abs(x));
+    % scale the traces
+    if op4 == 1
+        x = x / max(abs(x));
+    else
+        x = x / x_scale;
+    end
+    % subtract up to 3 most significant noise frequencies
+    if op5 == 2
+        if op1 <= 2
+            [~, I] = min(abs(t+0.5));
+            [A, B, F] = bestsinefit(t(1:I), x(1:I), 0.1:0.1:4, 10);
+            xremove = (A * sin(2 * pi * F' * t) + B * cos(2 * pi * F' * t))';
+            x = x - xremove;
+        else
+            fprintf('Fourier subtraction has not been designed for absolute time yet\n');
+        end
+    end
+    
     if and(idx > 1, idx < length(t))
         signalplot(x(1:idx) + y_offset, fs, t(1), ax1, [], [], ...
             rgbcolor(string(mod(ii-1,7)+1)), ...
@@ -178,6 +228,9 @@ end
 addfocalmech(ax2, 'PublicID', sprintf('%d', HdrData.USER7));
 
 %% seismogram plot decoration
+ax1.Title.String = sprintf('Event ID: %d, Magnitude: %4.2f, Depth: %6.2f km', eqid, HdrData.MAG, HdrData.EVDP);
+ax1.FontSize = 12;
+
 if op1 == 1
     ax1.XLim = [window_left window_right];
     ax1.XLabel.String = 'time relative to picked first P-wave arrival (s)';
@@ -193,19 +246,26 @@ end
 if op3 == 1
     ax1.YLim = y_limit + [-1 2];
     if op2 == 2
-        ax1.YTick = sort(dists);
+        [D, I] = sort(dists);
+        ax1.YTick = D;
+        ax1b = doubleaxes(ax1);
+        ax1b.XAxis.Visible = 'off';
+        ax1b.YAxis.Label.String = 'azimuth (degrees)';
+        ax1b.YTickLabel = string(azs(I));
     end
     ax1.YLabel.String = 'distance (degrees)';
 else
     ax1.YLim = y_limit + [-1 2];
     if op2 == 2
-        ax1.YTick = sort(azs);
+        [A, I] = sort(azs);
+        ax1.YTick = A;
+        ax1b = doubleaxes(ax1);
+        ax1b.XAxis.Visible = 'off';
+        ax1b.YAxis.Label.String = 'distance (degrees)';
+        ax1b.YTickLabel = string(dists(I));
     end
     ax1.YLabel.String = 'azimuth (degrees)';
 end
-
-ax1.Title.String = sprintf('Event ID: %d, Magnitude: %4.2f, Depth: %6.2f km', eqid, HdrData.MAG, HdrData.EVDP);
-ax1.FontSize = 12;
 
 %% map decoration
 % ticks label
@@ -227,4 +287,17 @@ figdisp(sprintf('%s_%d_arrivals.eps', mfilename, eqid), [], [], 2, [], 'epstopdf
 figure(fig2);
 set(gcf, 'Renderer', 'painters')
 figdisp(sprintf('%s_%d_map.eps', mfilename, eqid), [], [], 2, [], 'epstopdf')
+end
+
+function [A, B, F] = bestsinefit(t, x, f, k)
+[A, B, C, ~, F, P] = sinefit(t, x, [], f);
+A = [0 sqrt(2)*A];
+B = [C sqrt(2)*B];
+
+% find k most significant frequency
+[~, I] = maxk(P, k);
+
+A = A(I);
+B = B(I);
+F = F(I);
 end
