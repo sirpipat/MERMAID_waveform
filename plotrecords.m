@@ -30,6 +30,12 @@ function [ax1, ax2] = plotrecords(allfiles, op1, op2, op3, op4, op5)
 %
 % Last modified by sirawich-at-princeton.edu, 09/13/2021
 
+defval('op1', 1)
+defval('op2', 1)
+defval('op3', 1)
+defval('op4', 1)
+defval('op5', 1)
+
 %% create figures
 fig1 = figure(1);
 set(gcf, 'Units', 'inches', 'Position', [2 2 8 10])
