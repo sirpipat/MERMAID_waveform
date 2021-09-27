@@ -28,7 +28,7 @@ function [ax1, ax2] = plotrecords(allfiles, op1, op2, op3, op4, op5)
 % ax1           axes handle to the seismic trace plot
 % ax2           axes handle to the map
 %
-% Last modified by sirawich-at-princeton.edu, 09/13/2021
+% Last modified by sirawich-at-princeton.edu, 09/17/2021
 
 defval('op1', 1)
 defval('op2', 1)
