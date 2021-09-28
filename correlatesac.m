@@ -1,5 +1,5 @@
-function [cc, tr, hdr] = correlatesac(allsacfiles, sortcriteria, arrcriteria, plt)
-% [ccs, tr, hdr] = CORRELATESAC(allsacfiles, sortcriteria, arrcriteria, plt)
+function [cc, tr, hdr] = correlatesac(allsacfiles, sortcriteria, arrcriteria, slide, plt)
+% [ccs, tr, hdr] = CORRELATESAC(allsacfiles, sortcriteria, arrcriteria, slide, plt)
 %
 % Computes and plots the correlation coefficients between seismograms for
 % the first 5 seconds after the first picked P-wave arrivals of all
@@ -7,26 +7,35 @@ function [cc, tr, hdr] = correlatesac(allsacfiles, sortcriteria, arrcriteria, pl
 %
 % INPUT
 % allsacfiles       cell array to full path to all sac files
-% sortcriteria      1 -- distance
+% sortcriteria      1 -- distance            [Default]
 %                   2 -- azimuth
-% arrcriteria       1 -- pick
+% arrcriteria       1 -- pick                [Default]
 %                   2 -- predicted (ak135)
-% plt               whether to plot or not
+% slide             amount of window slide   [Default: 0]
+% plt               whether to plot or not   [Default: true]
 %
 % OUTPUT
 % cc                correlation coefficients
 % tr                seismic traces, all sorted
 % hdr               sac headers, all sorted
 %
-% Last modified by sirawich-at-princeton.edu, 09/17/2021
+% Last modified by sirawich-at-princeton.edu, 09/27/2021
 
 defval('sortcriteria', 1)
 defval('arrcriteria', 1)
+defval('slide', 0)
 defval('plt', true)
 
 % limits of the time window of the seismograms
-window_left = 0;
-window_right = 5;
+if length(slide) > 1
+    for ii = 1:length(slide)
+        [cc, tr, hdr] = correlatesac(allsacfiles, sortcriteria, arrcriteria, slide(ii), plt);
+    end
+    return
+else
+    window_left = 0 + slide;
+    window_right = 5 + slide;
+end
 
 n = length(allsacfiles);
 % there is no point to correlate if the number of traces is below 2
@@ -150,6 +159,14 @@ if plt
     mag = hdr{1,1}.MAG;
     evdp = hdr{1,1}.EVDP;
     title(sprintf('Event ID: %d, Magnitude: %4.2f, Depth: %6.2f km', eqid, mag, evdp));
+    
+    ax2 = doubleaxes(gca);
+    ax2.YAxis.Visible = 'off';
+    if sortcriteria == 1
+        ax2.XTickLabel = string(round(dists, 1));
+    else
+        ax2.XTickLabel = string(round(azs, 1));
+    end
     
     filename = sprintf('%s_%d_ccplot.eps', mfilename, eqid);
     figdisp(filename, [], [], 2, [], 'epstopdf');
