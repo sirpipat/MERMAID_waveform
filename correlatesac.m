@@ -1,5 +1,5 @@
-function [cc, tr, hdr] = correlatesac(allsacfiles, sortcriteria, plt)
-% [ccs, tr, hdr] = CORRELATESAC(allsacfiles, sortcriteria, plt)
+function [cc, tr, hdr] = correlatesac(allsacfiles, sortcriteria, arrcriteria, plt)
+% [ccs, tr, hdr] = CORRELATESAC(allsacfiles, sortcriteria, arrcriteria, plt)
 %
 % Computes and plots the correlation coefficients between seismograms for
 % the first 5 seconds after the first picked P-wave arrivals of all
@@ -9,6 +9,8 @@ function [cc, tr, hdr] = correlatesac(allsacfiles, sortcriteria, plt)
 % allsacfiles       cell array to full path to all sac files
 % sortcriteria      1 -- distance
 %                   2 -- azimuth
+% arrcriteria       1 -- pick
+%                   2 -- predicted (ak135)
 % plt               whether to plot or not
 %
 % OUTPUT
@@ -17,6 +19,10 @@ function [cc, tr, hdr] = correlatesac(allsacfiles, sortcriteria, plt)
 % hdr               sac headers, all sorted
 %
 % Last modified by sirawich-at-princeton.edu, 09/17/2021
+
+defval('sortcriteria', 1)
+defval('arrcriteria', 1)
+defval('plt', true)
 
 % limits of the time window of the seismograms
 window_left = 0;
@@ -57,10 +63,17 @@ for ii = 1:n
     x = bandpass(x, fs, 1, 2, 2, 1, 'butter', 'linear');
     
     % cut sections between -10 and 5 s from picked arrival time
-    wh = and(tims >= HdrData.T0 + window_left, ...
-        tims <= HdrData.T0 + window_right);
-    x = x(wh);
-    tims = tims(wh) - HdrData.T0;
+    if arrcriteria == 1
+        wh = and(tims >= HdrData.T0 + window_left, ...
+            tims <= HdrData.T0 + window_right);
+        x = x(wh);
+        tims = tims(wh) - HdrData.T0;
+    else
+        wh = and(tims >= HdrData.T0 - HdrData.USER4 + window_left, ...
+            tims <= HdrData.T0 - HdrData.USER4 + window_right);
+        x = x(wh);
+        tims = tims(wh) - (HdrData.T0 - HdrData.USER4);
+    end
     
     % Remove the last data point in case the number of data points is
     % rounded up. It is essential for correlation coefficient computation.
