@@ -39,7 +39,7 @@ if length(slide) > 1
     % run the first slide value to check the number of valid station
     try
         [cc_slide, tr, hdr] = correlatesac(allsacfiles, sortcriteria, ...
-            arrcriteria, slide(1), plt, 'jpg');
+            arrcriteria, slide(1), win, plt, 'jpg');
         cc = zeros(length(slide), size(cc_slide, 1), size(cc_slide, 2));
         cc(1,:,:) = cc_slide;
         
@@ -58,7 +58,7 @@ if length(slide) > 1
     for ii = 2:length(slide)
         try
             [cc_slide, tr, hdr] = correlatesac(allsacfiles, sortcriteria, ...
-                arrcriteria, slide(ii), plt, 'jpg');
+                arrcriteria, slide(ii), win, plt, 'jpg');
             cc(ii,:,:) = cc_slide;
             
             % limits of the time window of the seismograms
