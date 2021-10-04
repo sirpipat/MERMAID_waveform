@@ -28,7 +28,7 @@ function [ax1, ax2] = plotrecords(allfiles, op1, op2, op3, op4, op5)
 % ax1           axes handle to the seismic trace plot
 % ax2           axes handle to the map
 %
-% Last modified by sirawich-at-princeton.edu, 09/17/2021
+% Last modified by sirawich-at-princeton.edu, 10/04/2021
 
 defval('op1', 1)
 defval('op2', 1)
@@ -252,7 +252,7 @@ for ii = 1:length(allfiles)
         'MarkerFaceAlpha', 0.7);
 end
 % plot the source
-addfocalmech(ax2, 'PublicID', sprintf('%d', HdrData.USER7));
+addfocalmech(ax2, [], 'PublicID', sprintf('%d', HdrData.USER7));
 
 %% seismogram plot decoration
 ax1.Title.String = sprintf('Event ID: %d, Magnitude: %4.2f, Depth: %6.2f km', eqid, HdrData.MAG, HdrData.EVDP);
