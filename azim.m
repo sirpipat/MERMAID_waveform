@@ -13,9 +13,9 @@ function [azDeg, bazDeg] = azim(lon1lat1, lon2lat2)
 %                   direction from the ending point
 %
 % SEE ALSO:
-% GRCDIST
+% GRCDIST, AZIMDIST
 %
-% Last modified by sirawich-at-princeton.edu, 10/07/2021
+% Last modified by sirawich-at-princeton.edu, 10/11/2021
 
 % Conversion to radians
 lon1lat1=lon1lat1 * pi / 180;
