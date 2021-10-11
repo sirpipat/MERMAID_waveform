@@ -11,7 +11,10 @@ function [ax, axs] = azdistplot(obs, syn)
 % ax            axes handle to the plot
 % axs           axes handle of the beachball
 %
-% Last modified by sirawich-at-princeton.edu, 10/07/2021
+% SEE ALSO:
+% AZIMPROJ
+%
+% Last modified by sirawich-at-princeton.edu, 10/11/2021
 
 % convert degrees to radians
 deg2rad = pi / 180;
@@ -48,12 +51,7 @@ figure(10)      % placeholder for the plotcont (unused)
 [~, ~, xy, ~] = plotcont([0 90], [360 -90], 1, 0);
 delete(figure(10))
 figure(1)
-distDeg = zeros(size(xy, 1), 1);
-azDeg = zeros(size(xy, 1), 1);
-for ii = 1:length(distDeg)          
-    [~,distDeg(ii)] = grcdist(xy(ii,:), eventloc);
-    [azDeg(ii),~] = azim(eventloc, xy(ii,:));  
-end
+[azDeg, distDeg] = azimproj(eventloc, xy);
 polarplot(azDeg * deg2rad, distDeg, 'k')
 
 % plot plates
@@ -61,12 +59,7 @@ figure(10)
 [~, xy] = plotplates([0 90], [360 -90], 1);
 delete(figure(10))
 figure(1)
-distDeg = zeros(size(xy, 1), 1);
-azDeg = zeros(size(xy, 1), 1);
-for ii = 1:length(distDeg)          
-    [~,distDeg(ii)] = grcdist(xy(ii,:), eventloc);
-    [azDeg(ii),~] = azim(eventloc, xy(ii,:));  
-end
+[azDeg, distDeg] = azimproj(eventloc, xy);
 polarplot(azDeg * deg2rad, distDeg, 'r')
 
 % plot stations
