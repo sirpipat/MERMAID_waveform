@@ -1,7 +1,7 @@
 function xq = shannon(t, x, tq)
 % xq = SHANNON(t, x, tq)
 %
-% Interpolate a signal using Whittaker?Shannon interpolation formula.
+% Interpolate a signal using Whittaker-Shannon interpolation formula.
 %
 % INPUT:
 % t         time of the original signal, must be equally spaced
@@ -54,6 +54,7 @@ if ischar(t)
     grid on
     ylabel('difference')
     xlabel('t')
+    return
 end
 
 if size(t, 2) > 1
@@ -69,9 +70,6 @@ end
 % sampling period
 dt = t(2) - t(1);
 
-% index number
-n = t / dt;
-
 % Whittaker?Shannon interpolation formula
-xq = sinc(tq / dt - n') * x;
+xq = sinc((repmat(tq, 1, length(t)) - repmat(t', length(tq), 1)) / dt) * x;
 end
