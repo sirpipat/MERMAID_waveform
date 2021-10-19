@@ -15,7 +15,7 @@ function xq = shannon(t, x, tq)
 % % run a demo
 % shannon('demo');
 %
-% Last modified by sirawich-at-princeton.edu, 10/11/2021
+% Last modified by sirawich-at-princeton.edu, 10/19/2021
 
 % demo
 if ischar(t)
@@ -70,6 +70,6 @@ end
 % sampling period
 dt = t(2) - t(1);
 
-% Whittaker?Shannon interpolation formula
+% Whittaker-Shannon interpolation formula
 xq = sinc((repmat(tq, 1, length(t)) - repmat(t', length(tq), 1)) / dt) * x;
 end
