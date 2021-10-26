@@ -98,7 +98,8 @@ end
 xmin = 0;
 xmax = 20000;
 width = xmax - xmin;
-nx = width * 9 / 400; % mean element size is 44.44 m
+elemsize = 400/9; % mean element size is 44.44 m (for T_phase, it is 100 m)
+nx = width / elemsize;
 
 % set interfaces
 % bottom
@@ -109,8 +110,8 @@ itf2.npts = 401;
 x = linspace(xmin, xmax, itf2.npts)';
 switch lower(topo)
     case 'sloped'
-        A = 3200 * random('unif', 0.9, 1.1);
-        B = 4800 * random('unif', 0.9, 1.1);
+        A = 4200 * random('unif', 0.99, 1.01);
+        B = 4800 * random('unif', 0.99, 1.01);
         x0 = 5400 * random('unif', 0.9, 1.1);
         x1 = 1000 * random('unif', 0.9, 1.1);
         z = B + A/2 * (1 + tanh(- (x - x0) / x1));
@@ -163,12 +164,12 @@ switch lower(solid)
         itf4.pts = [x,z];
         itfs = {itf1, itf4, itf2, itf3};
         % set layers [crust1 crust2 ocean]
-        nz = zmax * 9 / 400;
+        nz = zmax / elemsize;
         layers = [nz/4 nz/4 nz/2];
     otherwise
         itfs = {itf1, itf2, itf3};
         % set layers [crust ocean]
-        nz = zmax * 9 / 400;
+        nz = zmax / elemsize;
         layers = [nz/2 nz/2];
 end
 
@@ -348,9 +349,36 @@ receiverset2 = struct(...
     'record_at_surface_same_vertical'   , false   ...
 );
 
-receiversets = {receiverset1, receiverset2};
+% receiverset2 = struct(...
+%     'nrec'                              , 56    , ...
+%     'xdeb'                              , 16500  , ...
+%     'zdeb'                              , 8100  , ...
+%     'xfin'                              , 99000 , ...
+%     'zfin'                              , 8100  , ...
+%     'record_at_surface_same_vertical'   , false   ...
+% );
+% 
+% receiverset3 = struct(...
+%     'nrec'                              , 29    , ...
+%     'xdeb'                              , 50000 , ...
+%     'zdeb'                              , 4950  , ...
+%     'xfin'                              , 50000 , ...
+%     'zfin'                              , 9450  , ...
+%     'record_at_surface_same_vertical'   , false   ...
+% );
+% 
+% receiverset4 = struct(...
+%     'nrec'                              , 29    , ...
+%     'xdeb'                              , 95000 , ...
+%     'zdeb'                              , 4950  , ...
+%     'xfin'                              , 95000 , ...
+%     'zfin'                              , 9450  , ...
+%     'record_at_surface_same_vertical'   , false   ...
+% );
 
-params.seismotype = 4;
+receiversets = {receiverset2, receiverset1};
+
+params.seismotype = 2;
 params.nreceiversets = 2;
 params.RECEIVERS = receiversets;
 
@@ -360,8 +388,8 @@ params = writestations(params, sprintf('%sDATA/STATIONS', outputdir));
 %% define other parameters
 params.title = sprintf('fluid/solid interface : %s', name);
 params.time_stepping_scheme = 1;
-params.NSTEP = 25000;
-params.DT = 5e-4;
+params.NSTEP = 25000;   % T_phase 100000
+params.DT = 5e-4;       % T_phase 1e-3
 %% write Par_file
 writeparfile(params, sprintf('%sDATA/Par_file_%s', outputdir, name));
 %% write a supplementary file for runthisexample.m
