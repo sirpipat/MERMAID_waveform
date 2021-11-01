@@ -12,7 +12,7 @@ function updatesynthetics_routine(synmasterdir, plt)
 % SEE ALSO:
 % UPDATESYNTHETICS
 %
-% Last modified by sirawich-at-princeton.edu, 10/26/2021
+% Last modified by sirawich-at-princeton.edu, 11/01/2021
 
 defval('synmasterdir', '/Users/sirawich/research/processed_data/SYNTHETICS/')
 defval('plt', false)
@@ -27,7 +27,7 @@ for ii = 1:dndex
             figure(1);
             clf
             [SeisData, HdrData] = readsac(allsynfiles{jj});
-            ax = plotsac(SeisData, HdrData, gca, 'Color', 'k');
+            ax = plotsac2(SeisData, HdrData, gca, 'Color', 'k');
             ax.Box = 'on';
             savename = sprintf('plotsynthetic_%d_%s.eps', ...
                 HdrData.USER7, replace(HdrData.KSTNM, ' ', ''));
