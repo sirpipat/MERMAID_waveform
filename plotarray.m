@@ -1,10 +1,11 @@
-function fig = plotarray(ddir, network, savedir, savename, sv)
-% fig = PLOTARRAY(ddir, network, savedir, savename, sv)
+function fig = plotarray(ddir, name, network, savedir, savename, sv)
+% fig = PLOTARRAY(ddir, name, network, savedir, savename, sv)
 %
 % Plots seismograms from all stations in a network.
 %
 % INPUT:
 % ddir          main directory of the simulation
+% name          name of the model               [Defalut: removepath(ddir(1:end-1))]
 % network       network name
 % savedir       directory for the saved file    [Default: $EPS]
 % savename      name of the saved file
@@ -13,8 +14,9 @@ function fig = plotarray(ddir, network, savedir, savename, sv)
 % OUTPUT:
 % fig           figure handle for the plot
 %
-% Last modified by sirawich@princeton.edu, 08/30/2021
+% Last modified by sirawich@princeton.edu, 10/26/2021
 
+defval('name', removepath(ddir(1:end-1)))
 defval('savedir', getenv('EPS'))
 defval('savename', network)
 defval('sv', true)
@@ -68,8 +70,7 @@ ax1.YLim = [0 length(seisfiles)+1];
 
 % draw the setting
 ax2 = subplot('Position', [0.02 0.02 0.96 0.4], 'Box', 'on', 'FontSize', 12);
-example = removepath(ddir(1:end-1));
-interfacefile = [ddir 'DATA/interfaces_' example '.dat'];
+interfacefile = [ddir 'DATA/interfaces_' name '.dat'];
 ax2 = drawbackground(interfacefile, ax2);
 % locate stations in the array
 [~, ~, networks, x, z] = read_stations([ddir 'DATA/STATIONS']);
