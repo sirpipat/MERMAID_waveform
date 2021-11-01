@@ -15,7 +15,7 @@ function updatesynthetics(fname, model)
 % KTn           phase name of n-th phase
 % USER9         ray parameter of the first arrival phase
 %
-% Last modified by sirawich-at-princeton.edu, 10/25/2021
+% Last modified by sirawich-at-princeton.edu, 11/01/2021
 
 defval('model', 'ak135')
 
@@ -27,6 +27,23 @@ tt = taupTime(model, HdrData.EVDP, 'p,s,P,S,Pdiff,Sdiff,PKP,SKS,PKIKP,SKIKS', ..
     'sta', [HdrData.STLA HdrData.STLO], ...
     'evt', [HdrData.EVLA HdrData.EVLO]);
 
+% keep only one arrival for each phase
+ph = cell(size(tt));
+for ii = 1:length(ph)
+    ph{ii} = tt(ii).phaseName;
+end
+[~, ia] = unique(ph);
+tt = tt(ia);
+
+% sort the arrivals by time
+tp = zeros(size(tt));
+for ii = 1:length(tp)
+    tp(ii). tt(ii).time;
+end
+[~, is] = sort(tp);
+tt = tt(is);
+
+% clear the existing arrival-time tags
 HdrData.T0 = -12345;
 HdrData.T1 = -12345;
 HdrData.T2 = -12345;
