@@ -23,7 +23,7 @@ defval('model', 'ak135')
 [SeisData, HdrData] = readsac(fname);
 
 % compute theoretical travel times
-tt = taupTime(model, HdrData.EVDP, 'p,s,P,S,Pdiff,Sdiff,PKP,SKS,PKIKP,SKIKS', ...
+tt = taupTime(model, HdrData.EVDP, 'p,s,P,S,PP,SS,PcP,ScS,Pdiff,Sdiff,PKP,SKS,PKIKP,SKIKS', ...
     'sta', [HdrData.STLA HdrData.STLO], ...
     'evt', [HdrData.EVLA HdrData.EVLO]);
 
@@ -38,7 +38,7 @@ tt = tt(ia);
 % sort the arrivals by time
 tp = zeros(size(tt));
 for ii = 1:length(tp)
-    tp(ii). tt(ii).time;
+    tp(ii) = tt(ii).time;
 end
 [~, is] = sort(tp);
 tt = tt(is);
