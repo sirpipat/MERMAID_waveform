@@ -24,11 +24,8 @@ for ii = 1:dndex
     for jj = 1:sndex
         updatesynthetics(allsynfiles{jj}, 'ak135');
         if plt
-            figure(1);
-            clf
             [SeisData, HdrData] = readsac(allsynfiles{jj});
-            ax = plotsac2(SeisData, HdrData, gca, 'Color', 'k');
-            ax.Box = 'on';
+            plotsac2(SeisData, HdrData, 'Color', 'k');
             savename = sprintf('plotsynthetic_%d_%s.eps', ...
                 HdrData.USER7, replace(HdrData.KSTNM, ' ', ''));
             figdisp(savename,[],[],2,[],'epstopdf');
