@@ -15,17 +15,32 @@ function updatesynthetics(fname, model)
 % KTn           phase name of n-th phase
 % USER9         ray parameter of the first arrival phase
 %
-% Last modified by sirawich-at-princeton.edu, 11/01/2021
+% Last modified by sirawich-at-princeton.edu, 11/02/2021
 
 defval('model', 'ak135')
 
 % read a synthetic SAC file
 [SeisData, HdrData] = readsac(fname);
 
-% compute theoretical travel times
-tt = taupTime(model, HdrData.EVDP, 'p,s,P,S,PP,SS,PcP,ScS,Pdiff,Sdiff,PKP,SKS,PKIKP,SKIKS', ...
+% compute theoretical travel times at the ocean bottom below MERMAID.
+% [lat lon] of the receiver is slightly shifted if incident angle is not
+% close to zero.
+tt = taupPierce(model, HdrData.EVDP, ...
+    'p,s,P,S,PP,SS,PKP,SKS,PKIKP,SKIKS', ...
     'sta', [HdrData.STLA HdrData.STLO], ...
-    'evt', [HdrData.EVLA HdrData.EVLO]);
+    'evt', [HdrData.EVLA HdrData.EVLO], ...
+    'pierce', -HdrData.STEL/1000, 'nodiscon');
+
+% remove all zero piercings
+for ii = 1:length(tt)
+    index = length(tt(ii).pierce.p);
+    while tt(ii).pierce.time(index) <= 0 && index > 1
+        index = index - 1;
+    end
+    tt(ii).time = tt(ii).pierce.time(index);
+    tt(ii).distance = tt(ii).pierce.distance(index);
+end
+
 
 % keep only one arrival for each phase
 ph = cell(size(tt));
