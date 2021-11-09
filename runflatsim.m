@@ -24,7 +24,7 @@ function outputdirs = runflatsim(sacfile, ddir, specfembin)
 % SEE ALSO:
 % SPECFEM2D_INPUT_SETUP, RUNTHISEXAMPLE, UPDATEHEADER, UPDATESYNTHETICS
 %
-% Last modified by sirawich-at-princeton.edu, 11/08/2021
+% Last modified by sirawich-at-princeton.edu, 11/09/2021
 
 % specify where you want to keep the simulations input/output files
 defval('ddir', getenv('REMOTE2D'))
@@ -87,7 +87,7 @@ outputdir = sprintf('%s%s/', ddir, example);
 if HdrData.STDP == badval
     depth = 1500;
 else
-    depth = Hdrdata.STDP;
+    depth = HdrData.STDP;
 end
 
 if HdrData.STEL == badval
