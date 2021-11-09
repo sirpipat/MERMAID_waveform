@@ -14,7 +14,7 @@ function cctransplot(ddir1, ddir2, example)
 % SEE ALSO:
 % SPECFEM2D_INPUT_SETUP_FLAT, RUNFLATSIM
 % 
-% Last modified by sirawich-at-princeton.edu, 11/05/2021
+% Last modified by sirawich-at-princeton.edu, 11/09/2021
 
 % read the first arrival of at the ocean bottom
 [tims_o, seisdata_o] = getarrivaltemplate(ddir2, example);
@@ -34,8 +34,19 @@ w = ones(size(tims_o));
 t_cc = lags * (tims_o(2)-tims_o(1));
 
 % compute the transfer function
-tf = ifft((fft(seisdata_h .* w) .* conj(fft(seisdata_o .* w))) ./ ...
-    (fft(seisdata_o .* w) .* conj(fft(seisdata_o .* w)) + 1e-42));
+SEISDATA_O = fft(seisdata_o .* w);
+SEISDATA_H = fft(seisdata_h .* w);
+% Use damping factor
+d = abs(max(seisdata_o)).^2 * 1000;
+% d = 10 .^ (-45:0.1:-35)';
+% % minimize General Cross Validation function (GCV)
+% X = (abs(SEISDATA_O).^2) ./ (abs(SEISDATA_O).^2 + d);
+% GCV = sum((SEISDATA_H .* (1 - X)).^2, 2) ./ ...
+%     (length(SEISDATA_O) - sum(X, 2)) .^2;
+% d = d(GCV == min(GCV));
+
+tf = ifft(SEISDATA_H .* conj(SEISDATA_O) ./ ...
+    (SEISDATA_O .* conj(SEISDATA_O) + d));
 t_tf = (0:(length(tf)-1)) * (tims_o(2)-tims_o(1));
 
 % apply transfer function to obtain hydrophone pressure
@@ -44,16 +55,16 @@ x_h_tran = x_h_tran(1:length(seisdata_h));
 
 figure(1)
 clf
-set(gcf, 'Units', 'inches', 'Position', [0 6 6 8])
+set(gcf, 'Units', 'inches', 'Position', [0 6 6 9])
 
-ax1 = subplot('Position', [0.08 0.83 0.86 0.13], 'Box', 'on');
+ax1 = subplot('Position', [0.08 0.86 0.86 0.12], 'Box', 'on');
 plot(tims_o, seisdata_o, 'Color', 'k')
 xlim([tims_o(1) tims_o(end)])
 grid on
 xlabel('time (s)')
 title('First P-wave arrival, z-displacement, OBS')
 
-ax2 = subplot('Position', [0.08 0.57 0.86 0.13], 'Box', 'on');
+ax2 = subplot('Position', [0.08 0.66 0.86 0.12], 'Box', 'on');
 plot(tims_h, seisdata_h, 'Color', 'k')
 xlim([tims_o(1) tims_o(end)])
 grid on
@@ -63,27 +74,29 @@ xlabel('time (s)')
 title('Pressure record, MERMAID hydrophone')
 legend('observed', 'from response', 'Location', 'northwest')
 
-ax3 = subplot('Position', [0.08 0.32 0.86 0.13], 'Box', 'on');
+ax3 = subplot('Position', [0.08 0.46 0.86 0.12], 'Box', 'on');
+plot(tims_h, x_h_tran-seisdata_h, 'Color', 'k')
+grid on
+xlim([tims_h(1), tims_h(end)])
+xlabel('time (s)')
+title('Predicted - observed')
+
+ax4 = subplot('Position', [0.08 0.26 0.86 0.12], 'Box', 'on');
 plot(t_cc, cc, 'Color', 'k')
 xlim([tims_o(1) tims_o(end)])
 grid on
 xlabel('time (s)')
 title('Correlation coefficient')
 
-ax4 = subplot('Position', [0.08 0.07 0.86 0.13], 'Box', 'on');
+ax5 = subplot('Position', [0.08 0.06 0.86 0.12], 'Box', 'on');
 plot(t_tf, tf, 'Color', 'k')
 xlim([0 tims_o(end)-tims_o(1)])
 grid on
 xlabel('time (s)')
-title('response')
+title(sprintf('response, dampling factor = %0.5g', d))
 
-figure(2)
-clf
-set(gcf, 'Units', 'inches', 'Position', [0 1 6 4])
-ax5 = subplot(1,1,1, 'Box', 'on');
-plot(tims_h, x_h_tran-seisdata_h, 'Color', 'k')
-grid on
-xlim([tims_h(1), tims_h(end)])
-xlabel('time (s)')
-title('Predicted - observed')
+% save figure
+set(gcf, 'Renderer', 'painters')
+savename = sprintf('%s_%s.eps', mfilename, example);
+figdisp(savename, [], [], 2, [], 'epstopdf');
 end
