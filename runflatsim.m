@@ -104,10 +104,11 @@ outputdirs = specfem2d_input_setup_flat(example, -bottom, ...
     depth, 'homogeneous', 1, theta, [], outputdir);
 
 %% run the simulation
-for ii = 1:2
+poolobj = parpool('local', 2);
+parfor ii = 1:2
     runthisexample(example, outputdirs{ii}, specfembin);
 end
-
+delete(poolobj)
 %% analyze the data
 cctransplot(outputdirs{1}, outputdirs{2}, example);
 
