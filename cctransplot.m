@@ -79,7 +79,7 @@ plot(tims_h, x_h_tran-seisdata_h, 'Color', 'k')
 grid on
 xlim([tims_h(1), tims_h(end)])
 xlabel('time (s)')
-title('Predicted - observed')
+title('from response - observed')
 
 ax4 = subplot('Position', [0.08 0.26 0.86 0.12], 'Box', 'on');
 plot(t_cc, cc, 'Color', 'k')
@@ -93,7 +93,7 @@ plot(t_tf, tf, 'Color', 'k')
 xlim([0 tims_o(end)-tims_o(1)])
 grid on
 xlabel('time (s)')
-title(sprintf('response, dampling factor = %0.5g', d))
+title(sprintf('response, damping factor = %0.5g', d))
 
 % save figure
 set(gcf, 'Renderer', 'painters')
