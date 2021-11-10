@@ -57,43 +57,48 @@ figure(1)
 clf
 set(gcf, 'Units', 'inches', 'Position', [0 6 6 9])
 
-ax1 = subplot('Position', [0.08 0.86 0.86 0.12], 'Box', 'on');
+ax1 = subplot('Position', [0.08 0.86 0.86 0.12]);
 plot(tims_o, seisdata_o, 'Color', 'k')
 xlim([tims_o(1) tims_o(end)])
 grid on
 xlabel('time (s)')
 title('First P-wave arrival, z-displacement, OBS')
+set(ax1, 'Box', 'on', 'TickDir', 'both');
 
-ax2 = subplot('Position', [0.08 0.66 0.86 0.12], 'Box', 'on');
+ax2 = subplot('Position', [0.08 0.66 0.86 0.12]);
 plot(tims_h, seisdata_h, 'Color', 'k')
 xlim([tims_o(1) tims_o(end)])
 grid on
 hold on
-plot(tims_h, x_h_tran, 'Color', 'r')
+plot(tims_h, x_h_tran, 'Color', [0.9 0.3 0.1])
 xlabel('time (s)')
 title('Pressure record, MERMAID hydrophone')
 legend('observed', 'from response', 'Location', 'northwest')
+set(ax2, 'Box', 'on', 'TickDir', 'both');
 
-ax3 = subplot('Position', [0.08 0.46 0.86 0.12], 'Box', 'on');
+ax3 = subplot('Position', [0.08 0.46 0.86 0.12]);
 plot(tims_h, x_h_tran-seisdata_h, 'Color', 'k')
 grid on
 xlim([tims_h(1), tims_h(end)])
 xlabel('time (s)')
 title('from response - observed')
+set(ax3, 'Box', 'on', 'TickDir', 'both');
 
-ax4 = subplot('Position', [0.08 0.26 0.86 0.12], 'Box', 'on');
+ax4 = subplot('Position', [0.08 0.26 0.86 0.12]);
 plot(t_cc, cc, 'Color', 'k')
 xlim([tims_o(1) tims_o(end)])
 grid on
 xlabel('time (s)')
 title('Correlation coefficient')
+set(ax4, 'Box', 'on', 'TickDir', 'both');
 
-ax5 = subplot('Position', [0.08 0.06 0.86 0.12], 'Box', 'on');
+ax5 = subplot('Position', [0.08 0.06 0.86 0.12]);
 plot(t_tf, tf, 'Color', 'k')
 xlim([0 tims_o(end)-tims_o(1)])
 grid on
 xlabel('time (s)')
 title(sprintf('response, damping factor = %0.5g', d))
+set(ax5, 'Box', 'on', 'TickDir', 'both');
 
 % save figure
 set(gcf, 'Renderer', 'painters')
