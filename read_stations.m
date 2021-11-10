@@ -13,10 +13,10 @@ function [n, name, network, x, z] = read_stations(fname)
 % x             x-coordinates
 % z             z-coordinates
 %
-% Last modified by Sirawich Pipatprathanporn, 11/01/2021
+% Last modified by Sirawich Pipatprathanporn, 11/09/2021
 
 % read the station file as a table
-opts = detectImportOptions(fname);
+opts = detectImportOptions(fname, 'FileType', 'text');
 T = readtable(fname, opts);
 
 % if the table is empty, assume the table has only one entry
