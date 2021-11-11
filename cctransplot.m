@@ -14,7 +14,7 @@ function cctransplot(ddir1, ddir2, example)
 % SEE ALSO:
 % SPECFEM2D_INPUT_SETUP_FLAT, RUNFLATSIM
 % 
-% Last modified by sirawich-at-princeton.edu, 11/09/2021
+% Last modified by sirawich-at-princeton.edu, 11/11/2021
 
 % read the first arrival of at the ocean bottom
 [tims_o, seisdata_o] = getarrivaltemplate(ddir2, example);
@@ -22,6 +22,10 @@ function cctransplot(ddir1, ddir2, example)
 % read the hydrophone pessure
 [tims_h, seisdata_h] = read_seismogram(sprintf('%sOUTPUT_FILES/%s.%s.PRE.semp', ...
     ddir1, 'AA', 'S0001'));
+
+% number of frequencies
+N = length(tims_o);
+nf = 2 ^ nextpow2(N);
 
 % tapering window
 %w = hann(length(tims_o))';
@@ -34,8 +38,8 @@ w = ones(size(tims_o));
 t_cc = lags * (tims_o(2)-tims_o(1));
 
 % compute the transfer function
-SEISDATA_O = fft(seisdata_o .* w);
-SEISDATA_H = fft(seisdata_h .* w);
+SEISDATA_O = fft(seisdata_o .* w, nf);
+SEISDATA_H = fft(seisdata_h .* w, nf);
 % Use damping factor
 d = abs(max(seisdata_o)).^2 * 1000;
 % d = 10 .^ (-45:0.1:-35)';
@@ -46,8 +50,9 @@ d = abs(max(seisdata_o)).^2 * 1000;
 % d = d(GCV == min(GCV));
 
 tf = ifft(SEISDATA_H .* conj(SEISDATA_O) ./ ...
-    (SEISDATA_O .* conj(SEISDATA_O) + d));
-t_tf = (0:(length(tf)-1)) * (tims_o(2)-tims_o(1));
+    (SEISDATA_O .* conj(SEISDATA_O) + d), nf);
+tf = tf(1:N);
+t_tf = (0:(N-1)) * (tims_o(2)-tims_o(1));
 
 % apply transfer function to obtain hydrophone pressure
 x_h_tran = conv(seisdata_o, tf);
