@@ -247,7 +247,7 @@ for kk = 1:2
     %% define other parameters
     params.title = sprintf('fluid/solid interface : %s', name);
     params.time_stepping_scheme = 1;
-    params.NSTEP = 25000;
+    params.NSTEP = 65000;
     params.DT = 5e-4;
     %% write Par_file
     writeparfile(params, sprintf('%sDATA/Par_file_%s', outputdir_kk, name));
