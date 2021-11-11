@@ -24,7 +24,7 @@ function outputdirs = runflatsim(sacfile, ddir, specfembin)
 % SEE ALSO:
 % SPECFEM2D_INPUT_SETUP, RUNTHISEXAMPLE, UPDATEHEADER, UPDATESYNTHETICS
 %
-% Last modified by sirawich-at-princeton.edu, 11/09/2021
+% Last modified by sirawich-at-princeton.edu, 11/11/2021
 
 % specify where you want to keep the simulations input/output files
 defval('ddir', getenv('REMOTE2D'))
@@ -110,6 +110,24 @@ parfor ii = 1:2
 end
 delete(poolobj)
 %% analyze the data
-cctransplot(outputdirs{1}, outputdirs{2}, example);
+% for SYNTHETIC output in dislacement vs. OBSERVED MERMAID pressure
+cctransplot(outputdirs{1}, outputdirs{2}, example, ...
+    {'bottom', 'displacement'}, {'hydrophone', 'pressure'});
+
+% for response function at the ocean bottom
+cctransplot(outputdirs{1}, outputdirs{2}, example, ...
+    {'bottom', 'displacement'}, {'bottom', 'pressure'});
+
+% displacment to pressure at the hydrophone
+cctransplot(outputdirs{1}, outputdirs{2}, example, ...
+    {'hydrophone', 'displacement'}, {'hydrophone', 'pressure'});
+
+% for pressure propagation from the bottom to the hydrophone
+cctransplot(outputdirs{1}, outputdirs{2}, example, ...
+    {'bottom', 'pressure'}, {'hydrophone', 'pressure'});
+
+% for reflection pattern
+cctransplot(outputdirs{1}, outputdirs{2}, example, ...
+    {'hydrophone', 'pressure'}, {'hydrophone', 'pressure'});
 
 end

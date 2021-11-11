@@ -1,5 +1,5 @@
-function [tims, seisdata] = getarrivaltemplate(ddir, example)
-% [tims, seisdata] = GETARRIVALTEMPLATE(ddir, example)
+function [tims, seisdata] = getarrivaltemplate(ddir, example, station)
+% [tims, seisdata] = GETARRIVALTEMPLATE(ddir, example, station)
 %
 % Returns the waveform of the first phase arrival assuming the most direct
 % path from the source array to the receiver. This function only works with
@@ -11,6 +11,7 @@ function [tims, seisdata] = getarrivaltemplate(ddir, example)
 % INPUT:
 % ddir          simulation directory
 % example       name for the model
+% station       either 'bottom' [default] or 'hydrophone'
 %
 % OUTPUT:
 % tims          times of the signal
@@ -19,7 +20,9 @@ function [tims, seisdata] = getarrivaltemplate(ddir, example)
 % SEE ALSO:
 % READ_SEISMOGRAM, SPECFEM2D_INPUT_SETUP_FLAT
 %
-% Last modified by sirawich-at-princeton.edu, 11/05/2021
+% Last modified by sirawich-at-princeton.edu, 11/11/2021
+
+defval('station', 'bottom')
 
 % read source-time function file
 fid = fopen(sprintf('%sOUTPUT_FILES/plot_source_time_function.txt', ddir), 'r');
@@ -45,15 +48,36 @@ dx = sources{2}.xs - sources{1}.xs;
 
 % read parameter file
 params = loadparfile(sprintf('%sDATA/Par_file_%s', ddir, example));
-vp = params.MODELS{1}.vp;
+vp = params.MODELS{1}.vp;       % P-wave velocity in the solid
+vc = params.MODELS{2}.vp;       % P-wave (acoustic) velocity in the fluid
 
 % calculate when the wave front arrive if it originates at t=0
 theta = asin(dt * vp / dx);
-t_travel = ((x(2) - x0) * sin(theta) + (z(2) - z0) * cos(theta)) / vp;
-
-% read the seismogram
-[tims, seisdata] = read_seismogram(sprintf('%sOUTPUT_FILES/%s.%s.BXZ.semd', ...
-    ddir, network{2}, name{2}));
+if strcmpi(station, 'bottom')
+    t_travel = ((x(2) - x0) * sin(theta) + (z(2) - z0) * cos(theta)) / vp;
+    % read the seismogram
+    try
+        [tims, seisdata] = read_seismogram(sprintf('%sOUTPUT_FILES/%s.%s.BXZ.semd', ...
+            ddir, network{2}, name{2}));
+    catch
+        [tims, seisdata] = read_seismogram(sprintf('%sOUTPUT_FILES/%s.%s.PRE.semp', ...
+            ddir, network{2}, name{2}));
+    end
+else
+    theta_w = asin(vc / vp * sin(theta));
+    t_travel_solid = ((x(2) - (z(1) - z(2)) * tan(theta_w) - x0) * ...
+        sin(theta) + (z(2) - z0) * cos(theta)) / vp;
+    t_travel_fluid = (z(1) - z(2)) / cos(theta_w) / vc;
+    t_travel = t_travel_solid + t_travel_fluid;
+    % read the seismogram
+    try
+        [tims, seisdata] = read_seismogram(sprintf('%sOUTPUT_FILES/%s.%s.BXZ.semd', ...
+            ddir, network{1}, name{1}));
+    catch
+        [tims, seisdata] = read_seismogram(sprintf('%sOUTPUT_FILES/%s.%s.PRE.semp', ...
+            ddir, network{1}, name{1}));
+    end
+end
 
 % remove any signal after the end of the first arrival
 wh = (tims > t0 + t_end + t_travel);
