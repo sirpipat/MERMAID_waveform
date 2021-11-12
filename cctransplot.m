@@ -34,17 +34,17 @@ function [t_cc, cc, t_rf, rf] = cctransplot(ddir1, ddir2, example, channel1, cha
 % Last modified by sirawich-at-princeton.edu, 11/11/2021
 
 defval('channel1', {'bottom' 'displacement'})
-defval('channel2', {'hyrophone' 'pressure'})
+defval('channel2', {'hydrophone' 'pressure'})
 
 % read the first arrival of the input signal
-if strcmpi(channel1{2}, 'disp')
+if strcmpi(channel1{2}, 'displacement')
     [tims_i, seisdata_i] = getarrivaltemplate(ddir2, example, channel1{1});
 else
     [tims_i, seisdata_i] = getarrivaltemplate(ddir1, example, channel1{1});
 end
 
 % read the output signal
-if strcmpi(channel2{2}, 'disp')
+if strcmpi(channel2{2}, 'displacement')
     ddir = ddir2;
     chan = 'BXZ.semd';
 else
