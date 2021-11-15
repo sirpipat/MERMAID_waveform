@@ -31,7 +31,7 @@ function [t_cc, cc, t_rf, rf] = cctransplot(ddir1, ddir2, example, channel1, cha
 % SEE ALSO:
 % SPECFEM2D_INPUT_SETUP_FLAT, RUNFLATSIM
 % 
-% Last modified by sirawich-at-princeton.edu, 11/11/2021
+% Last modified by sirawich-at-princeton.edu, 11/15/2021
 
 defval('channel1', {'bottom' 'displacement'})
 defval('channel2', {'hydrophone' 'pressure'})
@@ -59,6 +59,11 @@ end
 [tims_o, seisdata_o] = read_seismogram(sprintf('%sOUTPUT_FILES/%s.%s.%s', ...
     ddir, network, 'S0001', chan));
 
+% lowpass the signals
+dt = tims_i(2) - tims_i(1);
+seisdata_i = lowpass(seisdata_i, 1/dt, 5, 2, 2, 'butter', 'linear')';
+seisdata_o = lowpass(seisdata_o, 1/dt, 5, 2, 2, 'butter', 'linear')';
+
 % number of frequencies
 N = length(tims_i);
 nf = 2 ^ nextpow2(N);
@@ -71,19 +76,22 @@ w = ones(size(tims_i));
 
 % compute correlation coefficients
 [cc, lags] = xcorr(seisdata_o .* w, seisdata_i .* w, 'coeff');
-t_cc = lags * (tims_i(2)-tims_i(1));
+t_cc = lags * dt;
 
 % compute the transfer function
 SEISDATA_O = fft(seisdata_i .* w, nf);
 SEISDATA_H = fft(seisdata_o .* w, nf);
+
 % Use damping factor
-d = abs(max(seisdata_i)).^2 * 1000;
+% as 1000 times input-signal's amplitude squared (asq)
+asq = max(abs(seisdata_i)).^2;
+d = max(abs(seisdata_i)).^2 * 10;
 
 % compute the response
 rf = ifft(SEISDATA_H .* conj(SEISDATA_O) ./ ...
     max((SEISDATA_O .* conj(SEISDATA_O)), d), nf);
 rf = rf(1:N);
-t_rf = (0:(N-1)) * (tims_i(2)-tims_i(1));
+t_rf = (0:(N-1)) * dt;
 
 % apply response to obtain hydrophone pressure
 x_h_tran = conv(seisdata_i, rf);
@@ -109,7 +117,7 @@ hold on
 plot(tims_o, x_h_tran, 'Color', [0.9 0.3 0.1])
 xlabel('time (s)')
 title(sprintf('%s record, %s', channel2{2}, channel2{1}))
-legend('observed', 'from response', 'Location', 'northwest')
+legend('observed', 'from response', 'Location', 'northeast')
 set(ax2, 'Box', 'on', 'TickDir', 'both');
 
 ax3 = subplot('Position', [0.08 0.46 0.86 0.12]);
@@ -117,7 +125,8 @@ plot(tims_o, x_h_tran-seisdata_o, 'Color', 'k')
 grid on
 xlim([tims_o(1), tims_o(end)])
 xlabel('time (s)')
-title('from response - observed')
+title(sprintf('from response - observed, norm = %0.5g', ...
+    norm(x_h_tran-seisdata_o, 2)))
 set(ax3, 'Box', 'on', 'TickDir', 'both');
 
 ax4 = subplot('Position', [0.08 0.26 0.86 0.12]);
@@ -133,7 +142,7 @@ plot(t_rf, rf, 'Color', 'k')
 xlim([0 tims_i(end)-tims_i(1)])
 grid on
 xlabel('time (s)')
-title(sprintf('response, damping factor = %0.5g', d))
+title(sprintf('response, damping factor = %0.5g x input amplitude^2', d/asq))
 set(ax5, 'Box', 'on', 'TickDir', 'both');
 
 % save figure
