@@ -1,4 +1,4 @@
-function [r, dd, n] = spectraldivision(d, u, w, reg, val)
+function [r, dd, n, val] = spectraldivision(d, u, w, reg, val)
 % r = SPECTRALDIVISION(d, u, w, reg, val)
 %
 % compute r where d = conv(r, u) via spectral division
@@ -15,8 +15,9 @@ function [r, dd, n] = spectraldivision(d, u, w, reg, val)
 % r         result time-series with the length of the longest input signal
 % dd        convolution of 'r' and 'u' with the same length as 'd'
 % n         residue norm between 'd' and 'dd'
+% val       regularization value
 %
-% Last modified by sirawich-at-princeton.edu, 11/15/2021
+% Last modified by sirawich-at-princeton.edu, 11/16/2021
 
 
 % run the demo
@@ -151,6 +152,18 @@ if strcmpi(reg, 'demo')
     savename = sprintf('%s_demo_water.eps', mfilename);
     figdisp(savename, [], [], 2, [], 'epstopdf');
     return
+end
+
+% if the value is not specified, then figure out the value that gives the
+% minimum norm.
+if isempty(val)
+    vals = 10.^(-4:0.1:4) * max(abs(u)) ^ 2;
+    ns = zeros(size(vals));
+    for ii = 1:length(vals)
+        [~, ~, ns(ii)] = spectraldivision(d, u, w, reg, vals(ii));
+    end
+    [~, imin] = min(ns);
+    val = vals(imin);
 end
 
 % convert input signals to a row vector
