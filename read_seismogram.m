@@ -10,7 +10,7 @@ function [t, x] = read_seismogram(filename)
 % t             time
 % x             data
 %
-% Last modified by Sirawich Pipatprathanporn, 05/31/21
+% Last modified by sirawich-at-princeton.edu, 11/17/2021
 
 % read seismograms
 sizeData = [2 Inf];
@@ -18,6 +18,6 @@ fid = fopen(filename,'r');
 data = fscanf(fid, '%f %f', sizeData);
 fclose(fid);
 
-t = data(1,:);
-x = data(2,:);
+t = data(1,:)';
+x = data(2,:)';
 end
