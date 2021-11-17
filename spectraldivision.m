@@ -17,7 +17,7 @@ function [r, dd, n, val] = spectraldivision(d, u, w, reg, val)
 % n         residue norm between 'd' and 'dd'
 % val       regularization value
 %
-% Last modified by sirawich-at-princeton.edu, 11/16/2021
+% Last modified by sirawich-at-princeton.edu, 11/17/2021
 
 
 % run the demo
@@ -166,30 +166,30 @@ if isempty(val)
     val = vals(imin);
 end
 
-% convert input signals to a row vector
-if size(d, 1) > 1
+% convert input signals to a column vector
+if size(d, 2) > 1
     d = d';
 end
-if size(u, 1) > 1
+if size(u, 2) > 1
     u = u';
 end
 
 % pad zeros to obtain the same length
-if size(d, 2) > size(u, 2)
-    u = [u zeros(1, size(d, 2) - size(u, 2))];
-elseif size(d, 2) < size(u, 2)
-    d = [d zeros(1, size(u, 2) - size(d, 2))];
+if size(d, 1) > size(u, 1)
+    u = [u; zeros(size(d, 1) - size(u, 1), 1)];
+elseif size(d, 1) < size(u, 1)
+    d = [d; zeros(size(u, 1) - size(d, 1), 1)];
 end
 
 % setting a window to have the same dimension of the signals
 defval('w', ones(size(u)))
-if size(w, 1) > 1
+if size(w, 2) > 1
     w = w';
 end
-if size(w, 2) > size(u, 2)
-    w = w(1, 1:size(u, 2));
-elseif size(w, 2) < size(u, 2)
-    w = [w zeros(1, size(u, 2) - size(w, 2))];
+if size(w, 1) > size(u, 1)
+    w = w(1:size(u, 1), 1);
+elseif size(w, 1) < size(u, 1)
+    w = [w; zeros(size(u, 1) - size(w, 1), 1)];
 end
 
 % number of frequency is set to a power of 2 to speed up FFT and IFFT
@@ -209,11 +209,11 @@ end
 
 % convert back to time domain
 r = ifft(RR, nf);
-r = r(1, 1:size(u, 2));
+r = r(1:size(u, 1), 1);
 
 % expected output signal from 
 dd = conv(u, r);
-dd = dd(1, 1:size(u, 2));
+dd = dd(1:size(u, 1), 1);
 
 % norm of residue
 n = norm(d - dd, 2);
