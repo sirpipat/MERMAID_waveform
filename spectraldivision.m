@@ -195,9 +195,13 @@ end
 % number of frequency is set to a power of 2 to speed up FFT and IFFT
 nf = 2 ^ nextpow2(length(u));
 
+% tapering
+d = d .* w;
+u = u .* w;
+
 % convert to frequency domain
-D = fft(d .* w, nf);
-U = fft(u .* w, nf);
+D = fft(d, nf);
+U = fft(u, nf);
 
 if strcmpi(reg, 'damp')
     RR = (D .* conj(U)) ./ (U .* conj(U) + val);
