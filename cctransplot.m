@@ -1,5 +1,5 @@
-function [t_cc, cc, t_rf, rf] = cctransplot(ddir1, ddir2, example, channel1, channel2, plt)
-% CCTRANSPLOT(ddir1, ddir2, example, channel1, channel2, plt)
+function [t_cc, cc, t_rf, rf] = cctransplot(ddir1, ddir2, example, channel1, channel2, fs, plt)
+% CCTRANSPLOT(ddir1, ddir2, example, channel1, channel2, fs, plt)
 %
 % Plot the transfer function and cross correlation coefficient between the
 % z-component displacement at the ocean bottom seismometer and the pressure
@@ -22,6 +22,8 @@ function [t_cc, cc, t_rf, rf] = cctransplot(ddir1, ddir2, example, channel1, cha
 %           'displacement'
 %           'pressure'
 %
+% fs            sampling rate of the output [Default: the sampling rate of
+%               the two channels]
 % plt           whether to plot or not [Default: true]
 %
 % OUTPUT:
@@ -33,7 +35,7 @@ function [t_cc, cc, t_rf, rf] = cctransplot(ddir1, ddir2, example, channel1, cha
 % SEE ALSO:
 % SPECFEM2D_INPUT_SETUP_FLAT, RUNFLATSIM
 % 
-% Last modified by sirawich-at-princeton.edu, 11/16/2021
+% Last modified by sirawich-at-princeton.edu, 11/18/2021
 
 defval('channel1', {'bottom' 'displacement'})
 defval('channel2', {'hydrophone' 'pressure'})
@@ -64,46 +66,38 @@ end
 
 % lowpass the signals
 dt = tims_i(2) - tims_i(1);
-seisdata_i = lowpass(seisdata_i, 1/dt, 5, 2, 2, 'butter', 'linear')';
-seisdata_o = lowpass(seisdata_o, 1/dt, 5, 2, 2, 'butter', 'linear')';
+seisdata_i = lowpass(seisdata_i, 1/dt, 5, 2, 2, 'butter', 'linear');
+seisdata_o = lowpass(seisdata_o, 1/dt, 5, 2, 2, 'butter', 'linear');
+
+% resample the data to the given sampling rate
+if ~isempty(fs)
+    dt = 1/fs;
+    tt = (tims_i(1):dt:tims_i(end))';
+    seisdata_i = shannon(tims_i, seisdata_i, tt);
+    seisdata_o = shannon(tims_o, seisdata_o, tt);
+    tims_i = tt;
+    tims_o = tt;
+end
 
 % number of frequencies
+% N = length(tims_i);
 N = length(tims_i);
 nf = 2 ^ nextpow2(N);
 
 % tapering window
-w = shanning(length(tims_o), 0.01)';
+w = shanning(length(tims_i), 0.05);
 % w = ones(size(tims_i));
 % w(1:10) = 0;
 % w(end-9:end) = 0;
 
 % compute correlation coefficients
 [cc, lags] = xcorr(seisdata_o .* w, seisdata_i .* w, 'coeff');
-t_cc = lags * dt;
+t_cc = lags' * dt;
 
 asq = max(abs(seisdata_i)).^2;
 
 [rf, x_h_tran, n, d] = spectraldivision(seisdata_o, seisdata_i, w, 'damp', '');
-t_rf = (0:(N-1)) * dt;
-
-% % compute the transfer function
-% SEISDATA_O = fft(seisdata_i .* w, nf);
-% SEISDATA_H = fft(seisdata_o .* w, nf);
-% 
-% % Use damping factor
-% % as 1000 times input-signal's amplitude squared (asq)
-% 
-% d = max(abs(seisdata_i)).^2 * 10;
-% 
-% % compute the response
-% rf = ifft(SEISDATA_H .* conj(SEISDATA_O) ./ ...
-%     max((SEISDATA_O .* conj(SEISDATA_O)), d), nf);
-% rf = rf(1:N);
-% t_rf = (0:(N-1)) * dt;
-% 
-% % apply response to obtain hydrophone pressure
-% x_h_tran = conv(seisdata_i, rf);
-% x_h_tran = x_h_tran(1:length(seisdata_o));
+t_rf = (0:(N-1))' * dt;
 
 if plt
     figure(1)
