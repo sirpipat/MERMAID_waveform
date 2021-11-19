@@ -113,21 +113,21 @@ delete(poolobj)
 %% analyze the data
 % for SYNTHETIC output in dislacement vs. OBSERVED MERMAID pressure
 cctransplot(outputdirs{1}, outputdirs{2}, example, ...
-    {'bottom', 'displacement'}, {'hydrophone', 'pressure'}, fs);
+    {'bottom', 'displacement'}, {'hydrophone', 'pressure'}, fs, true);
 
 % for response function at the ocean bottom
 cctransplot(outputdirs{1}, outputdirs{2}, example, ...
-    {'bottom', 'displacement'}, {'bottom', 'pressure'}, fs);
+    {'bottom', 'displacement'}, {'bottom', 'pressure'}, fs, true);
 
 % displacment to pressure at the hydrophone
 cctransplot(outputdirs{1}, outputdirs{2}, example, ...
-    {'hydrophone', 'displacement'}, {'hydrophone', 'pressure'}, fs);
+    {'hydrophone', 'displacement'}, {'hydrophone', 'pressure'}, fs, true);
 
 % for pressure propagation from the bottom to the hydrophone
 cctransplot(outputdirs{1}, outputdirs{2}, example, ...
-    {'bottom', 'pressure'}, {'hydrophone', 'pressure'}, fs);
+    {'bottom', 'pressure'}, {'hydrophone', 'pressure'}, fs, true);
 
 % for reflection pattern
 cctransplot(outputdirs{1}, outputdirs{2}, example, ...
-    {'hydrophone', 'pressure'}, {'hydrophone', 'pressure'}, fs);
+    {'hydrophone', 'pressure'}, {'hydrophone', 'pressure'}, fs, true);
 end
