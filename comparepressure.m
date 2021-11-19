@@ -18,7 +18,7 @@ function comparepressure(seis_s, hdr_s, seis_o, hdr_o, seis_r, t_r)
 
 % sampling rate
 [~, dt_begin_s, ~, fs_s, ~, dts_s] = gethdrinfo(hdr_s);
-[~, dt_begin_o, ~, fs_o, ~, dts_o] = gethdrinfo(hdr_o);
+[dt_ref_o, dt_begin_o, ~, fs_o, ~, dts_o] = gethdrinfo(hdr_o);
 fs_r = 1 / (t_r(2) - t_r(1));
 
 % downsample the response to about 100 Hz
@@ -36,14 +36,14 @@ tr_r_interp = 0:(1/fs_o):t_r(end);
 seis_r = shannon(t_r, seis_r, tr_r_interp);
 
 % convolve
-pres_s = conv(seis_s, seis_r) * 100;
+pres_s = conv(seis_s, seis_r) ;
 pres_s = pres_s(1:length(seis_o), 1);
 pres_s = bandpass(pres_s, fs_o, 0.5, 2, 4, 2, 'butter', 'linear');
 
 % remove instrument response and filter
 pres_o = counts2pa(seis_o, fs_o, [0.05 0.1 10 20], [], 'sacpz', false);
 pres_o = real(pres_o);
-pres_o = bandpass(pres_o, fs_o, 0.45, 0.775, 4, 2, 'butter', 'linear');
+pres_o = bandpass(pres_o, fs_o, 0.5, 2, 4, 2, 'butter', 'linear');
 
 % compute the cross correlation
 [cc, lags] = xcorr(pres_o, pres_s, 'coeff');
@@ -56,34 +56,52 @@ figure(1)
 clf
 set(gcf, 'Units', 'inches', 'Position', [0 6 6 6])
 
-ax1 = subplot('Position', [0.08 0.75 0.86 0.19]);
+% plot two pressure records: observed vs synthetic
+ax1 = subplot('Position', [0.08 0.68 0.86 0.24]);
 cla
 plot(dts_o', pres_o, 'k')
 hold on
-plot(dts_o'+seconds(best_lags_time), pres_s, 'r')
+plot(dts_o'+seconds(best_lags_time), pres_s, 'b', 'LineWidth', 2)
 grid on
-xlim([dts_o(1) dts_o(end)])
+xlim(dt_ref_o + seconds(hdr_o.T0 + [-10 40]))
+ylim([-1.1 1.1] * max(max(abs(pres_o)), max(abs(pres_s))))
+vline(ax1, dt_ref_o + seconds(hdr_o.T0), 'LineWidth', 2, ...
+    'LineStyle', '--', 'Color', [0.1 0.8 0.1]);
 legend('observed', 'synthetic')
 ylabel('acoustic pressure (Pa)')
 title('pressure record')
 set(ax1, 'Box', 'on')
 
-ax2 = subplot('Position', [0.08 0.41 0.86 0.19]);
+% residue: observed - shifted synthetic
+ax2 = subplot('Position', [0.08 0.34 0.86 0.24]);
 cla
-plot(dts_o', pres_o - circshift(pres_s, best_lags))
+plot(dts_o', pres_o - circshift(pres_s, best_lags), 'k')
 grid on
-xlim([dts_o(1) dts_o(end)])
+xlim(dt_ref_o + seconds(hdr_o.T0 + [-10 40]))
+ylim([-1.1 1.1] * max(abs(pres_o - circshift(pres_s, best_lags))));
+vline(ax2, dt_ref_o + seconds(hdr_o.T0), 'LineWidth', 2, ...
+    'LineStyle', '--', 'Color', [0.1 0.8 0.1]);
 title('residue')
 ylabel('residue (Pa)')
 set(ax2, 'Box', 'on')
 
-ax3 = subplot('Position', [0.08 0.08 0.86 0.19]);
+% correlation coefficient
+ax3 = subplot('Position', [0.08 0.08 0.86 0.17]);
 cla
-plot(lags_time, cc)
+plot(lags_time, cc, 'k')
+hold on
+scatter(best_lags_time, max(cc), 80, 'Marker', 'v', 'MarkerEdgeColor', ...
+    'k', 'MarkerFaceColor', 'b');
 grid on
-xlim([-10 10])
+xlim([-20 20])
 title('correlation coefficient')
 xlabel('timeshift (s)')
 ylabel('correlation coefficient')
 set(ax3, 'Box', 'on')
+
+% save figure
+set(gcf, 'Renderer', 'painters')
+savename = sprintf('%s_%d_%s.eps', mfilename, hdr_o.USER7, ...
+    replace(hdr_o.KSTNM, ' ', ''));
+figdisp(savename, [], [], 2, [], 'epstopdf');
 end
