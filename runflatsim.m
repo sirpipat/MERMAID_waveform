@@ -24,7 +24,7 @@ function outputdirs = runflatsim(sacfile, ddir, specfembin)
 % SEE ALSO:
 % SPECFEM2D_INPUT_SETUP, RUNTHISEXAMPLE, UPDATEHEADER, UPDATESYNTHETICS
 %
-% Last modified by sirawich-at-princeton.edu, 11/11/2021
+% Last modified by sirawich-at-princeton.edu, 11/18/2021
 
 % specify where you want to keep the simulations input/output files
 defval('ddir', getenv('REMOTE2D'))
@@ -36,6 +36,7 @@ badval = -12345;
 
 % read the sac file
 [~, HdrData] = readsac(sacfile);
+fs = 1 / HdrData.DELTA;
 
 %% compute the incident angle
 if HdrData.USER9 ~= badval
@@ -44,7 +45,7 @@ else
     % compute theoretical travel times at the ocean bottom below MERMAID.
     % [lat lon] of the receiver is slightly shifted if incident angle is not
     % close to zero.
-    tt = taupPierce(model, HdrData.EVDP, ...
+    tt = taupPierce('ak135', HdrData.EVDP, ...
         'p,s,P,S,PP,SS,PKP,SKS,PKIKP,SKIKS', ...
         'sta', [HdrData.STLA HdrData.STLO], ...
         'evt', [HdrData.EVLA HdrData.EVLO], ...
@@ -112,22 +113,21 @@ delete(poolobj)
 %% analyze the data
 % for SYNTHETIC output in dislacement vs. OBSERVED MERMAID pressure
 cctransplot(outputdirs{1}, outputdirs{2}, example, ...
-    {'bottom', 'displacement'}, {'hydrophone', 'pressure'});
+    {'bottom', 'displacement'}, {'hydrophone', 'pressure'}, fs);
 
 % for response function at the ocean bottom
 cctransplot(outputdirs{1}, outputdirs{2}, example, ...
-    {'bottom', 'displacement'}, {'bottom', 'pressure'});
+    {'bottom', 'displacement'}, {'bottom', 'pressure'}, fs);
 
 % displacment to pressure at the hydrophone
 cctransplot(outputdirs{1}, outputdirs{2}, example, ...
-    {'hydrophone', 'displacement'}, {'hydrophone', 'pressure'});
+    {'hydrophone', 'displacement'}, {'hydrophone', 'pressure'}, fs);
 
 % for pressure propagation from the bottom to the hydrophone
 cctransplot(outputdirs{1}, outputdirs{2}, example, ...
-    {'bottom', 'pressure'}, {'hydrophone', 'pressure'});
+    {'bottom', 'pressure'}, {'hydrophone', 'pressure'}, fs);
 
 % for reflection pattern
 cctransplot(outputdirs{1}, outputdirs{2}, example, ...
-    {'hydrophone', 'pressure'}, {'hydrophone', 'pressure'});
-
+    {'hydrophone', 'pressure'}, {'hydrophone', 'pressure'}, fs);
 end
