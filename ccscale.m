@@ -63,8 +63,8 @@ dt_min = max(dt1(1), dt2(1));
 dt_max = min(dt1(end), dt2(end));
 
 % get the window to determine the scaling
-xs1 = x1(and(dt1 >= dt_min, dt1 <= dt_max));
-xs2 = x2(and(dt2 >= dt_min, dt2 <= dt_max));
+xs1 = x1(and(dt1 > dt_min, dt1 < dt_max));
+xs2 = x2(and(dt2 > dt_min, dt2 < dt_max));
 
 s = (xs2' * xs1) / (xs2' * xs2);
 end
