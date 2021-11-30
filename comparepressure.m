@@ -14,7 +14,7 @@ function comparepressure(seis_s, hdr_s, seis_o, hdr_o, seis_r, t_r)
 %
 % OUTPUT:
 %
-% Last modified by sirawich-at-princeton.edu, 11/16/2021
+% Last modified by sirawich-at-princeton.edu, 11/30/2021
 
 % sampling rate
 [~, dt_begin_s, ~, fs_s, ~, dts_s] = gethdrinfo(hdr_s);
@@ -46,10 +46,14 @@ pres_o = real(pres_o);
 pres_o = bandpass(pres_o, fs_o, 0.5, 2, 4, 2, 'butter', 'linear');
 
 % compute the cross correlation
-[cc, lags] = xcorr(pres_o, pres_s, 'coeff');
-lags_time = lags / fs_o;
-best_lags = lags(cc == max(cc));
-best_lags_time = best_lags / fs_o;
+[best_lags_time, ~, lags_time, cc, s] = ccscale(pres_o, pres_s, ...
+    dt_begin_o, dt_begin_o, fs_o);
+
+best_lags = round(best_lags_time * fs_o);
+% [cc, lags] = xcorr(pres_o, pres_s, 'coeff');
+% lags_time = lags / fs_o;
+% best_lags = lags(cc == max(cc));
+% best_lags_time = best_lags / fs_o;
 
 % plot the result
 figure(1)
@@ -61,7 +65,7 @@ ax1 = subplot('Position', [0.08 0.68 0.86 0.24]);
 cla
 plot(dts_o', pres_o, 'k')
 hold on
-plot(dts_o'+seconds(best_lags_time), pres_s, 'b', 'LineWidth', 2)
+plot(dts_o'+seconds(best_lags_time), s * pres_s, 'b', 'LineWidth', 1)
 grid on
 xlim(dt_ref_o + seconds(hdr_o.T0 + [-10 40]))
 ylim([-1.1 1.1] * max(max(abs(pres_o)), max(abs(pres_s))))
@@ -75,7 +79,7 @@ set(ax1, 'Box', 'on')
 % residue: observed - shifted synthetic
 ax2 = subplot('Position', [0.08 0.34 0.86 0.24]);
 cla
-plot(dts_o', pres_o - circshift(pres_s, best_lags), 'k')
+plot(dts_o', pres_o - circshift(s * pres_s, best_lags), 'k')
 grid on
 xlim(dt_ref_o + seconds(hdr_o.T0 + [-10 40]))
 ylim([-1.1 1.1] * max(abs(pres_o - circshift(pres_s, best_lags))));
