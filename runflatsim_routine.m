@@ -50,7 +50,7 @@ for ii = i_begin:i_end
     end
     [~, ia, ~] = unique(receiverid);
     allobsfiles = allobsfiles(ia);
-    for jj = 4:sndex
+    for jj = 1:sndex
         [seis_o, hdr_o] = readsac(allobsfiles{jj});
         [seis_s, hdr_s] = readsac(allsynfiles{jj});
         outputdirs = runflatsim(allobsfiles{jj});
