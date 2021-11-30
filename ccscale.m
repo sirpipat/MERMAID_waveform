@@ -27,7 +27,7 @@ function [t_shift, CCmax, lag, CC, s] = ccscale(x1, x2, dt_begin1, dt_begin2, fs
 % SEE ALSO:
 % CCSHIFT, XCORR
 %
-% Last modified by Sirawich Pipatprathanporn: 11/28/2021
+% Last modified by Sirawich Pipatprathanporn: 11/30/2021
 
 defval('maxmargin', seconds(inf))
 
@@ -42,7 +42,7 @@ end
 %% find best CC and timeshift
 if size(x1, 1) == size(x2, 1)
     [CC, lag] = xcorr(x1, x2, 'coeff');
-    lag = lag / fs + seconds(dt_begin2 - dt_begin1);
+    lag = lag / fs + seconds(dt_begin1 - dt_begin2);
     
     CC(abs(lag) > seconds(maxmargin)) = 0;
 
@@ -56,15 +56,25 @@ end
 %% optimal scaling (least-squared method)
 % define the time for each sample
 dt1 = dt_begin1 + seconds((0:length(x1)-1)' / fs);
-dt2 = dt_begin1 + seconds((0:length(x2)-1)' / fs + t_shift);
+dt2 = dt_begin2 + seconds((0:length(x2)-1)' / fs);
 
 % determine the start and end of the window
-dt_min = max(dt1(1), dt2(1));
-dt_max = min(dt1(end), dt2(end));
+dt_min = max(dt1(1), dt2(1) + seconds(t_shift));
+dt_max = min(dt1(end), dt2(end) + seconds(t_shift));
 
 % get the window to determine the scaling
-xs1 = x1(and(dt1 > dt_min, dt1 < dt_max));
-xs2 = x2(and(dt2 > dt_min, dt2 < dt_max));
+ep = seconds(0.01/fs);
+xs1 = x1(and(geq(dt1, dt_min, ep), leq(dt1, dt_max, ep)));
+xs2 = x2(and(geq(dt2  + seconds(t_shift), dt_min, ep), ...
+    leq(dt2 + seconds(t_shift), dt_max, ep)));
 
 s = (xs2' * xs1) / (xs2' * xs2);
+end
+
+function r = leq(a, b, ep)
+r = or(a < b, abs(a - b) < ep);
+end
+
+function r = geq(a, b, ep)
+r = or(a > b, abs(a - b) < ep);
 end
