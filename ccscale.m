@@ -1,6 +1,6 @@
-function [t_shift, CCmax, lag, CC, s] = ccscale(x1, x2, dt_begin1, dt_begin2, fs, maxmargin)
+function [t_shift, CCmax, lag, CC, s] = ccscale(x1, x2, dt_begin1, dt_begin2, fs, maxmargin, cc_env)
 % [t_shift, CCmax, lag, CC, s] = ...
-%   CCSCALE(x1,x2,dt_begin1,dt_begin2,fs,maxmargin)
+%   CCSCALE(x1,x2,dt_begin1,dt_begin2,fs,maxmargin, cc_env)
 %
 % Computes correlation coefficients for all lags in [-maxmargin, maxmargin]
 % between two signals. It also finds the scaling to minimize the misfit of
@@ -16,6 +16,7 @@ function [t_shift, CCmax, lag, CC, s] = ccscale(x1, x2, dt_begin1, dt_begin2, fs
 % dt_begin2     Begin datetime of x2
 % fs            Sampling rate of both signals
 % maxmargin     Maximum time shift as a duration [default: seconds(inf)]
+% cc_env        Whether to compare envelope or waveform [default: true]
 %
 % OUTPUT:
 % t_shift       Best time shift where CC is maximum
@@ -27,9 +28,10 @@ function [t_shift, CCmax, lag, CC, s] = ccscale(x1, x2, dt_begin1, dt_begin2, fs
 % SEE ALSO:
 % CCSHIFT, XCORR
 %
-% Last modified by Sirawich Pipatprathanporn: 11/30/2021
+% Last modified by Sirawich Pipatprathanporn: 12/03/2021
 
 defval('maxmargin', seconds(inf))
+defval('cc_env', true)
 
 % convert x1 and x2 to column vectors
 if size(x1, 1) == 1
@@ -37,6 +39,11 @@ if size(x1, 1) == 1
 end
 if size(x2, 1) == 1
     x2 = x2';
+end
+
+if cc_env
+    x1 = envelope(x1);
+    x2 = envelope(x2);
 end
 
 %% find best CC and timeshift
