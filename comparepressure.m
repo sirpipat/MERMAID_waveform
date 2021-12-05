@@ -14,7 +14,7 @@ function comparepressure(seis_s, hdr_s, seis_o, hdr_o, seis_r, t_r)
 %
 % OUTPUT:
 %
-% Last modified by sirawich-at-princeton.edu, 12/03/2021
+% Last modified by sirawich-at-princeton.edu, 12/04/2021
 
 % sampling rate
 [~, dt_begin_s, ~, fs_s, ~, dts_s] = gethdrinfo(hdr_s);
@@ -80,15 +80,16 @@ set(gcf, 'Units', 'inches', 'Position', [0 6 6 6])
 % plot two pressure records: observed vs synthetic
 ax1 = subplot('Position', [0.08 0.68 0.86 0.24]);
 cla
-plot(dts_o', pres_o, 'k')
+plot(seconds(dts_o' - dt_ref_o) - hdr_o.T0, pres_o, 'k')
 hold on
-plot(dts_o'+seconds(best_lags_time), s * pres_s, 'b', 'LineWidth', 1)
+plot(seconds(dts_o' - dt_ref_o) - hdr_o.T0 + best_lags_time, ...
+    s * pres_s, 'b', 'LineWidth', 1)
 grid on
-xlim(dt_ref_o + seconds(hdr_o.T0 + [-10 40]))
+xlim([-10 40])
 ylim([-1.1 1.1] * max(max(abs(pres_o)), max(abs(s * pres_s))))
-vline(ax1, dt_ref_o + seconds(hdr_o.T0), 'LineWidth', 2, ...
-    'LineStyle', '--', 'Color', [0.1 0.8 0.1]);
+vline(ax1, 0, 'LineWidth', 2, 'LineStyle', '--', 'Color', [0.1 0.8 0.1]);
 legend('observed', 'synthetic')
+xlabel('time since first picked arrival (s)')
 ylabel('acoustic pressure (Pa)')
 title('pressure record')
 set(ax1, 'Box', 'on')
@@ -96,15 +97,17 @@ set(ax1, 'Box', 'on')
 % residue: observed - shifted synthetic
 ax2 = subplot('Position', [0.08 0.34 0.86 0.24]);
 cla
-plot(dts_o', pres_o, 'k')
+plot(seconds(dts_o' - dt_ref_o) - hdr_o.T0, pres_o, 'k')
 hold on
-plot(dts_o'+seconds(best_lags_time), s * pres_s, 'b', 'LineWidth', 1)
+plot(seconds(dts_o' - dt_ref_o) - hdr_o.T0 + best_lags_time, ...
+    s * pres_s, 'b', 'LineWidth', 1)
 grid on
-xlim([dts_o(1) dts_o(end)])
+xlim([hdr_o.B hdr_o.E] - hdr_o.T0)
 ylim([-1.1 1.1] * max(max(abs(pres_o)), max(abs(s * pres_s))))
-vline(ax2, dt_ref_o + seconds(hdr_o.T0), 'LineWidth', 2, ...
+vline(ax2, 0, 'LineWidth', 2, ...
     'LineStyle', '--', 'Color', [0.1 0.8 0.1]);
 legend('observed', 'synthetic')
+xlabel('time since first picked arrival (s)')
 ylabel('acoustic pressure (Pa)')
 title(sprintf('pressure record: timeshift = %.2f s, cc = %.2f, scale = %.2f', ...
     best_lags_time, max(cc), s))
