@@ -106,7 +106,8 @@ vline(ax2, dt_ref_o + seconds(hdr_o.T0), 'LineWidth', 2, ...
     'LineStyle', '--', 'Color', [0.1 0.8 0.1]);
 legend('observed', 'synthetic')
 ylabel('acoustic pressure (Pa)')
-title('pressure record')
+title(sprintf('pressure record: timeshift = %.2f s, cc = %.2f, scale = %.2f', ...
+    best_lags_time, max(cc), s))
 set(ax2, 'Box', 'on')
 % plot(dts_o', pres_o - circshift(s * pres_s, best_lags), 'k')
 % grid on
