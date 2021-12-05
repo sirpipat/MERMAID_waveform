@@ -1,5 +1,5 @@
-function outputdirs = runflatsim_routine(obsmasterdir, synmasterdir, i_begin, i_end)
-% outputdirs = RUNFLATSIM_ROUTINE(obsmasterdir, synmasterdir, i_begin, i_end)
+function outputdirs = runflatsim_routine(obsmasterdir, synmasterdir, i_begin, i_end, is_run)
+% outputdirs = RUNFLATSIM_ROUTINE(obsmasterdir, synmasterdir, i_begin, i_end, is_run)
 %
 % A script for run fluid-solid simulation to find the response function
 % between z-displacement at the ocean bottom and the pressure at the
@@ -13,6 +13,7 @@ function outputdirs = runflatsim_routine(obsmasterdir, synmasterdir, i_begin, i_
 %                   IRIS event ID folders
 % i_begin           first index for IRIS event ID folders
 % i_end             last index for IRIS event ID folders
+% is_run            whether to (re)run runflatsim or just plot the result
 %
 %   i_begin and i_end must satisfy the following condition
 %   1 <= i_begin <= i_end <=dndex    where dndex is the number of IRIS
@@ -27,7 +28,7 @@ function outputdirs = runflatsim_routine(obsmasterdir, synmasterdir, i_begin, i_
 % SEE ALSO:
 % RUNFLATSIM, CCTRANSPLOT, COMPAREPRESSURE
 %
-% Last modified by sirawich-at-princeton.edu, 11/18/2021
+% Last modified by sirawich-at-princeton.edu, 12/03/2021
 
 defval('obsmasterdir', '/home/sirawich/research/processed_data/MERMAID_reports_updated/')
 defval('synmasterdir', '/home/sirawich/research/SYNTHETICS/')
@@ -53,12 +54,21 @@ for ii = i_begin:i_end
     for jj = 1:sndex
         [seis_o, hdr_o] = readsac(allobsfiles{jj});
         [seis_s, hdr_s] = readsac(allsynfiles{jj});
-        outputdirs = runflatsim(allobsfiles{jj});
         example = sprintf('flat_%d_%s', hdr_o.USER7, ...
             replace(hdr_o.KSTNM, ' ', ''));
+        if is_run
+            outputdirs = runflatsim(allobsfiles{jj});
+        else
+            outputdirs = cell(2,1);
+            outputdirs{1} = sprintf('%s%s_1/', getenv('REMOTE2D'), example);
+            outputdirs{2} = sprintf('%s%s_2/', getenv('REMOTE2D'), example);
+        end
         [~, ~, t_rf, rf] = cctransplot(outputdirs{1}, outputdirs{2}, example, ...
-            {'bottom', 'displacement'}, {'hydrophone', 'pressure'}, 1/hdr_o.DELTA, true);
-        comparepressure(seis_s, hdr_s, seis_o, hdr_o, rf, t_rf);
+            {'bottom', 'displacement'}, {'hydrophone', 'pressure'}, 1/hdr_o.DELTA, false);
+        try
+            comparepressure(seis_s, hdr_s, seis_o, hdr_o, rf, t_rf);
+        catch
+        end
     end
 end
 
