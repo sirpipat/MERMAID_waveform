@@ -1,5 +1,5 @@
-function outputdirs = runflatsim(sacfile, ddir, specfembin)
-% outputdirs = RUNFLATSIM(sacfile, ddir, specfembin)
+function outputdirs = runflatsim(sacfile, ddir, specfembin, keepproc)
+% outputdirs = RUNFLATSIM(sacfile, ddir, specfembin, keepproc)
 %
 % Sets up fluid-solid simulations in SPECFEM2D with a flat bathymetry. 
 % Then, runs the simulations and then computes the correlation coefficients
@@ -15,6 +15,7 @@ function outputdirs = runflatsim(sacfile, ddir, specfembin)
 %               (STDP) is assumed to be the ocean bottom elevation.
 % ddir          directory to store simulations' files
 % specfembin    directory to specfem2d binaries
+% keepproc      whether to keep model files or not [default: false]
 %
 % OUTPUT:
 % outputdirs    directories to the two simulations
@@ -24,12 +25,13 @@ function outputdirs = runflatsim(sacfile, ddir, specfembin)
 % SEE ALSO:
 % SPECFEM2D_INPUT_SETUP, RUNTHISEXAMPLE, UPDATEHEADER, UPDATESYNTHETICS
 %
-% Last modified by sirawich-at-princeton.edu, 11/18/2021
+% Last modified by sirawich-at-princeton.edu, 12/11/2021
 
 % specify where you want to keep the simulations input/output files
 defval('ddir', getenv('REMOTE2D'))
 % specify where you keep SPECFEM2D software
 defval('specfembin', strcat(getenv('SPECFEM2D'), 'bin/'))
+defval('keepproc', false)
 
 % bad value in SAC files
 badval = -12345;
@@ -108,6 +110,17 @@ outputdirs = specfem2d_input_setup_flat(example, -bottom, ...
 poolobj = parpool('local', 2);
 parfor ii = 1:2
     runthisexample(example, outputdirs{ii}, specfembin);
+    % remove the model file to save space
+    if ~keepproc
+        system(sprintf('rm %s/DATA/*.bin', outputdirs{ii}));
+        system(sprintf('rm %s/OUTPUT_FILES/Database00000.bin', outputdirs{ii}));
+        
+        system(sprintf('mkdir %s/OUTPUT_FILES/temp/', outputdirs{ii}));
+        system(sprintf('mv %s/OUTPUT_FILES/forward_image000*.jpg %s/OUTPUT_FILES/temp', outputdirs{ii}, outputdirs{ii}));
+        system(sprintf('rm %s/OUTPUT_FILES/forward_image*.jpg', outputdirs{ii}));
+        system(sprintf('mv %s/OUTPUT_FILES/temp/forward_image000*.jpg %s/OUTPUT_FILES/', outputdirs{ii}, outputdirs{ii}));
+        system(sprintf('rmdir %s/OUTPUT_FILES/temp/', outputdirs{ii}));
+    end
 end
 delete(poolobj)
 %% analyze the data
