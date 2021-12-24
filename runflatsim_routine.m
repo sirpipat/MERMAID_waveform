@@ -57,7 +57,7 @@ for ii = i_begin:i_end
         example = sprintf('flat_%d_%s', hdr_o.USER7, ...
             replace(hdr_o.KSTNM, ' ', ''));
         if is_run
-            outputdirs = runflatsim(allobsfiles{jj});
+            outputdirs = runflatsim(allobsfiles{jj}, [], [], false);
         else
             outputdirs = cell(2,1);
             outputdirs{1} = sprintf('%s%s_1/', getenv('REMOTE2D'), example);
