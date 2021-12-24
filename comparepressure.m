@@ -80,15 +80,20 @@ set(gcf, 'Units', 'inches', 'Position', [0 6 6 6])
 % plot two pressure records: observed vs synthetic
 ax1 = subplot('Position', [0.08 0.68 0.86 0.24]);
 cla
-plot(seconds(dts_o' - dt_ref_o) - hdr_o.T0, pres_o, 'k')
+plot(seconds(dts_o' - dt_ref_o) - hdr_o.T0, pres_o, 'k', 'LineWidth', 0.5)
 hold on
 plot(seconds(dts_o' - dt_ref_o) - hdr_o.T0 + best_lags_time, ...
     s * pres_s, 'b', 'LineWidth', 1)
+% plot(seconds(dts_o' - dt_ref_o) - hdr_o.T0, envelope(pres_o), 'Color', ...
+%     [0.7 0.7 0.7], 'LineWidth', 0.5)
+% plot(seconds(dts_o' - dt_ref_o) - hdr_o.T0 + best_lags_time, ...
+%     envelope(s * pres_s), 'Color', [0.7 0.7 1], 'LineWidth', 0.5)
 grid on
-xlim([-10 40])
+xlim([-15 35])
 ylim([-1.1 1.1] * max(max(abs(pres_o)), max(abs(s * pres_s))))
 vline(ax1, 0, 'LineWidth', 2, 'LineStyle', '--', 'Color', [0.1 0.8 0.1]);
-legend('observed', 'synthetic')
+legend('observed', 'synthetic', ...
+    'Location', 'northwest')
 xlabel('time since first picked arrival (s)')
 ylabel('acoustic pressure (Pa)')
 title('pressure record')
@@ -97,16 +102,21 @@ set(ax1, 'Box', 'on')
 % residue: observed - shifted synthetic
 ax2 = subplot('Position', [0.08 0.34 0.86 0.24]);
 cla
-plot(seconds(dts_o' - dt_ref_o) - hdr_o.T0, pres_o, 'k')
+plot(seconds(dts_o' - dt_ref_o) - hdr_o.T0, pres_o, 'k', 'LineWidth', 0.5)
 hold on
 plot(seconds(dts_o' - dt_ref_o) - hdr_o.T0 + best_lags_time, ...
     s * pres_s, 'b', 'LineWidth', 1)
+% plot(seconds(dts_o' - dt_ref_o) - hdr_o.T0, envelope(pres_o), 'Color', ...
+%     [0.7 0.7 0.7], 'LineWidth', 0.5)
+% plot(seconds(dts_o' - dt_ref_o) - hdr_o.T0 + best_lags_time, ...
+%     envelope(s * pres_s), 'Color', [0.7 0.7 1], 'LineWidth', 0.5)
 grid on
 xlim([hdr_o.B hdr_o.E] - hdr_o.T0)
 ylim([-1.1 1.1] * max(max(abs(pres_o)), max(abs(s * pres_s))))
 vline(ax2, 0, 'LineWidth', 2, ...
     'LineStyle', '--', 'Color', [0.1 0.8 0.1]);
-legend('observed', 'synthetic')
+legend('observed', 'synthetic', ...
+    'Location', 'northwest')
 xlabel('time since first picked arrival (s)')
 ylabel('acoustic pressure (Pa)')
 title(sprintf('pressure record: timeshift = %.2f s, cc = %.2f, scale = %.2f', ...
