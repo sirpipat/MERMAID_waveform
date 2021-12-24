@@ -28,7 +28,7 @@ function [t_shift, CCmax, lag, CC, s] = ccscale(x1, x2, dt_begin1, dt_begin2, fs
 % SEE ALSO:
 % CCSHIFT, XCORR
 %
-% Last modified by Sirawich Pipatprathanporn: 12/03/2021
+% Last modified by Sirawich Pipatprathanporn: 12/24/2021
 
 defval('maxmargin', seconds(inf))
 defval('cc_env', true)
@@ -60,7 +60,7 @@ else
         fs, maxmargin);
 end
 
-%% optimal scaling (least-squared method)
+%% optimal scaling (rms ratio)
 % define the time for each sample
 dt1 = dt_begin1 + seconds((0:length(x1)-1)' / fs);
 dt2 = dt_begin2 + seconds((0:length(x2)-1)' / fs);
@@ -75,7 +75,7 @@ xs1 = x1(and(geq(dt1, dt_min, ep), leq(dt1, dt_max, ep)));
 xs2 = x2(and(geq(dt2  + seconds(t_shift), dt_min, ep), ...
     leq(dt2 + seconds(t_shift), dt_max, ep)));
 
-s = (xs2' * xs1) / (xs2' * xs2);
+s = rms(xs1) / rms(xs2);
 end
 
 function r = leq(a, b, ep)
