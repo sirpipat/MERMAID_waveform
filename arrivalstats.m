@@ -17,6 +17,8 @@ ps = zeros(size(sacfiles));
 depths = zeros(size(sacfiles));
 bottoms = zeros(size(sacfiles));
 azs = zeros(size(sacfiles));
+srcdepth = zeros(size(sacfiles));
+r = presiduestat(sacfiles, false);
 
 for ii = 1:length(sacfiles)
     [~, hdr] = readsac(sacfiles{ii});
@@ -24,6 +26,7 @@ for ii = 1:length(sacfiles)
     depths(ii) = hdr.STDP;
     bottoms(ii) = -hdr.STEL;
     azs(ii) = hdr.AZ;
+    srcdepth(ii) = hdr.EVDP;
     if hdr.USER9 == BADVAL
         % compute theoretical ray parameter at the ocean bottom below MERMAID.
         % [lat lon] of the receiver is slightly shifted if incident angle is not
@@ -89,11 +92,15 @@ for ii = 1:6
                 xx = ps;
                 xxlabel = 'ray parameter (rad s)';
             case 3
-                xx = depths;
-                xxlabel = 'MERMAID depth (m)';
+                xx = r;
+                xxlabel = 'residual (s)';
+%                 xx = depths;
+%                 xxlabel = 'MERMAID depth (m)';
             case 4
-                xx = bottoms;
-                xxlabel = 'bathymetry (m)';
+                xx = srcdepth;
+                xxlabel = 'source depth (km)';
+%                 xx = bottoms;
+%                 xxlabel = 'bathymetry (m)';
             case 5
                 xx = azs;
                 xxlabel = 'azimuth (degrees)';
@@ -111,11 +118,15 @@ for ii = 1:6
                 yy = ps;
                 yylabel = 'ray parameter (rad s)';
             case 4
-                yy = depths;
-                yylabel = 'MERMAID depth (m)';
+                yy = r;
+                yylabel = 'residual (s)';
+%                 yy = depths;
+%                 yylabel = 'MERMAID depth (m)';
             case 5
-                yy = bottoms;
-                yylabel = 'bathymetry (m)';
+                yy = srcdepth;
+                yylabel = 'source depth (km)';
+%                 yy = bottoms;
+%                 yylabel = 'bathymetry (m)';
             case 6
                 yy = azs;
                 yylabel = 'azimuth (degrees)';
@@ -146,10 +157,12 @@ for ii = 1:6
                     title('Ray parameter')
                 case 3
                     histogram(xx)
-                    title('MERMAID depth')
+                    title('Residual')
+                    %title('MERMAID depth')
                 case 4
                     histogram(xx)
-                    title('Bathymetry')
+                    title('Source depth')
+                    %title('Bathymetry')
                 case 5
                     histogram(xx)
                     title('Azimuth')
@@ -218,5 +231,5 @@ end
 
 % save figure
 set(gcf, 'Renderer', 'painters')
-figdisp(sprintf('%s_test.eps', mfilename), [], [], 2, [], 'epstopdf');
+figdisp(sprintf('%s.eps', mfilename), [], [], 2, [], 'epstopdf');
 end
