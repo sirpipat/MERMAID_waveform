@@ -56,7 +56,7 @@ pres_o = bandpass(pres_o, fs_o, 0.5, 2, 4, 2, 'butter', 'linear');
 %% compute the cross correlation
 % cut the short windows to do cross correlation
 best_lags_time_e = 0;
-ep = (1 / fs_o) / 100;
+ep = seconds((1 / fs_o) / 100);
 dt_start = dt_ref_o + seconds(hdr_o.T0 - 10);
 dt_end = dt_ref_o + seconds(hdr_o.T0 + 20);
 pres_o1 = pres_o(and(geq(dts_o, dt_start, ep), leq(dts_o, dt_end, ep)));
