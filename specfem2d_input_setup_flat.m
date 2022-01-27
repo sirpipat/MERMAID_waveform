@@ -1,5 +1,5 @@
-function outputdirs = specfem2d_input_setup_flat(name, bottom, depth, water, freq, angle, Par_file_base, outputdir)
-% outputdirs = SPECFEM2D_INPUT_SETUP_FLAT(name, bottom, depth, water, freq, angle, Par_file_base, outputdir)
+function outputdirs = specfem2d_input_setup_flat(name, bottom, depth, water, freq, angle, Par_file_base, outputdir, saveimage)
+% outputdirs = SPECFEM2D_INPUT_SETUP_FLAT(name, bottom, depth, water, freq, angle, Par_file_base, outputdir, saveimage)
 %
 % Generates Par_file, source file, and interface file for a fluid-solid
 % simulation.
@@ -15,13 +15,14 @@ function outputdirs = specfem2d_input_setup_flat(name, bottom, depth, water, fre
 % angle             incident angle in degrees [Default: 0]
 % Par_file_base     base Par_file to setting up Par_file
 % outputdir         directory for the input files
+% saveimage         whether to save the snapshots of not [Default: true]
 %
 % OUTPUT:
 % outputdirs        two output directories for the fluid-solid simulation
 %       outputdirs{1}       pressure hydrophone in the fluid at depth
 %       outputdirs{2}       displacement OBS at the ocean floor
 %
-% Last modified by sirawich-at-princeton.edu, 11/02/2021
+% Last modified by sirawich-at-princeton.edu, 01/27/2022
 
 defval('bottom', 4800)
 defval('depth', 1500)
@@ -249,6 +250,10 @@ for kk = 1:2
     params.time_stepping_scheme = 1;
     params.NSTEP = 65000;
     params.DT = 5e-4;
+    params.NTSTEP_BETWEEN_OUTPUT_ENERGY = 1000;
+    % do not save the images when SAVEIMAGE is set to false
+    params.output_color_image = saveimage;
+    params.output_postscript_snapshot = saveimage;
     %% write Par_file
     writeparfile(params, sprintf('%sDATA/Par_file_%s', outputdir_kk, name));
     %% write a supplementary file for runthisexample.m

@@ -25,7 +25,7 @@ function outputdirs = runflatsim(sacfile, ddir, specfembin, keepproc)
 % SEE ALSO:
 % SPECFEM2D_INPUT_SETUP, RUNTHISEXAMPLE, UPDATEHEADER, UPDATESYNTHETICS
 %
-% Last modified by sirawich-at-princeton.edu, 12/11/2021
+% Last modified by sirawich-at-princeton.edu, 01/27/2022
 
 % specify where you want to keep the simulations input/output files
 defval('ddir', getenv('REMOTE2D'))
@@ -104,7 +104,7 @@ end
 
 %% create the input files and directories for the SPECFEM2D runs
 outputdirs = specfem2d_input_setup_flat(example, -bottom, ...
-    depth, 'homogeneous', 1, theta, [], outputdir);
+    depth, 'homogeneous', 1, theta, [], outputdir, keepproc);
 
 %% run the simulation
 poolobj = parpool('local', 2);
