@@ -25,7 +25,7 @@ function outputdirs = runflatsim(sacfile, ddir, specfembin, keepproc)
 % SEE ALSO:
 % SPECFEM2D_INPUT_SETUP, RUNTHISEXAMPLE, UPDATEHEADER, UPDATESYNTHETICS
 %
-% Last modified by sirawich-at-princeton.edu, 01/27/2022
+% Last modified by sirawich-at-princeton.edu, 01/28/2022
 
 % specify where you want to keep the simulations input/output files
 defval('ddir', getenv('REMOTE2D'))
@@ -112,14 +112,14 @@ parfor ii = 1:2
     runthisexample(example, outputdirs{ii}, specfembin);
     % remove the model file to save space
     if ~keepproc
-        system(sprintf('rm %s/DATA/*.bin', outputdirs{ii}));
-        system(sprintf('rm %s/OUTPUT_FILES/Database00000.bin', outputdirs{ii}));
+        system(sprintf('rm -f %sDATA/*.bin', outputdirs{ii}));
+        system(sprintf('rm -f %sOUTPUT_FILES/Database00000.bin', outputdirs{ii}));
         
-        system(sprintf('mkdir %s/OUTPUT_FILES/temp/', outputdirs{ii}));
-        system(sprintf('mv %s/OUTPUT_FILES/forward_image000*.jpg %s/OUTPUT_FILES/temp', outputdirs{ii}, outputdirs{ii}));
-        system(sprintf('rm %s/OUTPUT_FILES/forward_image*.jpg', outputdirs{ii}));
-        system(sprintf('mv %s/OUTPUT_FILES/temp/forward_image000*.jpg %s/OUTPUT_FILES/', outputdirs{ii}, outputdirs{ii}));
-        system(sprintf('rmdir %s/OUTPUT_FILES/temp/', outputdirs{ii}));
+        system(sprintf('mkdir %sOUTPUT_FILES/temp/', outputdirs{ii}));
+        system(sprintf('mv %sOUTPUT_FILES/forward_image000*.jpg %s/OUTPUT_FILES/temp', outputdirs{ii}, outputdirs{ii}));
+        system(sprintf('rm -f %sOUTPUT_FILES/forward_image*.jpg', outputdirs{ii}));
+        system(sprintf('mv %sOUTPUT_FILES/temp/forward_image000*.jpg %s/OUTPUT_FILES/', outputdirs{ii}, outputdirs{ii}));
+        system(sprintf('rmdir %sOUTPUT_FILES/temp/', outputdirs{ii}));
     end
 end
 delete(poolobj)
