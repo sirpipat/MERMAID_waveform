@@ -1,5 +1,7 @@
-function [t_shift, CCmax, lag, cc, s] = comparepressure(seis_s, hdr_s, seis_o, hdr_o, seis_r, t_r, plt)
-% [t_shift, CCmax, lag, cc, s]  = COMPAREPRESSURE(seis_s, hdr_s, seis_o, hdr_o, seis_r, t_r, plt)
+function [t_shift, CCmax, lag, cc, s] = ...
+    comparepressure(seis_s, hdr_s, seis_o, hdr_o, seis_r, t_r, plt, numpicks)
+% [t_shift, CCmax, lag, cc, s]  = ...
+%     COMPAREPRESSURE(seis_s, hdr_s, seis_o, hdr_o, seis_r, t_r, plt, numpicks)
 %
 % interpolates synthetic and response. Then, convolves the two and compares
 % with the observed with instrument response removed.
@@ -12,6 +14,8 @@ function [t_shift, CCmax, lag, cc, s] = comparepressure(seis_s, hdr_s, seis_o, h
 % seis_r        receiver function
 % t_r           time of the receiver function
 % plt           whether to plot or not [Default: true]
+% numpicks      the number of bestshift candidates. Only work with plots.
+%               [Default: 1]
 %
 % OUTPUT:
 % t_shift       Best time shift where CC is maximum
@@ -20,9 +24,10 @@ function [t_shift, CCmax, lag, cc, s] = comparepressure(seis_s, hdr_s, seis_o, h
 % CC            Vector of CC for every time shift in lag
 % s             Scaling to minimize the misfit
 %
-% Last modified by sirawich-at-princeton.edu, 01/25/2022
+% Last modified by sirawich-at-princeton.edu, 01/26/2022
 
 defval('plt', true)
+defval('numpicks', 1)
 
 % sampling rate
 [~, dt_begin_s, ~, fs_s, ~, dts_s] = gethdrinfo(hdr_s);
@@ -65,11 +70,11 @@ pres_s1 = pres_s(and(geq(dts_o + seconds(best_lags_time_e), dt_start, ep), ...
 
 % first correlate by the envelope
 [best_lags_time_e, ~, ~, ~, ~] = ccscale(pres_o1, pres_s1, ...
-    dt_begin_o, dt_begin_o, fs_o, seconds(15), true);
+    dt_begin_o, dt_begin_o, fs_o, seconds(15), 'soft', true);
 
 % then correlate by the waveform
 [best_lags_time, ~, lags_time, cc, s] = ccscale(pres_o1, pres_s1, ...
-    dt_start, dt_start + seconds(best_lags_time_e), fs_o, seconds(5), false);
+    dt_start, dt_start + seconds(best_lags_time_e), fs_o, seconds(5), 'soft', false);
 
 best_lags_time = best_lags_time + best_lags_time_e;
 lags_time = lags_time + best_lags_time_e;
@@ -87,84 +92,99 @@ best_lags = round(best_lags_time * fs_o);
 
 %% plot the result
 if plt
-    figure(1)
-    clf
-    set(gcf, 'Units', 'inches', 'Position', [0 6 6 6])
+    % identify NUMPICKS of peaks on CC plot
+    [pks, locs] = findpeaks(cc, lags_time);
+    [pks, isort] = sort(pks, 'descend');
+    locs = locs(isort);
+    
+    for ii = 1:min(numpicks, length(pks))
+        figure(1)
+        clf
+        set(gcf, 'Units', 'inches', 'Position', [0 6 6 6])
 
-    % plot two pressure records: observed vs synthetic
-    ax1 = subplot('Position', [0.08 0.68 0.86 0.24]);
-    cla
-    plot(seconds(dts_o' - dt_ref_o) - hdr_o.T0, pres_o, 'k', 'LineWidth', 0.5)
-    hold on
-    plot(seconds(dts_o' - dt_ref_o) - hdr_o.T0 + best_lags_time, ...
-        s * pres_s, 'b', 'LineWidth', 1)
-    % plot(seconds(dts_o' - dt_ref_o) - hdr_o.T0, envelope(pres_o), 'Color', ...
-    %     [0.7 0.7 0.7], 'LineWidth', 0.5)
-    % plot(seconds(dts_o' - dt_ref_o) - hdr_o.T0 + best_lags_time, ...
-    %     envelope(s * pres_s), 'Color', [0.7 0.7 1], 'LineWidth', 0.5)
-    grid on
-    xlim([-15 35])
-    ylim([-1.1 1.1] * max(max(abs(pres_o)), max(abs(s * pres_s))))
-    vline(ax1, 0, 'LineWidth', 2, 'LineStyle', '--', 'Color', [0.1 0.8 0.1]);
-    legend('observed', 'synthetic', ...
-        'Location', 'northwest')
-    xlabel('time since first picked arrival (s)')
-    ylabel('acoustic pressure (Pa)')
-    title('pressure record')
-    set(ax1, 'Box', 'on')
+        % plot two pressure records: observed vs synthetic
+        ax1 = subplot('Position', [0.08 0.68 0.86 0.24]);
+        cla
+        plot(seconds(dts_o' - dt_ref_o) - hdr_o.T0, pres_o, 'k', 'LineWidth', 0.5)
+        hold on
+        plot(seconds(dts_o' - dt_ref_o) - hdr_o.T0 + locs(ii), ...
+            s * pres_s, 'b', 'LineWidth', 1)
+        % plot(seconds(dts_o' - dt_ref_o) - hdr_o.T0, envelope(pres_o), 'Color', ...
+        %     [0.7 0.7 0.7], 'LineWidth', 0.5)
+        % plot(seconds(dts_o' - dt_ref_o) - hdr_o.T0 + best_lags_time, ...
+        %     envelope(s * pres_s), 'Color', [0.7 0.7 1], 'LineWidth', 0.5)
+        grid on
+        xlim([-15 35])
+        ylim([-1.1 1.1] * max(max(abs(pres_o)), max(abs(s * pres_s))))
+        vline(ax1, 0, 'LineWidth', 2, 'LineStyle', '--', 'Color', [0.1 0.8 0.1]);
+        legend('observed', 'synthetic', ...
+            'Location', 'northwest')
+        xlabel('time since first picked arrival (s)')
+        ylabel('acoustic pressure (Pa)')
+        title('pressure record')
+        set(ax1, 'Box', 'on')
 
-    % residue: observed - shifted synthetic
-    ax2 = subplot('Position', [0.08 0.34 0.86 0.24]);
-    cla
-    plot(seconds(dts_o' - dt_ref_o) - hdr_o.T0, pres_o, 'k', 'LineWidth', 0.5)
-    hold on
-    plot(seconds(dts_o' - dt_ref_o) - hdr_o.T0 + best_lags_time, ...
-        s * pres_s, 'b', 'LineWidth', 1)
-    % plot(seconds(dts_o' - dt_ref_o) - hdr_o.T0, envelope(pres_o), 'Color', ...
-    %     [0.7 0.7 0.7], 'LineWidth', 0.5)
-    % plot(seconds(dts_o' - dt_ref_o) - hdr_o.T0 + best_lags_time, ...
-    %     envelope(s * pres_s), 'Color', [0.7 0.7 1], 'LineWidth', 0.5)
-    grid on
-    xlim([hdr_o.B hdr_o.E] - hdr_o.T0)
-    ylim([-1.1 1.1] * max(max(abs(pres_o)), max(abs(s * pres_s))))
-    vline(ax2, 0, 'LineWidth', 2, ...
-        'LineStyle', '--', 'Color', [0.1 0.8 0.1]);
-    legend('observed', 'synthetic', ...
-        'Location', 'northwest')
-    xlabel('time since first picked arrival (s)')
-    ylabel('acoustic pressure (Pa)')
-    title(sprintf('pressure record: timeshift = %.2f s, cc = %.2f, scale = %.2f', ...
-        best_lags_time, max(cc), s))
-    set(ax2, 'Box', 'on')
-    % plot(dts_o', pres_o - circshift(s * pres_s, best_lags), 'k')
-    % grid on
-    % xlim(dt_ref_o + seconds(hdr_o.T0 + [-10 40]))
-    % ylim([-1.1 1.1] * max(abs(pres_o - circshift(pres_s, best_lags))));
-    % vline(ax2, dt_ref_o + seconds(hdr_o.T0), 'LineWidth', 2, ...
-    %     'LineStyle', '--', 'Color', [0.1 0.8 0.1]);
-    % title('residue')
-    % ylabel('residue (Pa)')
-    % set(ax2, 'Box', 'on')
+        % residue: observed - shifted synthetic
+        ax2 = subplot('Position', [0.08 0.34 0.86 0.24]);
+        cla
+        plot(seconds(dts_o' - dt_ref_o) - hdr_o.T0, pres_o, 'k', 'LineWidth', 0.5)
+        hold on
+        plot(seconds(dts_o' - dt_ref_o) - hdr_o.T0 + locs(ii), ...
+            s * pres_s, 'b', 'LineWidth', 1)
+        % plot(seconds(dts_o' - dt_ref_o) - hdr_o.T0, envelope(pres_o), 'Color', ...
+        %     [0.7 0.7 0.7], 'LineWidth', 0.5)
+        % plot(seconds(dts_o' - dt_ref_o) - hdr_o.T0 + best_lags_time, ...
+        %     envelope(s * pres_s), 'Color', [0.7 0.7 1], 'LineWidth', 0.5)
+        grid on
+        xlim([hdr_o.B hdr_o.E] - hdr_o.T0)
+        ylim([-1.1 1.1] * max(max(abs(pres_o)), max(abs(s * pres_s))))
+        vline(ax2, 0, 'LineWidth', 2, ...
+            'LineStyle', '--', 'Color', [0.1 0.8 0.1]);
+        legend('observed', 'synthetic', ...
+            'Location', 'northwest')
+        xlabel('time since first picked arrival (s)')
+        ylabel('acoustic pressure (Pa)')
+        title(sprintf('pressure record: timeshift = %.2f s, cc = %.2f, scale = %.2f', ...
+            locs(ii), pks(ii), s))
+        set(ax2, 'Box', 'on')
+        % plot(dts_o', pres_o - circshift(s * pres_s, best_lags), 'k')
+        % grid on
+        % xlim(dt_ref_o + seconds(hdr_o.T0 + [-10 40]))
+        % ylim([-1.1 1.1] * max(abs(pres_o - circshift(pres_s, best_lags))));
+        % vline(ax2, dt_ref_o + seconds(hdr_o.T0), 'LineWidth', 2, ...
+        %     'LineStyle', '--', 'Color', [0.1 0.8 0.1]);
+        % title('residue')
+        % ylabel('residue (Pa)')
+        % set(ax2, 'Box', 'on')
 
-    % correlation coefficient
-    ax3 = subplot('Position', [0.08 0.08 0.86 0.17]);
-    cla
-    plot(lags_time, cc, 'k')
-    hold on
-    scatter(best_lags_time, max(cc), 80, 'Marker', 'v', 'MarkerEdgeColor', ...
-        'k', 'MarkerFaceColor', 'b');
-    grid on
-    xlim([-20 20])
-    title('correlation coefficient')
-    xlabel('timeshift (s)')
-    ylabel('correlation coefficient')
-    set(ax3, 'Box', 'on')
+        % correlation coefficient
+        ax3 = subplot('Position', [0.08 0.08 0.86 0.17]);
+        cla
+        hold on
+        xlim([-20 20])
+        ylim([-1 1] * 1.25 * max(abs(cc)))
+        vline(ax3, locs(ii), 'LineStyle', '--', ...
+            'Color', rgbcolor('2'), 'LineWidth', 2);
+        hline(ax3, pks(ii), 'LineStyle', '--', ...
+            'Color', rgbcolor('2'), 'LineWidth', 2);
+        plot(lags_time, cc, 'k')
+        grid on
+        title('correlation coefficient')
+        xlabel('timeshift (s)')
+        ylabel('correlation coefficient')
+        set(ax3, 'Box', 'on')
 
-    % save figure
-    set(gcf, 'Renderer', 'painters')
-    savename = sprintf('%s_%d_%s.eps', mfilename, hdr_o.USER7, ...
-        replace(hdr_o.KSTNM, ' ', ''));
-    figdisp(savename, [], [], 2, [], 'epstopdf');
+        % save figure
+        set(gcf, 'Renderer', 'painters')
+        if ii == 1
+            savename = sprintf('%s_%d_%s.eps', mfilename, hdr_o.USER7, ...
+                replace(hdr_o.KSTNM, ' ', ''));
+        else
+            savename = sprintf('%s_%d_%s_rank%d.eps', mfilename, hdr_o.USER7, ...
+                replace(hdr_o.KSTNM, ' ', ''), ii);
+        end
+        figdisp(savename, [], [], 2, [], 'epstopdf');
+    end
 end
 end
 
