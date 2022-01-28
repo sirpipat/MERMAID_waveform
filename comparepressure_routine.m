@@ -81,7 +81,7 @@ for ii = i_begin:i_end
                 {'hydrophone', 'pressure'}, 1/hdr_o.DELTA, false);
             [t_shifts(n,1), CCmaxs(n,1), ~, ~, scales(n,1)] = ...
                 comparepressure(seis_s, hdr_s, seis_o, hdr_o, rf, t_rf, ...
-                plt);
+                plt, 5);
             fileused{n,1} = allsynfiles{jj};
             n = n + 1;
         catch ME
