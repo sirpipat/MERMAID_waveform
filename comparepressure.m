@@ -30,7 +30,7 @@ function [t_shift, CCmax, lag, cc, s] = ...
 % CC            Vector of CC for every time shift in lag
 % s             Scaling to minimize the misfit
 %
-% Last modified by sirawich-at-princeton.edu, 01/31/2022
+% Last modified by sirawich-at-princeton.edu, 02/04/2022
 
 defval('envelope_window', [-10 20])
 defval('waveform_window', [-5 5])
@@ -129,7 +129,7 @@ if plt
     fname = sprintf('%s%02d.ndk', monthname{dt_origin.Month}, ...
         mod(dt_origin.Year, 100));
     [~,~,CMT] = readCMT(fname, strcat(getenv('IFILES'),'CMT'), tbeg, ...
-        tend, mblo, mbhi, depmin, depmax);
+        tend, mblo, mbhi, depmin, depmax, 'hypocenter');
     
     for ii = 1:min(numpicks, length(pks))
         figure(1)
