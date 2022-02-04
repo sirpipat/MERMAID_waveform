@@ -236,7 +236,7 @@ if plt
 
         % save figure
         set(gcf, 'Renderer', 'painters')
-        if ii == 1
+        if ii == 0
             savename = sprintf('%s_%d_%s.eps', mfilename, hdr_o.USER7, ...
                 replace(hdr_o.KSTNM, ' ', ''));
         else
