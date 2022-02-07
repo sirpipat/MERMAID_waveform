@@ -7,10 +7,11 @@ function xs = removenoise(t, x, fs, arrival, n)
 % signal.
 %
 % INPUT:
-% t             time
+% t             time array or datetime array
 % x             input signal
 % fs            rate of sampling
-% arrival       when the signal arrives
+% arrival       when the signal arrives, either time or datetime, must be
+%               consistent with t
 % n             number of frequencies to fit
 %
 % OUTPUT:
@@ -27,6 +28,15 @@ if size(x, 1) > 1
     converted = true;
 else
     converted = false;
+end
+
+% if datetimes are given, convert to doubles representing the number of
+% seconds from the first sample
+if isdatetime(t) && isdatetime(arrival)
+    arrival = seconds(arrival - t(1));
+    t = seconds(t - t(1));
+elseif xor(isdatetime(t), isdatetime(arrival))
+    error('T and ARRIVAL must be the same data type: either time or datetime.')
 end
 
 % slice for section to determine the noise
