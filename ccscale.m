@@ -8,7 +8,7 @@ function [t_shift, CCmax, lag, CC, s] = ...
 % the two signals after the best timeshift is applied.
 %
 % The function expects the relation between two signals to be
-% x1(t) == s * x2(t + t_shift)
+% x1(t) == s * x2(t - t_shift)
 %
 % INPUT:
 % x1            A signal containing x2
