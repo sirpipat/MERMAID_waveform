@@ -20,14 +20,14 @@ function pos = subplotposition(m, n, p, axmargin, figmargin)
 % SEE ALSO:
 % SUBPLOT
 %
-% Last modified by sirawich-at-princeton.edu, 11/29/2021
+% Last modified by sirawich-at-princeton.edu, 02/08/2022
 
 defval('axmargin', [0.15 0.15 0.15 0.15])
 defval('figmargin', [0.03 0.03 0.03 0.03])
 
-gridpos = [mod(p-1,n) n-ceil(p/n)];
-widthfull = (1-figmargin(1)-figmargin(3))/m;
-heightfull = (1-figmargin(2)-figmargin(4))/n;
+gridpos = [mod(p-1,n) m-ceil(p/n)];
+widthfull = (1-figmargin(1)-figmargin(3))/n;
+heightfull = (1-figmargin(2)-figmargin(4))/m;
 pos = [figmargin(1) + gridpos(1) * widthfull ...
        figmargin(2) + gridpos(2) * heightfull ...
        widthfull ...
