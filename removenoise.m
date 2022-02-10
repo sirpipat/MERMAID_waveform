@@ -1,5 +1,5 @@
-function xs = removenoise(t, x, fs, arrival, n)
-% xs = REMOVENOISE(t, x, fs, arrival, n)
+function xs = removenoise(t, x, fs, arrival, n, method, scheme)
+% xs = REMOVENOISE(t, x, fs, arrival, n, method, scheme)
 %
 % Determines the Fourier coefficients of the noise time-series before 
 % ARRIVAL which separate the noise-only section from the other section and 
@@ -13,6 +13,18 @@ function xs = removenoise(t, x, fs, arrival, n)
 % arrival       when the signal arrives, either time or datetime, must be
 %               consistent with t
 % n             number of frequencies to fit
+% method        how to remove the noise [Default: 'filtering']
+%               'subtraction' -- remove the reconstructed noise from the
+%                                whole waveform
+%               'filtering'   -- reduing the amplitude by the PSD ratio of
+%                                noise and the whole waveform
+% scheme        how to proceed forward in moving the noise
+%               [Default: 'once']
+%               'iterative'   -- removing one frequency at a time, then
+%                                search for one frequency that has the 
+%                                largest noise PSD again. It can be very
+%                                slow for long signal and large n
+%               'once'        -- removing all frequencies at once
 %
 % OUTPUT:
 % xs            output signal with noise removed
@@ -21,8 +33,12 @@ function xs = removenoise(t, x, fs, arrival, n)
 % removenoise('demo1'); % example on generic sine wave signals
 % removenoise('demo2'); % example on an actual MERMAID seismogram
 %
-% Last modified by sirawich-at-princeton.edu. 02/09/2022
+% Last modified by sirawich-at-princeton.edu. 02/10/2022
 
+defval('method', 'filtering')
+defval('scheme', 'once')
+
+%% DEMOS
 if ischar(t)
     % Demo 1: generic sine wave signals
     if strcmpi(t, 'demo1')
@@ -31,6 +47,8 @@ if ischar(t)
         t = 0:(1/fs):10;
         arrival = 6;
         noiseamplitude = x;
+        %method = 'filtering';
+        %scheme = 'once';
 
         % original signal
         xnoise1 = 0.5*sin(2*pi*t);
@@ -45,10 +63,22 @@ if ischar(t)
         
         % remove the noise
         n = [1 2 3 4 6 10 20 40 60 100];
-        xs = zeros(length(n), length(x));
+        
+        % stores the signal after the noise is removed
+        xs = zeros(length(x), length(n));
 
-        for ii = 1:length(n)
-            xs(ii,:) = removenoise(t, x, fs, arrival, n(ii));
+        % remove the noise
+        xs(:,1) = removenoise(t, x, fs, arrival, n(1), method, scheme);
+        for ii = 2:length(n)
+            if strcmpi(scheme, 'once')
+                xs(:,ii) = removenoise(t, x, fs, arrival, n(ii), ...
+                    method, scheme);
+            elseif strcmpi(scheme, 'iterative')
+                xs(:,ii) = removenoise(t, xs(:,ii-1), fs, arrival, ...
+                    n(ii)-n(ii-1), method, scheme);
+            else
+                printschemeerror(scheme);
+            end
         end
 
         figure
@@ -61,7 +91,7 @@ if ischar(t)
         hold on
         % plot the denoised signals
         for ii = 1:length(n)
-            plot(t, xs(ii,:) - 3*ii, 'Color', [0.8 0 0], 'LineWidth', 1)
+            plot(t, xs(:,ii) - 3*ii, 'Color', [0.8 0 0], 'LineWidth', 1)
         end
         % plot bandpass for comparison
         plot(t, xf - 3*(length(n)+1), 'LineWidth', 1, 'Color', ...
@@ -89,8 +119,11 @@ if ischar(t)
         return
     % Demo2: actual MERMAID seismogram
     elseif strcmpi(t, 'demo2')
+        %method = 'filtering';
+        %scheme = 'once';
+        
         % read the pressure record from MERMAID
-        fname = sprintf('%sDATA/mermaidpressure_demo.sac', ...
+        fname = sprintf('%sDATA/mermaidpressure_demo2.sac', ...
             getenv('MERMAID2'));
         [x, hdr] = readsac(fname);
         [dt_ref, ~, ~, fs, ~, t] = gethdrinfo(hdr);
@@ -107,11 +140,20 @@ if ischar(t)
         n = [1 2 3 4 6 10 20 40 60 100];
         
         % stores the signal after the noise is removed
-        xs = zeros(length(n), length(x));
+        xs = zeros(length(x), length(n));
 
         % remove the noise
-        for ii = 1:length(n)
-            xs(ii,:) = removenoise(t, x, fs, arrival, n(ii));
+        xs(:,1) = removenoise(t, x, fs, arrival, n(1), method, scheme);
+        for ii = 2:length(n)
+            if strcmpi(scheme, 'once')
+                xs(:,ii) = removenoise(t, x, fs, arrival, n(ii), ...
+                    method, scheme);
+            elseif strcmpi(scheme, 'iterative')
+                xs(:,ii) = removenoise(t, xs(:,ii-1), fs, arrival, ...
+                    n(ii)-n(ii-1), method, scheme);
+            else
+                printschemeerror(scheme);
+            end
         end
         
         % plot the output waveforms
@@ -130,7 +172,7 @@ if ischar(t)
         hold on
         % plot the denoised signals
         for ii = 1:length(n)
-            plot(t, xs(ii,:) - 50*ii, 'Color', [0.8 0 0], 'LineWidth', 1)
+            plot(t, xs(:,ii) - 50*ii, 'Color', [0.8 0 0], 'LineWidth', 1)
         end
         plot(t, xf - 50*(length(n)+1), 'LineWidth', 1, 'Color', ...
             [0.4 0.7 0.2]);
@@ -168,7 +210,7 @@ if ischar(t)
         for ii = 1:length(n)
             ax = subplot('Position', subplotposition(4, 3, 1+ii, ...
                 axmargin, figmargin));
-            timspecplot_ns(xs(ii,:), 1000, fs, 1000, 0.7, 0, 's', 10);
+            timspecplot_ns(xs(:,ii), 1000, fs, 1000, 0.7, 0, 's', 10);
             ylim([0 2])
             colorbar
             title(sprintf('n = %d', n(ii)))
@@ -202,65 +244,138 @@ if ischar(t)
     
 end
 
-% convert all inputs to row vectors
-if size(t, 1) > 1
-    t = t';
-end
-if size(x, 1) > 1
-    x = x';
-    converted = true;
+%% HANDLE ITERTIVELY
+if strcmpi(scheme, 'iterative')
+    for ii = 1:n
+        x = removenoise(t, x, fs, arrival, 1, method, 'once');
+    end
+    return
+elseif strcmpi(scheme, 'once')
+%% ACTUAL COMPUTATION
+    % convert all inputs to row vectors
+    if size(t, 1) > 1
+        t = t';
+    end
+    if size(x, 1) > 1
+        x = x';
+        converted = true;
+    else
+        converted = false;
+    end
+
+    % if datetimes are given, convert to doubles representing the number of
+    % seconds from the first sample
+    if isdatetime(t) && isdatetime(arrival)
+        arrival = seconds(arrival - t(1));
+        t = seconds(t - t(1));
+    elseif xor(isdatetime(t), isdatetime(arrival))
+        error('T and ARRIVAL must be the same data type: either time or datetime.')
+    end
+
+    % slice for section to determine the noise
+    xb = x(t <= arrival);
+    tb = t(t <= arrival);
+
+    if strcmpi(method, 'subtraction')
+        % determine target frequencies
+        max_f = fs/2;
+        min_f = 1/(tb(end)-tb(1));
+
+        f = min_f:min_f:(max_f-min_f);
+        max_n = length(f);
+        n = min(n, max_n);
+
+        % check whether sinefit throws a warning about singular matrix
+        lastwarn('', '');
+        [A, B, C, ~, F, P] = sinefit(tb, xb, [], f);
+        % now if a warning was raised, warnmsg and warnid will not be empty
+        [warnmsg, warnid] = lastwarn();
+        if ~isempty(warnid)
+            error(warnmsg, warnid);
+        end
+
+        A = [0 sqrt(2)*A];
+        B = [C sqrt(2)*B];
+
+        % find k most significant frequency
+        [~, I] = maxk(P, n);
+
+        A = A(I);
+        B = B(I);
+        F = F(I);
+
+        % constrct the noise signal
+        xn = A * sin(2 * pi * F' * t) + B * cos(2 * pi * F' * t);
+
+        % remove the noise
+        xs = x - xn;
+    elseif strcmpi(method, 'filtering')
+        % determine target frequencies
+        max_f = fs/2;
+        min_f = 1/(t(end)-t(1));
+
+        f = min_f:min_f:(max_f-min_f);
+        max_n = length(f);
+        n = min(n, max_n);
+
+        % check whether sinefit throws a warning about singular matrix
+        lastwarn('', '');
+        [Ab, Bb, Cb, ~, Fb, Pb] = sinefit(tb, xb, [], f);
+        % now if a warning was raised, warnmsg and warnid will not be empty
+        [warnmsg, warnid] = lastwarn();
+        if ~isempty(warnid)
+            error(warnmsg, warnid);
+        end
+
+        Ab = [0  sqrt(2)*Ab];
+        Bb = [Cb sqrt(2)*Bb];
+
+        % check whether sinefit throws a warning about singular matrix
+        lastwarn('', '');
+        [A, B, C, xest, F, P] = sinefit(t, x, [], f);
+        % now if a warning was raised, warnmsg and warnid will not be empty
+        [warnmsg, warnid] = lastwarn();
+        if ~isempty(warnid)
+            error(warnmsg, warnid);
+        end
+
+        A = [0 sqrt(2)*A];
+        B = [C sqrt(2)*B];
+
+        As = A;
+        Bs = B;
+
+        % only allow PSD reduction to occurs when PSD of the whole is greater
+        % than or equal to PSD of the noise-only section
+        wh = (P >= Pb);
+        Pb = Pb .* wh;
+
+        [~, imax] = maxk(Pb, n);
+
+        for ii = 1:length(imax)
+            index = imax(ii);
+            As(index) = A(index) * max(-P(index) - Pb(index), 0) / P(index);
+            Bs(index) = B(index) * max(-P(index) - Pb(index), 0) / P(index);
+        end
+
+        xs = As * sin(2*pi*F'*t) + Bs * cos(2*pi*F'*t) + (x - xest');
+    else
+        printmethoderror(method);
+    end
+
+    % do not forget to convert back
+    if converted
+        xs = xs';
+    end
 else
-    converted = false;
+    printschemeerror(scheme);
+end
 end
 
-% if datetimes are given, convert to doubles representing the number of
-% seconds from the first sample
-if isdatetime(t) && isdatetime(arrival)
-    arrival = seconds(arrival - t(1));
-    t = seconds(t - t(1));
-elseif xor(isdatetime(t), isdatetime(arrival))
-    error('T and ARRIVAL must be the same data type: either time or datetime.')
+function printschemeerror(scheme)
+error('''%s'' is an invalid scheme. Use one of these options: ''once'' | ''iterative''', scheme)
 end
 
-% slice for section to determine the noise
-xb = x(t <= arrival);
-tb = t(t <= arrival);
-
-% determine target frequencies
-max_f = fs/2;
-min_f = 1/(tb(end)-tb(1));
-
-f = min_f:min_f:(max_f-min_f);
-max_n = length(f);
-n = min(n, max_n);
-
-% check whether sinefit throws a warning about singular matrix
-lastwarn('', '');
-[A, B, C, ~, F, P] = sinefit(tb, xb, [], f);
-% now if a warning was raised, warnmsg and warnid will not be empty
-[warnmsg, warnid] = lastwarn();
-if ~isempty(warnid)
-    error(warnmsg, warnid);
-end
-
-A = [0 sqrt(2)*A];
-B = [C sqrt(2)*B];
-
-% find k most significant frequency
-[~, I] = maxk(P, n);
-
-A = A(I);
-B = B(I);
-F = F(I);
-
-% constrct the noise signal
-xn = A * sin(2 * pi * F' * t) + B * cos(2 * pi * F' * t);
-
-% remove the noise
-xs = x - xn;
-
-% do not forget to convert back
-if converted
-    xs = xs';
-end
+function printmethoderror(method)
+error('''%s'' is an invalid method. Use one of these options: ''subtraction'' | ''filtering''', method)
 end
