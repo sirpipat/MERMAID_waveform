@@ -1,5 +1,5 @@
-function outputdirs = runflatsim_routine(obsmasterdir, synmasterdir, i_begin, i_end, is_run)
-% outputdirs = RUNFLATSIM_ROUTINE(obsmasterdir, synmasterdir, i_begin, i_end, is_run)
+function outputdirs = runflatsim_routine(obsmasterdir, synmasterdir, i_begin, i_end, is_run, branch)
+% outputdirs = RUNFLATSIM_ROUTINE(obsmasterdir, synmasterdir, i_begin, i_end, is_run, branch)
 %
 % A script for run fluid-solid simulation to find the response function
 % between z-displacement at the ocean bottom and the pressure at the
@@ -14,6 +14,9 @@ function outputdirs = runflatsim_routine(obsmasterdir, synmasterdir, i_begin, i_
 % i_begin           first index for IRIS event ID folders
 % i_end             last index for IRIS event ID folders
 % is_run            whether to (re)run runflatsim or just plot the result
+% branch            SPECFEM2D branch [Default: 'master']
+%                   'master' (commit: e937ac2f74f23622f6ebbc8901d30fb33c1a2c38)
+%                   'devel'  (commit: cf89366717d9435985ba852ef1d41a10cee97884)
 %
 %   i_begin and i_end must satisfy the following condition
 %   1 <= i_begin <= i_end <=dndex    where dndex is the number of IRIS
@@ -28,10 +31,11 @@ function outputdirs = runflatsim_routine(obsmasterdir, synmasterdir, i_begin, i_
 % SEE ALSO:
 % RUNFLATSIM, CCTRANSPLOT, COMPAREPRESSURE
 %
-% Last modified by sirawich-at-princeton.edu, 12/04/2021
+% Last modified by sirawich-at-princeton.edu, 02/15/2022
 
 defval('obsmasterdir', '/home/sirawich/research/processed_data/MERMAID_reports_updated/')
 defval('synmasterdir', '/home/sirawich/research/SYNTHETICS/')
+defval('branch', 'master')
 
 [allsyndirs, dndex] = allfile(synmasterdir);
 
@@ -57,7 +61,7 @@ for ii = i_begin:i_end
         example = sprintf('flat_%d_%s', hdr_o.USER7, ...
             replace(hdr_o.KSTNM, ' ', ''));
         if is_run
-            outputdirs = runflatsim(allobsfiles{jj}, [], [], false);
+            outputdirs = runflatsim(allobsfiles{jj}, [], [], false, branch);
         else
             outputdirs = cell(2,1);
             outputdirs{1} = sprintf('%s%s_1/', getenv('REMOTE2D'), example);

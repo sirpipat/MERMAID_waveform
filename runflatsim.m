@@ -1,5 +1,5 @@
-function outputdirs = runflatsim(sacfile, ddir, specfembin, keepproc)
-% outputdirs = RUNFLATSIM(sacfile, ddir, specfembin, keepproc)
+function outputdirs = runflatsim(sacfile, ddir, specfembin, keepproc, branch)
+% outputdirs = RUNFLATSIM(sacfile, ddir, specfembin, keepproc, branch)
 %
 % Sets up fluid-solid simulations in SPECFEM2D with a flat bathymetry. 
 % Then, runs the simulations and then computes the correlation coefficients
@@ -16,6 +16,9 @@ function outputdirs = runflatsim(sacfile, ddir, specfembin, keepproc)
 % ddir          directory to store simulations' files
 % specfembin    directory to specfem2d binaries
 % keepproc      whether to keep model files or not [default: false]
+% branch        SPECFEM2D branch [Default: 'master']
+%               'master' (commit: e937ac2f74f23622f6ebbc8901d30fb33c1a2c38)
+%               'devel'  (commit: cf89366717d9435985ba852ef1d41a10cee97884)
 %
 % OUTPUT:
 % outputdirs    directories to the two simulations
@@ -25,13 +28,14 @@ function outputdirs = runflatsim(sacfile, ddir, specfembin, keepproc)
 % SEE ALSO:
 % SPECFEM2D_INPUT_SETUP, RUNTHISEXAMPLE, UPDATEHEADER, UPDATESYNTHETICS
 %
-% Last modified by sirawich-at-princeton.edu, 01/28/2022
+% Last modified by sirawich-at-princeton.edu, 02/15/2022
 
 % specify where you want to keep the simulations input/output files
 defval('ddir', getenv('REMOTE2D'))
 % specify where you keep SPECFEM2D software
 defval('specfembin', strcat(getenv('SPECFEM2D'), 'bin/'))
 defval('keepproc', false)
+defval('branch', 'master')
 
 % bad value in SAC files
 badval = -12345;
@@ -104,7 +108,7 @@ end
 
 %% create the input files and directories for the SPECFEM2D runs
 outputdirs = specfem2d_input_setup_flat(example, -bottom, ...
-    depth, 'homogeneous', 1, theta, [], outputdir, keepproc);
+    depth, 'homogeneous', 1, theta, [], outputdir, keepproc, branch);
 
 %% run the simulation
 poolobj = parpool('local', 2);
