@@ -1,5 +1,5 @@
-function writeparfile(params, fname)
-% WRITEPARFILE(params, fname)
+function writeparfile(params, fname, branch)
+% WRITEPARFILE(params, fname, branch)
 %
 % Writes parameters from a Par_file.
 %
@@ -10,11 +10,16 @@ function writeparfile(params, fname)
 % INPUT:
 % params        parameters
 % fname         name of the Par_file
+% branch        SPECFEM2D branch [Default: 'master']
+%               'master' (commit: e937ac2f74f23622f6ebbc8901d30fb33c1a2c38)
+%               'devel'  (commit: cf89366717d9435985ba852ef1d41a10cee97884)
 %
 % SEE ALSO:
 % LOADPARFILE, MAKEPARAMS
 %
-% Last modified by Sirawich Pipatprathanporn, 06/07/2021
+% Last modified by Sirawich Pipatprathanporn, 02/16/2022
+
+defval('branch', 'master')
 
 if isempty(fname)
     fid = 1;
@@ -22,7 +27,7 @@ else
     fid = fopen(fname, 'w');
 end
 
-%% simulation input parameters
+%% simulation input parameters (+Mesh for 'devel' branch)
 writetitle(fid, 'simulation input parameters');
 writeblank(fid);
 
@@ -44,42 +49,86 @@ writeblank(fid);
 
 writecomment(fid, '# parameters concerning partitioning');
 writeint(fid, 'NPROC', params.NPROC, 'number of processes');
-writeint(fid, 'partitioning_method', params.partitioning_method, ...
-    'SCOTCH = 3, ascending order (very bad idea) = 1');
-writeblank(fid);
+if strcmpi(branch, 'master')
+    writeint(fid, 'partitioning_method', params.partitioning_method, ...
+        'SCOTCH = 3, ascending order (very bad idea) = 1');
+    writeblank(fid);
 
-writecomment(fid, '# number of control nodes per element (4 or 9)');
-writeint(fid, 'ngnod', params.ngnod, []);
-writeblank(fid);
+    % PARAMETER NAME CHANGE: ngnod is equivalent to NGNOD in 'devel' branch
+    writecomment(fid, '# number of control nodes per element (4 or 9)');
+    writeint(fid, 'ngnod', params.ngnod, []);
+    writeblank(fid);
 
-writecomment(fid, '# time step parameters');
-writecomment(fid, '# total number of time steps');
-writeint(fid, 'NSTEP', params.NSTEP, []);
-writecomment(fid, ['# duration of a time step (see section "How to ' ...
-    'choose the time step" of the manual for how to do this)']);
-writefloat(fid, 'DT', params.DT, []);
-writeblank(fid);
+    writecomment(fid, '# time step parameters');
+    writecomment(fid, '# total number of time steps');
+    writeint(fid, 'NSTEP', params.NSTEP, []);
+    writecomment(fid, ['# duration of a time step (see section "How to ' ...
+        'choose the time step" of the manual for how to do this)']);
+    writefloat(fid, 'DT', params.DT, []);
+    writeblank(fid);
 
-writecomment(fid, '# time stepping');
-writecomment(fid, ['# 1 = Newmark (2nd order), ' ...
-    '2 = LDDRK4-6 (4th-order 6-stage low storage Runge-Kutta), ' ... 
-    '3 = classical RK4 4th-order 4-stage Runge-Kutta']);
-writeint(fid, 'time_stepping_scheme', params.time_stepping_scheme, []);
-writeblank(fid);
+    writecomment(fid, '# time stepping');
+    writecomment(fid, ['# 1 = Newmark (2nd order), ' ...
+        '2 = LDDRK4-6 (4th-order 6-stage low storage Runge-Kutta), ' ... 
+        '3 = classical RK4 4th-order 4-stage Runge-Kutta']);
+    writeint(fid, 'time_stepping_scheme', params.time_stepping_scheme, []);
+    writeblank(fid);
 
-writecomment(fid, ['# axisymmetric (2.5D) or ' ...
-             'Cartesian planar (2D) simulation']);
-writebool(fid, 'AXISYM', params.AXISYM, []);
-fprintf(fid, '\n');
+    writecomment(fid, ['# axisymmetric (2.5D) or ' ...
+                 'Cartesian planar (2D) simulation']);
+    writebool(fid, 'AXISYM', params.AXISYM, []);
+    fprintf(fid, '\n');
 
-writecomment(fid, ['# set the type of calculation ' ...
+    writecomment(fid, ['# set the type of calculation ' ...
+                 '(P-SV or SH/membrane waves)']);
+    writebool(fid, 'P_SV', params.P_SV, []);
+    writeblank(fid);
+
+    writecomment(fid, '# set to true to use GPUs');
+    writebool(fid, 'GPU_MODE', params.GPU_MODE, []);
+    writeblank(fid);
+else
+    writeblank(fid);
+    
+    writecomment(fid, '# time step parameters');
+    writecomment(fid, '# total number of time steps');
+    writeint(fid, 'NSTEP', params.NSTEP, []);
+    writeblank(fid);
+    
+    writecomment(fid, ['# duration of a time step (see section "How to ' ...
+        'choose the time step" of the manual for how to do this)']);
+    writefloat(fid, 'DT', params.DT, []);
+    writeblank(fid);
+
+    writecomment(fid, '# time stepping');
+    writecomment(fid, ['# 1 = Newmark (2nd order), ' ...
+        '2 = LDDRK4-6 (4th-order 6-stage low storage Runge-Kutta), ' ... 
+        '3 = classical RK4 4th-order 4-stage Runge-Kutta']);
+    writeint(fid, 'time_stepping_scheme', params.time_stepping_scheme, []);
+    writeblank(fid);
+    
+    writecomment(fid, ['# set the type of calculation ' ...
              '(P-SV or SH/membrane waves)']);
-writebool(fid, 'P_SV', params.P_SV, []);
-writeblank(fid);
-
-writecomment(fid, '# set to true to use GPUs');
-writebool(fid, 'GPU_MODE', params.GPU_MODE, []);
-writeblank(fid);
+    writebool(fid, 'P_SV', params.P_SV, []);
+    writeblank(fid);
+    
+    writecomment(fid, ['# axisymmetric (2.5D) or ' ...
+                 'Cartesian planar (2D) simulation']);
+    writebool(fid, 'AXISYM', params.AXISYM, []);
+    writeblank(fid);
+    
+    writetitle(fid, 'Mesh');
+    writeblank(fid);
+    
+    writeint(fid, 'PARTITIONING_TYPE', params.partitioning_method, ...
+        'SCOTCH = 3, ascending order (very bad idea) = 1');
+    writeblank(fid);
+    
+    % PARAMETER NAME CHANGE: NGNOD is equivalent to ngnod in 'master' branch
+    writecomment(fid, '# number of control nodes per element (4 or 9)');
+    writeint(fid, 'NGNOD', params.ngnod, []);
+    writeblank(fid);
+end
 
 writecomment(fid, ['# creates/reads a binary database that allows to ' ...
     'skip all time consuming setup steps in initialization']);
@@ -137,7 +186,7 @@ writebool(fid, 'READ_VELOCITIES_AT_f0', params.READ_VELOCITIES_AT_f0, ...
 writebool(fid, 'USE_SOLVOPT', params.USE_SOLVOPT, ...
     ['use more precise but much more expensive way of determining ' ...
     'the Q factor relaxation times, as in ' ...
-    'http://komatitsch.free.fr/preprints/GJI_Lombard_2016.pdf']);
+    'https://doi.org/10.1093/gji/ggw024']);
 writeblank(fid);
 
 writecomment(fid, '# for poroelastic attenuation');
@@ -206,7 +255,45 @@ writecomment(fid, '# acoustic forcing');
 writebool(fid, 'ACOUSTIC_FORCING', params.ACOUSTIC_FORCING , ...
     'acoustic forcing of an acoustic medium with a rigid interface');
 writeblank(fid);
-writeblank(fid);
+
+if strcmpi(branch, 'master')
+    writeblank(fid);
+else
+    % NEW PARAMETER
+    if ~isfield(params, 'noise_source_time_function_type')
+        params.noise_source_time_function_type = 4;
+    end
+    writecomment(fid, ['# noise simulations - type of noise source ' ...
+        'time function:']);
+    writecomment(fid, ['# 0=external (S_squared), ' ...
+        '1=Ricker(second derivative), 2=Ricker(first derivative), ' ...
+        '3=Gaussian, 4=Figure 2a of Tromp et al. 2010']);
+    writecomment(fid, ['# (default value 4 is chosen to reproduce the ' ...
+        'time function from Fig 2a of "Tromp et al., 2010, ' ...
+        'Noise Cross-Correlation Sensitivity Kernels")']);
+    writeint(fid, 'noise_source_time_function_type', ...
+        params.noise_source_time_function_type, []);
+    writeblank(fid);
+    
+    % NEW PARAMETER
+    if ~isfield(params, 'write_moving_sources_database')
+        params.write_moving_sources_database = false;
+    end
+    writecomment(fid, '# moving sources');
+    writecomment(fid, ['# Set write_moving_sources_database to .true. ' ...
+        'if the generation of moving source databases takes']);
+    writecomment(fid, ['# a long time. Then the simulation is done in ' ...
+        'two steps: first you run the code and it writes the ' ...
+        'databases to file']);
+    writecomment(fid, ['# (in DATA folder by default). Then you rerun ' ...
+        'the code and it will read the databases in there directly ' ...
+        'possibly']);
+    writecomment(fid, '# saving a lot of time.');
+    writecomment(fid, '# This is only useful for GPU version (for now)');
+    writebool(fid, 'write_moving_sources_database', ...
+        params.write_moving_sources_database, []);
+    writeblank(fid);
+end
 
 %% receivers
 writetitle(fid, 'receivers');
@@ -214,30 +301,69 @@ writeblank(fid);
 
 writecomment(fid, ['# receiver set parameters for recording ' ...
     'stations (i.e. recording points)']);
-writeint(fid, 'seismotype', params.seismotype, ...
-    ['record 1=displ 2=veloc 3=accel 4=pressure 5=curl of displ ' ...
-    '6=the fluid potential']);
-writeblank(fid);
+if strcmpi(branch, 'master')
+    writeint(fid, 'seismotype', params.seismotype, ...
+        ['record 1=displ 2=veloc 3=accel 4=pressure 5=curl of displ ' ...
+        '6=the fluid potential']);
+    writeblank(fid);
 
-writecomment(fid, ['# subsampling of the seismograms to create ' ...
-    'smaller files (but less accurately sampled in time)']);
-writeint(fid, 'subsamp_seismos', params.subsamp_seismos, []);
-writeblank(fid);
+    writecomment(fid, ['# subsampling of the seismograms to create ' ...
+        'smaller files (but less accurately sampled in time)']);
+    writeint(fid, 'subsamp_seismos', params.subsamp_seismos, []);
+    writeblank(fid);
 
-writecomment(fid, ['# so far, this option can only be used if all the ' ...
-    'receivers are in acoustic elements']);
-writebool(fid, 'USE_TRICK_FOR_BETTER_PRESSURE', ...
-    params.USE_TRICK_FOR_BETTER_PRESSURE, []);
-writeblank(fid);
+    writecomment(fid, ['# so far, this option can only be used if all the ' ...
+        'receivers are in acoustic elements']);
+    writebool(fid, 'USE_TRICK_FOR_BETTER_PRESSURE', ...
+        params.USE_TRICK_FOR_BETTER_PRESSURE, []);
+    writeblank(fid);
 
-writecomment(fid, '# every how many time steps we save the seismograms');
-writecomment(fid, ['# (costly, do not use a very small value; if you ' ...
-    'use a very large value that is larger than the total number']);
-writecomment(fid, ['#  of time steps of the run, the seismograms will ' ...
-    'automatically be saved once at the end of the run anyway)']);
-writeint(fid, 'NSTEP_BETWEEN_OUTPUT_SEISMOS ', ...
-    params.NSTEP_BETWEEN_OUTPUT_SEISMOS, []);
-writeblank(fid);
+    writecomment(fid, ['# every how many time steps we save the ' ...
+        'seismograms']);
+    writecomment(fid, ['# (costly, do not use a very small value; if ' ...
+        'you use a very large value that is larger than the total ' ...
+        'number']);
+    writecomment(fid, ['#  of time steps of the run, the seismograms ' ...
+        'will automatically be saved once at the end of the run anyway)']);
+    writeint(fid, 'NSTEP_BETWEEN_OUTPUT_SEISMOS ', ...
+        params.NSTEP_BETWEEN_OUTPUT_SEISMOS, []);
+    writeblank(fid);
+else
+    % TODO: make params.seismotype an array e.g. [1 2 4]
+    writecomment(fid, ['# seismotype : record 1=displ 2=veloc 3=accel ' ...
+        '4=pressure 5=curl of displ 6=the fluid potential']);
+    % convert params.seismotype (int array) to string
+    str = indeks(sprintf('%s,', string(params.seismotype)), '1:end-1');
+    writestring(fid, 'seismotype', str, ...
+        'several values can be chosen. For example : 1,2,4');
+    writeblank(fid);
+    
+    writecomment(fid, ['# interval in time steps for writing of ' ...
+        'seismograms']);
+    writecomment(fid, ['# every how many time steps we save the ' ...
+        'seismograms']);
+    writecomment(fid, ['# (costly, do not use a very small value; if ' ...
+        'you use a very large value that is larger than the total ' ...
+        'number']);
+    writecomment(fid, ['#  of time steps of the run, the seismograms ' ...
+        'will automatically be saved once at the end of the run anyway)']);
+    writeint(fid, 'NSTEP_BETWEEN_OUTPUT_SEISMOS ', ...
+        params.NSTEP_BETWEEN_OUTPUT_SEISMOS, []);
+    writeblank(fid);
+    
+    writecomment(fid, ['# set to n to reduce the sampling rate of ' ...
+        'output seismograms by a factor of n']);
+    writecomment(fid, '# defaults to 1, which means no down-sampling');
+    writeint(fid, 'NTSTEP_BETWEEN_OUTPUT_SAMPLE', ...
+        params.subsamp_seismos, []);
+    writeblank(fid);
+    
+    writecomment(fid, ['# so far, this option can only be used if all the ' ...
+        'receivers are in acoustic elements']);
+    writebool(fid, 'USE_TRICK_FOR_BETTER_PRESSURE', ...
+        params.USE_TRICK_FOR_BETTER_PRESSURE, []);
+    writeblank(fid);
+end
 
 writecomment(fid, ['# use this t0 as earliest starting time rather ' ...
     'than the automatically calculated one']);
@@ -310,13 +436,34 @@ writecomment(fid, ['# save sensitivity kernels in ASCII format ' ...
     '(much bigger files, but compatible with current GMT scripts) or ' ...
     'in binary format']);
 writebool(fid, 'save_ASCII_kernels', params.save_ASCII_kernels, []);
-writecomment(fid, ['# since the accuracy of kernel integration may ' ...
-    'not need to respect the CFL, this option permits to save ' ...
-    'computing time, and memory with UNDO_ATTENUATION_AND_OR_PML mode']);
-writeint(fid, 'NSTEP_BETWEEN_COMPUTE_KERNELS', ...
-    params.NSTEP_BETWEEN_COMPUTE_KERNELS, []);
 writeblank(fid);
-writeblank(fid);
+
+if strcmpi(branch, 'master')
+    % PARAMETER NAME CHANGE:
+    writecomment(fid, ['# since the accuracy of kernel integration may ' ...
+        'not need to respect the CFL, this option permits to save ' ...
+        'computing time, and memory with UNDO_ATTENUATION_AND_OR_PML mode']);
+    writeint(fid, 'NSTEP_BETWEEN_COMPUTE_KERNELS', ...
+        params.NSTEP_BETWEEN_COMPUTE_KERNELS, []);
+    writeblank(fid);
+    writeblank(fid);
+else
+    % PARAMETER NAME CHANGE:
+    writecomment(fid, ['# since the accuracy of kernel integration may ' ...
+        'not need to respect the CFL, this option permits to save ' ...
+        'computing time, and memory with UNDO_ATTENUATION_AND_OR_PML mode']);
+    writeint(fid, 'NTSTEP_BETWEEN_COMPUTE_KERNELS', ...
+        params.NSTEP_BETWEEN_COMPUTE_KERNELS, []);
+    writeblank(fid);
+    
+    % NEW PARAMETER
+    if ~isfield(params, 'APPROXIMATE_HESS_KL')
+        params.APPROXIMATE_HESS_KL = false;
+    end
+    writecomment(fid, '# outputs approximate Hessian for preconditioning');
+    writebool(fid, 'APPROXIMATE_HESS_KL', params.APPROXIMATE_HESS_KL, []);
+    writeblank(fid);
+end
 
 %% boundary conditions
 writetitle(fid, 'boundary conditions');
@@ -360,23 +507,42 @@ writebool(fid, 'ADD_PERIODIC_CONDITIONS', ...
     params.ADD_PERIODIC_CONDITIONS, []);
 writefloat(fid, 'PERIODIC_HORIZ_DIST', params.PERIODIC_HORIZ_DIST, []);
 writeblank(fid);
-writeblank(fid);
 
 %% velocity and density moels
 writetitle(fid, 'velocity and density models');
+writeblank(fid);
 
+writecomment(fid, '# number of model materials');
 writeint(fid, 'nbmodels', params.nbmodels, []);
-writecomment(fid, '# available material types (see user manual for more information)');
-writecomment(fid, '#   acoustic:    model_number 1 rho Vp 0  0 0 QKappa Qmu 0 0 0 0 0 0 (for QKappa and Qmu use 9999 to ignore them)');
-writecomment(fid, '# when viscoelasticity is turned on, the Vp and Vs values that are read here are the UNRELAXED ones i.e. the values at infinite frequency');
-writecomment(fid, '# unless the READ_VELOCITIES_AT_f0 parameter above is set to true, in which case they are the values at frequency f0.');
-writecomment(fid, '# Please also note that Qmu is always equal to Qs, but Qkappa is in general not equal to Qp.');
-writecomment(fid, '# To convert one to the other see doc/Qkappa_Qmu_versus_Qp_Qs_relationship_in_2D_plane_strain.pdf and');
-writecomment(fid, '# utils/attenuation/conversion_from_Qkappa_Qmu_to_Qp_Qs_from_Dahlen_Tromp_959_960.f90.');
-writecomment(fid, '#   elastic:     model_number 1 rho Vp Vs 0 0 QKappa Qmu 0 0 0 0 0 0 (for QKappa and Qmu use 9999 to ignore them)');
-writecomment(fid, '#   anistoropic: model_number 2 rho c11 c13 c15 c33 c35 c55 c12 c23 c25 0 0 0');
-writecomment(fid, '#   poroelastic: model_number 3 rhos rhof phi c kxx kxz kzz Ks Kf Kfr etaf mufr Qmu');
-writecomment(fid, '#   tomo:        model_number -1 0 0 A 0 0 0 0 0 0 0 0 0 0');
+if strcmpi(branch, 'master')
+    writecomment(fid, '# available material types (see user manual for more information)');
+    writecomment(fid, '#   acoustic:    model_number 1 rho Vp 0  0 0 QKappa Qmu 0 0 0 0 0 0 (for QKappa and Qmu use 9999 to ignore them)');
+    writecomment(fid, '# when viscoelasticity is turned on, the Vp and Vs values that are read here are the UNRELAXED ones i.e. the values at infinite frequency');
+    writecomment(fid, '# unless the READ_VELOCITIES_AT_f0 parameter above is set to true, in which case they are the values at frequency f0.');
+    writecomment(fid, '# Please also note that Qmu is always equal to Qs, but Qkappa is in general not equal to Qp.');
+    writecomment(fid, '# To convert one to the other see doc/Qkappa_Qmu_versus_Qp_Qs_relationship_in_2D_plane_strain.pdf and');
+    writecomment(fid, '# utils/attenuation/conversion_from_Qkappa_Qmu_to_Qp_Qs_from_Dahlen_Tromp_959_960.f90.');
+    writecomment(fid, '#   elastic:     model_number 1 rho Vp Vs 0 0 QKappa Qmu 0 0 0 0 0 0 (for QKappa and Qmu use 9999 to ignore them)');
+    writecomment(fid, '#   anistoropic: model_number 2 rho c11 c13 c15 c33 c35 c55 c12 c23 c25 0 0 0');
+    writecomment(fid, '#   poroelastic: model_number 3 rhos rhof phi c kxx kxz kzz Ks Kf Kfr etaf mufr Qmu');
+    writecomment(fid, '#   tomo:        model_number -1 0 0 A 0 0 0 0 0 0 0 0 0 0');
+else
+    writecomment(fid, '# available material types (see user manual for more information)');
+    writecomment(fid, '#   acoustic:              model_number 1 rho Vp 0  0 0 QKappa 9999 0 0 0 0 0 0 (for QKappa and Qmu use 9999 to ignore them)');
+    writecomment(fid, '#   elastic:               model_number 1 rho Vp Vs 0 0 QKappa Qmu  0 0 0 0 0 0 (for QKappa and Qmu use 9999 to ignore them)');
+    writecomment(fid, '#   anistoropic:           model_number 2 rho c11 c13 c15 c33 c35 c55 c12 c23 c25   0 QKappa Qmu');
+    writecomment(fid, '#   anistoropic in AXISYM: model_number 2 rho c11 c13 c15 c33 c35 c55 c12 c23 c25 c22 QKappa Qmu');
+    writecomment(fid, '#   poroelastic:           model_number 3 rhos rhof phi c kxx kxz kzz Ks Kf Kfr etaf mufr Qmu');
+    writecomment(fid, '#   tomo:                  model_number -1 0 0 A 0 0 0 0 0 0 0 0 0 0');
+    writecomment(fid, '#');
+    writecomment(fid, '# note: When viscoelasticity or viscoacousticity is turned on,');
+    writecomment(fid, '#       the Vp and Vs values that are read here are the UNRELAXED ones i.e. the values at infinite frequency');
+    writecomment(fid, '#       unless the READ_VELOCITIES_AT_f0 parameter above is set to true, in which case they are the values at frequency f0.');
+    writecomment(fid, '#');
+    writecomment(fid, '#       Please also note that Qmu is always equal to Qs, but QKappa is in general not equal to Qp.');
+    writecomment(fid, '#       To convert one to the other see doc/Qkappa_Qmu_versus_Qp_Qs_relationship_in_2D_plane_strain.pdf and');
+    writecomment(fid, '#       utils/attenuation/conversion_from_Qkappa_Qmu_to_Qp_Qs_from_Dahlen_Tromp_959_960.f90.');
+end
 
 for ii = 1:params.nbmodels
     model = params.MODELS{ii};
@@ -420,7 +586,6 @@ writeblank(fid);
 writecomment(fid, ['# use an external mesh created by an external ' ...
     'meshing tool or use the internal mesher']);
 writebool(fid, 'read_external_mesh', params.read_external_mesh, []);
-writeblank(fid);
 writeblank(fid);
 
 %% PARAMETERS FOR EXTERNAL MESHING
@@ -495,6 +660,8 @@ writeblank(fid);
 writetitle(fid, 'display parameters');
 writeblank(fid);
 
+writecomment(fid, ['# interval at which we output time step info and ' ...
+    'max of norm of displacement']);
 writecomment(fid, ['# every how many time steps we display ' ...
     'information about the simulation (costly, do not use a very ' ...
     'small value)']);
@@ -550,9 +717,15 @@ writefloat(fid, 'cutsnaps', params.cutsnaps, []);
 writeblank(fid);
 
 writecomment(fid, '#### for JPEG color images ####');
-writebool(fid, 'output_color_image', params.output_color_image, ...
-    ['output JPEG color image of the results every ' ...
-    'NSTEP_BETWEEN_OUTPUT_IMAGES time steps or not']);
+if strcmpi(branch, 'master')
+    writebool(fid, 'output_color_image', params.output_color_image, ...
+        ['output JPEG color image of the results every ' ...
+        'NSTEP_BETWEEN_OUTPUT_IMAGES time steps or not']);
+else
+    writebool(fid, 'output_color_image', params.output_color_image, ...
+        ['output JPEG color image of the results every ' ...
+        'NTSTEP_BETWEEN_OUTPUT_IMAGES time steps or not']);
+end
 writeint(fid, 'imagetype_JPEG', params.imagetype_JPEG, ...
     ['display 1=displ_Ux 2=displ_Uz 3=displ_norm 4=veloc_Vx ' ...
     '5=veloc_Vz 6=veloc_norm 7=accel_Ax 8=accel_Az 9=accel_norm ' ...
@@ -691,6 +864,14 @@ end
 writebool(fid, 'BROADCAST_SAME_MESH_AND_MODEL', ...
     params.BROADCAST_SAME_MESH_AND_MODEL, []);
 writeblank(fid);
+
+if strcmpi(branch, 'devel')
+    writecomment(fid, '#-----------------------------------------------------------------------------');
+    writeblank(fid);
+    
+    writecomment(fid, '# Set to true to use GPUs');
+    writebool(fid, 'GPU_MODE', params.GPU_MODE, []);
+end
 
 %% close the file
 if fid >= 3
