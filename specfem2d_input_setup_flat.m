@@ -173,7 +173,9 @@ for kk = 1:2
             'Mxx'                   , 1.0       , ...   % explosion
             'Mzz'                   , 1.0       , ...   % explosion
             'Mxz'                   , 0.0       , ...   % explosion
-            'factor'                , 1e-9 * cos(angle * pi / 180)  ...
+            'factor'                , 1e-9 * cos(angle * pi / 180), ...
+            'vx'                    , 0.0       , ...
+            'vz'                    , 0.0         ...
         );
         sources{ii} = source;
     end
@@ -206,7 +208,9 @@ for kk = 1:2
                 'Mxx'                   , 1.0       , ...   % explosion
                 'Mzz'                   , 1.0       , ...   % explosion
                 'Mxz'                   , 0.0       , ...   % explosion
-                'factor'                , 1e-9 * sin(angle * pi / 180)  ...
+                'factor'                , 1e-9 * sin(angle * pi / 180), ...
+                'vx'                    , 0.0       , ...
+                'vz'                    , 0.0         ...
             );
             sources{ii+197} = source;
         end
@@ -259,7 +263,7 @@ for kk = 1:2
     params.output_color_image = saveimage;
     params.output_postscript_snapshot = saveimage;
     %% write Par_file
-    writeparfile(params, sprintf('%sDATA/Par_file_%s', outputdir_kk, name));
+    writeparfile(params, sprintf('%sDATA/Par_file_%s', outputdir_kk, name), branch);
     %% write a supplementary file for runthisexample.m
     %  It is not used by specfem2d.
     save(sprintf('%sDATA/supplementary_%s.mat', outputdir_kk, name), 'water_model'); 
