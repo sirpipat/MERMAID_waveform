@@ -17,7 +17,7 @@ function writeparfile(params, fname, branch)
 % SEE ALSO:
 % LOADPARFILE, MAKEPARAMS
 %
-% Last modified by Sirawich Pipatprathanporn, 02/16/2022
+% Last modified by Sirawich Pipatprathanporn, 02/17/2022
 
 defval('branch', 'master')
 
@@ -50,6 +50,7 @@ writeblank(fid);
 writecomment(fid, '# parameters concerning partitioning');
 writeint(fid, 'NPROC', params.NPROC, 'number of processes');
 if strcmpi(branch, 'master')
+    % PARAMETER NAME CHANGE
     writeint(fid, 'partitioning_method', params.partitioning_method, ...
         'SCOTCH = 3, ascending order (very bad idea) = 1');
     writeblank(fid);
@@ -120,6 +121,7 @@ else
     writetitle(fid, 'Mesh');
     writeblank(fid);
     
+    % PARAMETER NAME CHANGE
     writeint(fid, 'PARTITIONING_TYPE', params.partitioning_method, ...
         'SCOTCH = 3, ascending order (very bad idea) = 1');
     writeblank(fid);
@@ -217,7 +219,8 @@ writebool(fid, 'UNDO_ATTENUATION_AND_OR_PML', ...
 writeint(fid, 'NT_DUMP_ATTENUATION', params.NT_DUMP_ATTENUATION , []);
 writecomment(fid, ['# Instead of reconstructing the forward ' ...
     'wavefield, this option reads it from the disk using ' ...
-    'asynchronous I/O. Outperforms conventional mode using a value ' ...
+    'asynchronous I/O.']);
+writecomment(fid, ['Outperforms conventional mode using a value ' ...
     'of NSTEP_BETWEEN_COMPUTE_KERNELS high enough.']);
 writebool(fid, 'NO_BACKWARD_RECONSTRUCTION', ...
     params.NO_BACKWARD_RECONSTRUCTION, []);
@@ -307,6 +310,7 @@ if strcmpi(branch, 'master')
         '6=the fluid potential']);
     writeblank(fid);
 
+    % PARAMETER NAME CHANGE
     writecomment(fid, ['# subsampling of the seismograms to create ' ...
         'smaller files (but less accurately sampled in time)']);
     writeint(fid, 'subsamp_seismos', params.subsamp_seismos, []);
@@ -347,10 +351,11 @@ else
         'number']);
     writecomment(fid, ['#  of time steps of the run, the seismograms ' ...
         'will automatically be saved once at the end of the run anyway)']);
-    writeint(fid, 'NSTEP_BETWEEN_OUTPUT_SEISMOS ', ...
+    writeint(fid, 'NTSTEP_BETWEEN_OUTPUT_SEISMOS ', ...
         params.NSTEP_BETWEEN_OUTPUT_SEISMOS, []);
     writeblank(fid);
     
+    % PARAMETER NAME CHANGE
     writecomment(fid, ['# set to n to reduce the sampling rate of ' ...
         'output seismograms by a factor of n']);
     writecomment(fid, '# defaults to 1, which means no down-sampling');
@@ -523,15 +528,15 @@ if strcmpi(branch, 'master')
     writecomment(fid, '# To convert one to the other see doc/Qkappa_Qmu_versus_Qp_Qs_relationship_in_2D_plane_strain.pdf and');
     writecomment(fid, '# utils/attenuation/conversion_from_Qkappa_Qmu_to_Qp_Qs_from_Dahlen_Tromp_959_960.f90.');
     writecomment(fid, '#   elastic:     model_number 1 rho Vp Vs 0 0 QKappa Qmu 0 0 0 0 0 0 (for QKappa and Qmu use 9999 to ignore them)');
-    writecomment(fid, '#   anistoropic: model_number 2 rho c11 c13 c15 c33 c35 c55 c12 c23 c25 0 0 0');
+    writecomment(fid, '#   anisotropic: model_number 2 rho c11 c13 c15 c33 c35 c55 c12 c23 c25 0 0 0');
     writecomment(fid, '#   poroelastic: model_number 3 rhos rhof phi c kxx kxz kzz Ks Kf Kfr etaf mufr Qmu');
     writecomment(fid, '#   tomo:        model_number -1 0 0 A 0 0 0 0 0 0 0 0 0 0');
 else
     writecomment(fid, '# available material types (see user manual for more information)');
-    writecomment(fid, '#   acoustic:              model_number 1 rho Vp 0  0 0 QKappa 9999 0 0 0 0 0 0 (for QKappa and Qmu use 9999 to ignore them)');
+    writecomment(fid, '#   acoustic:              model_number 1 rho Vp 0  0 0 QKappa 9999 0 0 0 0 0 0 (for QKappa use 9999 to ignore them)');
     writecomment(fid, '#   elastic:               model_number 1 rho Vp Vs 0 0 QKappa Qmu  0 0 0 0 0 0 (for QKappa and Qmu use 9999 to ignore them)');
-    writecomment(fid, '#   anistoropic:           model_number 2 rho c11 c13 c15 c33 c35 c55 c12 c23 c25   0 QKappa Qmu');
-    writecomment(fid, '#   anistoropic in AXISYM: model_number 2 rho c11 c13 c15 c33 c35 c55 c12 c23 c25 c22 QKappa Qmu');
+    writecomment(fid, '#   anisotropic:           model_number 2 rho c11 c13 c15 c33 c35 c55 c12 c23 c25   0 QKappa Qmu');
+    writecomment(fid, '#   anisotropic in AXISYM: model_number 2 rho c11 c13 c15 c33 c35 c55 c12 c23 c25 c22 QKappa Qmu');
     writecomment(fid, '#   poroelastic:           model_number 3 rhos rhof phi c kxx kxz kzz Ks Kf Kfr etaf mufr Qmu');
     writecomment(fid, '#   tomo:                  model_number -1 0 0 A 0 0 0 0 0 0 0 0 0 0');
     writecomment(fid, '#');
@@ -607,8 +612,11 @@ writestring(fid, 'axial_elements_file', params.axial_elements_file, ...
 writestring(fid, 'absorbing_surface_file', ...
     params.absorbing_surface_file, ...
     'file containing the absorbing surface');
-writestring(fid, 'CPML_element_file', params.CPML_element_file, ...
-    'file containing the CPML element numbers');
+% This parameter is not used in many examples but a few ones
+if isfield(params, 'params.CPML_element_file')
+    writestring(fid, 'CPML_element_file', params.CPML_element_file, ...
+        'file containing the CPML element numbers');
+end
 writestring(fid, 'acoustic_forcing_surface_file', ...
     params.acoustic_forcing_surface_file, ...
     'file containing the acoustic forcing surface');
@@ -665,8 +673,14 @@ writecomment(fid, ['# interval at which we output time step info and ' ...
 writecomment(fid, ['# every how many time steps we display ' ...
     'information about the simulation (costly, do not use a very ' ...
     'small value)']);
-writeint(fid, 'NSTEP_BETWEEN_OUTPUT_INFO', ...
-    params.NSTEP_BETWEEN_OUTPUT_INFO, []);
+% PARAMETER NAME CHANGE
+if strcmpi(branch, 'master')
+    writeint(fid, 'NSTEP_BETWEEN_OUTPUT_INFO', ...
+        params.NSTEP_BETWEEN_OUTPUT_INFO, []);
+else
+    writeint(fid, 'NTSTEP_BETWEEN_OUTPUT_INFO', ...
+        params.NSTEP_BETWEEN_OUTPUT_INFO, []);
+end
 writeblank(fid);
 
 writecomment(fid, '# meshing output');
@@ -707,8 +721,15 @@ writecomment(fid, ['# every how many time steps we draw JPEG or ' ...
     'PostScript pictures of the simulation']);
 writecomment(fid, ['# and/or we dump results of the simulation as ' ...
     'ASCII or binary files (costly, do not use a very small value)']);
-writeint(fid, 'NSTEP_BETWEEN_OUTPUT_IMAGES', ...
-    params.NSTEP_BETWEEN_OUTPUT_IMAGES, []);
+if strcmpi(branch, 'master')
+    % PARAMETER NAME CHANGE
+    writeint(fid, 'NSTEP_BETWEEN_OUTPUT_IMAGES', ...
+        params.NSTEP_BETWEEN_OUTPUT_IMAGES, []);
+else
+    % PARAMETER NAME CHANGE
+    writeint(fid, 'NTSTEP_BETWEEN_OUTPUT_IMAGES', ...
+        params.NSTEP_BETWEEN_OUTPUT_IMAGES, []);
+end
 writeblank(fid);
 
 writecomment(fid, ['# minimum amplitude kept in % for the JPEG and ' ...
@@ -764,10 +785,17 @@ writebool(fid, 'USE_SNAPSHOT_NUMBER_IN_FILENAME', ...
 writeblank(fid);
 
 writecomment(fid, '#### for PostScript snapshots ####');
-writebool(fid, 'output_postscript_snapshot', ...
-    params.output_postscript_snapshot, ...
-    ['output Postscript snapshot of the results every ' ...
-    'NSTEP_BETWEEN_OUTPUT_IMAGES time steps or not']);
+if strcmpi(branch, 'master')
+    writebool(fid, 'output_postscript_snapshot', ...
+        params.output_postscript_snapshot, ...
+        ['output Postscript snapshot of the results every ' ...
+        'NSTEP_BETWEEN_OUTPUT_IMAGES time steps or not']);
+else
+    writebool(fid, 'output_postscript_snapshot', ...
+        params.output_postscript_snapshot, ...
+        ['output Postscript snapshot of the results every ' ...
+        'NTSTEP_BETWEEN_OUTPUT_IMAGES time steps or not']);
+end
 writeint(fid, 'imagetype_postscript', params.imagetype_postscript, ...
     ['display 1=displ vector 2=veloc vector 3=accel vector; small ' ...
     'arrows are displayed for the vectors']);
@@ -869,7 +897,7 @@ if strcmpi(branch, 'devel')
     writecomment(fid, '#-----------------------------------------------------------------------------');
     writeblank(fid);
     
-    writecomment(fid, '# Set to true to use GPUs');
+    writecomment(fid, '# set to true to use GPUs');
     writebool(fid, 'GPU_MODE', params.GPU_MODE, []);
 end
 

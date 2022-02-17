@@ -10,7 +10,7 @@ function writesource(sources, fname, branch)
 %               'master' (commit: e937ac2f74f23622f6ebbc8901d30fb33c1a2c38)
 %               'devel'  (commit: cf89366717d9435985ba852ef1d41a10cee97884)
 %
-% Last modified by Sirawich Pipatprathanporn, 02/15/2022
+% Last modified by Sirawich Pipatprathanporn, 02/17/2022
 
 defval('branch', 'master')
 
@@ -24,21 +24,41 @@ end
 
 for ii = 1:num_sources
     source = sources{ii};
-    writecomment(fid, sprintf('## source %d.', ii));
+    writecomment(fid, sprintf('## source %d', ii));
     writebool(fid, 'source_surf', source.source_surf, ...
         'source inside the medium or at the surface');
     writefloat(fid, 'xs', source.xs, 'source location x in meters');
     writefloat(fid, 'zs', source.zs, 'source location z in meters');
-    writeint(fid, 'source_type', source.source_type, ...
-        'elastic force or acoustic pressure = 1 or moment tensor = 2');
     if strcmpi(branch, 'master')
+        writeint(fid, 'source_type', source.source_type, ...
+            'elastic force or acoustic pressure = 1 or moment tensor = 2');
         writeint(fid, 'time_function_type', source.time_function_type, ...
-            ['Ricker = 1, first derivative = 2, Gaussian = 3, Dirac = 4, ' ...
-            'Heaviside = 5']);
-        writecomment(fid, '# time function_type == 8 source read from file, if time function_type == 9 : burst');
+            ['Ricker = 1, first derivative = 2, Gaussian = 3, ' ...
+            'Dirac = 4, Heaviside = 5']);
+        writecomment(fid, ['# time function_type == 8 source read from '...
+            'file, if time function_type == 9 : burst']);
     else
+        writecomment(fid, '## Source type parameters:');
+        writecomment(fid, '#  1 = elastic force or acoustic pressure');
+        writecomment(fid, '#  2 = moment tensor');
+        writecomment(fid, ['# or Initial field type (when initialfield '...
+            'set in Par_file):']);
+        writecomment(fid, ['# For a plane wave including converted and '...
+            'reflected waves at the free surface:']);
+        writecomment(fid, '#  1 = P wave,');
+        writecomment(fid, '#  2 = S wave,');
+        writecomment(fid, '#  3 = Rayleigh wave');
+        writecomment(fid, ['# For a plane wave without converted nor ' ...
+            'reflected waves at the free surface, i.e. with the ' ...
+            'incident wave only:']);
+        writecomment(fid, '#  4 = P wave,');
+        writecomment(fid, '#  5 = S wave');
+        writecomment(fid, '# For initial mode displacement:');
+        writecomment(fid, '#  6 = mode (2,3) of a rectangular membrane');
+        writeint(fid, 'source_type', source.source_type);
         writecomment(fid, '# Options');
-        writecomment(fid, '#  1 = second derivative of a Gaussian (a.k.a. Ricker),');
+        writecomment(fid, ['#  1 = second derivative of a Gaussian ' ...
+            '(a.k.a. Ricker),']);
         writecomment(fid, '#  2 = first derivative of a Gaussian,');
         writecomment(fid, '#  3 = Gaussian,');
         writecomment(fid, '#  4 = Dirac,');
@@ -47,15 +67,21 @@ for ii = 1:num_sources
             'resolution limit),']);
         writecomment(fid, '#  6 = ocean acoustics type I,');
         writecomment(fid, '#  7 = ocean acoustics type II,');
-        writecomment(fid, '#  8 = external source time function (source read from file),');
+        writecomment(fid, ['#  8 = external source time function ' ...
+            '(source read from file),']);
         writecomment(fid, '#  9 = burst,');
         writecomment(fid, '# 10 = Sinus source time function,');
-        writecomment(fid, '# 11 = Marmousi Ormsby wavelet,');
+        writecomment(fid, '# 11 = Marmousi Ormsby wavelet');
         writeint(fid, 'time_function_type', source.time_function_type);
     end
-    writecomment(fid, '# If time_function_type == 8, enter below the custom source file to read (two columns file with time and amplitude) :');
-    writecomment(fid, "# (For the moment dt must be equal to the dt of the simulation. File name can't exceed 150 characters)");
-    writecomment(fid, '# IMPORTANT: do NOT put quote signs around the file name, just put the file name itself otherwise the run will stop');
+    writecomment(fid, ['# If time_function_type == 8, enter below the ' ...
+        'custom source file to read (two columns file with time and ' ...
+        'amplitude) :']);
+    writecomment(fid, ['# (For the moment dt must be equal to the dt ' ...
+        'of the simulation. File name can''t exceed 150 characters)']);
+    writecomment(fid, ['# IMPORTANT: do NOT put quote signs around the '...
+        'file name, just put the file name itself otherwise the run ' ...
+        'will stop']);
     writestring(fid, 'name_of_source_file', source.name_of_source_file, ...
         'Only for option 8 : file containing the source wavelet');
     writefloat(fid, 'burst_band_width', source.burst_band_width, ...
@@ -80,7 +106,8 @@ for ii = 1:num_sources
         'Mzz component (for a moment tensor source only)');
     writefloat(fid, 'Mxz', source.Mxz, ...
         'Mxz component (for a moment tensor source only)');
-    writecomment(fid, '## Amplification (factor to amplify source time function)');
+    writecomment(fid, ['## Amplification (factor to amplify source ' ...
+        'time function)']);
     writefloat(fid, 'factor', source.factor, ...
         'amplification factor');
     if strcmpi(branch, 'devel')
@@ -92,9 +119,9 @@ for ii = 1:num_sources
             source.vz = 0;
         end
         writefloat(fid, 'vx', source.vx, ...
-            '# Horizontal source velocity (m/s)');
+            'Horizontal source velocity (m/s)');
         writefloat(fid, 'vz', source.vx, ...
-            '# Vertical source velocity (m/s)');
+            'Vertical source velocity (m/s)');
     end
     writeblank(fid);
 end
@@ -123,6 +150,7 @@ end
 end
 
 function writebool(fid, name, value, comment)
+defval('comment', [])
 if value == 0
     var_string = '.false.';
 else
@@ -133,6 +161,7 @@ end
 
 
 function writefloat(fid, name, value, comment)
+defval('comment', [])
 if value == 0
     var_string = '0';
 elseif and(abs(value) >= 1, abs(value) < 100)
@@ -145,6 +174,7 @@ writestring(fid, name, var_string, comment);
 end
 
 function writeint(fid, name, value, comment)
+defval('comment', [])
 if isempty(comment)
     fprintf(fid, '%-31s = %d\n', name, value);
 else
@@ -153,6 +183,7 @@ end
 end
 
 function writestring(fid, name, value, comment)
+defval('comment', [])
 if isempty(comment)
     fprintf(fid, '%-31s = %s\n', name, value);
 else

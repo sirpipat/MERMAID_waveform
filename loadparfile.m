@@ -23,7 +23,7 @@ function params = loadparfile(fname)
 % SEE ALSO:
 % WRITEPARFILE, MAKEPARAMS
 %
-% Last modified by Sirawich Pipatprathanporn, 02/16/2022
+% Last modified by Sirawich Pipatprathanporn, 02/17/2022
 
 names = {};
 values = {};
@@ -334,8 +334,23 @@ name = sscanf(line, '%s', 1);
 % Handle the different variable naming in 'master' and 'devel' branches.
 % If both branches have two different variable names referring to the same
 % thing, the name in 'master' branch is used here.
+if strcmp(name, 'PARTITIONING_TYPE')
+    name = 'partitioning_method';
+end
+if strcmp(name, 'NTSTEP_BETWEEN_OUTPUT_SEISMOS')
+    name = 'NSTEP_BETWEEN_OUTPUT_SEISMOS';
+end
 if strcmp(name, 'NTSTEP_BETWEEN_COMPUTE_KERNELS')
     name = 'NSTEP_BETWEEN_COMPUTE_KERNELS';
+end
+if strcmp(name, 'NTSTEP_BETWEEN_OUTPUT_SAMPLE')
+    name = 'subsamp_seismos';
+end
+if strcmp(name, 'NTSTEP_BETWEEN_OUTPUT_IMAGES')
+    name = 'NSTEP_BETWEEN_OUTPUT_IMAGES';
+end
+if strcmp(name, 'NTSTEP_BETWEEN_OUTPUT_INFO')
+    name = 'NSTEP_BETWEEN_OUTPUT_INFO';
 end
 if strcmp(name, 'NGNOD')
     name = 'ngnod';
