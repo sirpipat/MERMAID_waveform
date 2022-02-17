@@ -254,11 +254,14 @@ for kk = 1:2
     % multiple receiversets.
     params = writestations(params, sprintf('%sDATA/STATIONS', outputdir_kk));
     %% define other parameters
-    params.title = sprintf('fluid/solid interface : %s', name);
+    params.title = sprintf('fluid/solid interface : %s -- on %s branch', ...
+        name, upper(branch));
     params.time_stepping_scheme = 1;
     params.NSTEP = 65000;
     params.DT = 5e-4;
     params.NTSTEP_BETWEEN_OUTPUT_ENERGY = 1000;
+    params.PML_BOUNDARY_CONDITIONS = false;
+    params.STACEY_ABSORBING_CONDITIONS = true;
     % do not save the images when SAVEIMAGE is set to false
     params.output_color_image = saveimage;
     params.output_postscript_snapshot = saveimage;
