@@ -1,5 +1,5 @@
-function outputdirs = runflatsim_routine(obsmasterdir, synmasterdir, i_begin, i_end, is_run)
-% outputdirs = RUNFLATSIM_ROUTINE(obsmasterdir, synmasterdir, i_begin, i_end, is_run)
+function outputdirs = runflatsim_routine(obsmasterdir, synmasterdir, i_begin, i_end, is_create, is_run, is_plt, branch)
+% outputdirs = RUNFLATSIM_ROUTINE(obsmasterdir, synmasterdir, i_begin, i_end, is_create, is_run, is_plt, branch)
 %
 % A script for run fluid-solid simulation to find the response function
 % between z-displacement at the ocean bottom and the pressure at the
@@ -13,7 +13,14 @@ function outputdirs = runflatsim_routine(obsmasterdir, synmasterdir, i_begin, i_
 %                   IRIS event ID folders
 % i_begin           first index for IRIS event ID folders
 % i_end             last index for IRIS event ID folders
+% is_create         whether to create input files instead of using existing
+%                   dirctories [default: true]
 % is_run            whether to (re)run runflatsim or just plot the result
+%                   [default: true]
+% is_plt            whether to plot or not [default: true]
+% branch            SPECFEM2D branch [default: 'master']
+%                   'master' (commit: e937ac2f74f23622f6ebbc8901d30fb33c1a2c38)
+%                   'devel'  (commit: cf89366717d9435985ba852ef1d41a10cee97884)
 %
 %   i_begin and i_end must satisfy the following condition
 %   1 <= i_begin <= i_end <=dndex    where dndex is the number of IRIS
@@ -32,6 +39,10 @@ function outputdirs = runflatsim_routine(obsmasterdir, synmasterdir, i_begin, i_
 
 defval('obsmasterdir', '/home/sirawich/research/processed_data/MERMAID_reports_updated/')
 defval('synmasterdir', '/home/sirawich/research/SYNTHETICS/')
+defval('is_create', true)
+defval('is_run', true)
+defval('is_plt', true)
+defval('branch', 'master')
 
 [allsyndirs, dndex] = allfile(synmasterdir);
 
@@ -56,21 +67,30 @@ for ii = i_begin:i_end
         [seis_s, hdr_s] = readsac(allsynfiles{jj});
         example = sprintf('flat_%d_%s', hdr_o.USER7, ...
             replace(hdr_o.KSTNM, ' ', ''));
-        if is_run
-            outputdirs = runflatsim(allobsfiles{jj}, [], [], false);
+        % create directories for files I/O for SPECFEM2D
+        if is_create
+            outputdirs = runflatsim(allobsfiles{jj}, [], [], is_run, false, branch);
+        % use the existing directories
         else
             outputdirs = cell(2,1);
             outputdirs{1} = sprintf('%s%s_1/', getenv('REMOTE2D'), example);
             outputdirs{2} = sprintf('%s%s_2/', getenv('REMOTE2D'), example);
+            
+            if is_run
+                runthisexample(example, outputdirs{1}, specfembin);
+                runthisexample(example, outputdirs{2}, specfembin);
+            end
         end
-        [~, ~, t_rf, rf] = cctransplot(outputdirs{1}, outputdirs{2}, example, ...
-            {'bottom', 'displacement'}, {'hydrophone', 'pressure'}, 1/hdr_o.DELTA, false);
-        try
-            comparepressure(seis_s, hdr_s, seis_o, hdr_o, rf, t_rf, ...
-                [-10 20], [-10 5], true, 5, false);
-        catch ME
-            fprintf('%s\n', ME.getReport);
-            fprintf('Error occured. Move on to the next iteration.\n');
+        if is_plt
+            [~, ~, t_rf, rf] = cctransplot(outputdirs{1}, outputdirs{2}, example, ...
+                {'bottom', 'displacement'}, {'hydrophone', 'pressure'}, 1/hdr_o.DELTA, false);
+            try
+                comparepressure(seis_s, hdr_s, seis_o, hdr_o, rf, t_rf, ...
+                    [-10 20], [-10 5], true, 5, false);
+            catch ME
+                fprintf('%s\n', ME.getReport);
+                fprintf('Error occured. Move on to the next iteration.\n');
+            end
         end
     end
 end

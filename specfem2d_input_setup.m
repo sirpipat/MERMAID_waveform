@@ -1,5 +1,5 @@
-function specfem2d_input_setup(name, topo, water, solid, source, freq, angle, Par_file_base, outputdir)
-% SPECFEM2D_INPUT_SETUP(name, topo, water, solid, source, freq, angle, Par_file_base, outputdir)
+function specfem2d_input_setup(name, topo, water, solid, source, freq, angle, Par_file_base, outputdir, branch)
+% SPECFEM2D_INPUT_SETUP(name, topo, water, solid, source, freq, angle, Par_file_base, outputdir, branch)
 %
 % Generates Par_file, source file, and interface file for a fluid-solid
 % simulation.
@@ -25,8 +25,11 @@ function specfem2d_input_setup(name, topo, water, solid, source, freq, angle, Pa
 % angle             incident angle in degrees [Default: 0]
 % Par_file_base     base Par_file to setting up Par_file
 % outputdir         directory for the input files
+% branch            SPECFEM2D branch [Default: 'master']
+%                   'master' (commit: e937ac2f74f23622f6ebbc8901d30fb33c1a2c38)
+%                   'devel'  (commit: cf89366717d9435985ba852ef1d41a10cee97884)
 %
-% Last modified by sirawich-at-princeton.edu, 08/19/2021
+% Last modified by sirawich-at-princeton.edu, 02/16/2022
 
 defval('topo', 'flat')
 defval('water', 'homogeneous')
@@ -34,6 +37,7 @@ defval('solid', 'homogeneous')
 defval('source', 'shallow')
 defval('freq', 10)
 defval('angle', 0)
+defval('branch', 'master')
 
 % load baseline Par_file
 if isempty(Par_file_base)
@@ -259,7 +263,9 @@ switch lower(source)
             'Mxx'                   , 1.0       , ...   % explosion
             'Mzz'                   , 1.0       , ...   % explosion
             'Mxz'                   , 0.0       , ...   % explosion
-            'factor'                , 1e-9        ...
+            'factor'                , 1e-9      , ...
+            'vx'                    , 0.0       , ...
+            'vz'                    , 0.0         ...
             );
         sources{1} = source;
     otherwise
@@ -282,7 +288,9 @@ switch lower(source)
                 'Mxx'                   , 1.0       , ...   % explosion
                 'Mzz'                   , 1.0       , ...   % explosion
                 'Mxz'                   , 0.0       , ...   % explosion
-                'factor'                , 1e-9 * cos(angle * pi / 180)  ...
+                'factor'                , 1e-9 * cos(angle * pi / 180), ...
+                'vx'                    , 0.0       , ...
+                'vz'                    , 0.0         ...
             );
             sources{ii} = source;
         end
@@ -315,7 +323,9 @@ switch lower(source)
                     'Mxx'                   , 1.0       , ...   % explosion
                     'Mzz'                   , 1.0       , ...   % explosion
                     'Mxz'                   , 0.0       , ...   % explosion
-                    'factor'                , 1e-9 * sin(angle * pi / 180)  ...
+                    'factor'                , 1e-9 * sin(angle * pi / 180), ...
+                    'vx'                    , 0.0       , ...
+                    'vz'                    , 0.0         ...
                 );
                 sources{ii+197} = source;
             end
@@ -328,7 +338,7 @@ end
 params.NSOURCES = length(sources);
 
 % write source file
-writesource(sources, sprintf('%sDATA/SOURCE_%s', outputdir, name));
+writesource(sources, sprintf('%sDATA/SOURCE_%s', outputdir, name), branch);
 
 %% defeine set(s) of RECEIVER(s)
 receiverset1 = struct(...
@@ -391,7 +401,7 @@ params.time_stepping_scheme = 1;
 params.NSTEP = 25000;   % T_phase 100000
 params.DT = 5e-4;       % T_phase 1e-3
 %% write Par_file
-writeparfile(params, sprintf('%sDATA/Par_file_%s', outputdir, name));
+writeparfile(params, sprintf('%sDATA/Par_file_%s', outputdir, name), branch);
 %% write a supplementary file for runthisexample.m
 %  It is not used by specfem2d.
 save(sprintf('%sDATA/supplementary_%s.mat', outputdir, name), 'water_model');

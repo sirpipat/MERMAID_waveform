@@ -1,5 +1,5 @@
-function outputdirs = specfem2d_input_setup_flat(name, bottom, depth, water, freq, angle, Par_file_base, outputdir, saveimage)
-% outputdirs = SPECFEM2D_INPUT_SETUP_FLAT(name, bottom, depth, water, freq, angle, Par_file_base, outputdir, saveimage)
+function outputdirs = specfem2d_input_setup_flat(name, bottom, depth, water, freq, angle, Par_file_base, outputdir, saveimage, branch)
+% outputdirs = SPECFEM2D_INPUT_SETUP_FLAT(name, bottom, depth, water, freq, angle, Par_file_base, outputdir, saveimage, branch)
 %
 % Generates Par_file, source file, and interface file for a fluid-solid
 % simulation.
@@ -16,19 +16,23 @@ function outputdirs = specfem2d_input_setup_flat(name, bottom, depth, water, fre
 % Par_file_base     base Par_file to setting up Par_file
 % outputdir         directory for the input files
 % saveimage         whether to save the snapshots of not [Default: true]
+% branch            SPECFEM2D branch [Default: 'master']
+%                   'master' (commit: e937ac2f74f23622f6ebbc8901d30fb33c1a2c38)
+%                   'devel'  (commit: cf89366717d9435985ba852ef1d41a10cee97884)
 %
 % OUTPUT:
 % outputdirs        two output directories for the fluid-solid simulation
 %       outputdirs{1}       pressure hydrophone in the fluid at depth
 %       outputdirs{2}       displacement OBS at the ocean floor
 %
-% Last modified by sirawich-at-princeton.edu, 01/27/2022
+% Last modified by sirawich-at-princeton.edu, 02/15/2022
 
 defval('bottom', 4800)
 defval('depth', 1500)
 defval('water', 'homogeneous')
 defval('freq', 10)
 defval('angle', 0)
+defval('branch', 'master')
 
 outputdirs = cell(2,1);
 % run 2 loops: one for 3-component displacement OBS
@@ -169,7 +173,9 @@ for kk = 1:2
             'Mxx'                   , 1.0       , ...   % explosion
             'Mzz'                   , 1.0       , ...   % explosion
             'Mxz'                   , 0.0       , ...   % explosion
-            'factor'                , 1e-9 * cos(angle * pi / 180)  ...
+            'factor'                , 1e-9 * cos(angle * pi / 180), ...
+            'vx'                    , 0.0       , ...
+            'vz'                    , 0.0         ...
         );
         sources{ii} = source;
     end
@@ -202,7 +208,9 @@ for kk = 1:2
                 'Mxx'                   , 1.0       , ...   % explosion
                 'Mzz'                   , 1.0       , ...   % explosion
                 'Mxz'                   , 0.0       , ...   % explosion
-                'factor'                , 1e-9 * sin(angle * pi / 180)  ...
+                'factor'                , 1e-9 * sin(angle * pi / 180), ...
+                'vx'                    , 0.0       , ...
+                'vz'                    , 0.0         ...
             );
             sources{ii+197} = source;
         end
@@ -211,7 +219,7 @@ for kk = 1:2
     params.NSOURCES = length(sources);
 
     % write source file
-    writesource(sources, sprintf('%sDATA/SOURCE_%s', outputdir_kk, name));
+    writesource(sources, sprintf('%sDATA/SOURCE_%s', outputdir_kk, name), branch);
 
     %% defeine set(s) of RECEIVER(s)
     receiverset1 = struct(...
@@ -246,16 +254,19 @@ for kk = 1:2
     % multiple receiversets.
     params = writestations(params, sprintf('%sDATA/STATIONS', outputdir_kk));
     %% define other parameters
-    params.title = sprintf('fluid/solid interface : %s', name);
+    params.title = sprintf('fluid/solid interface : %s -- on %s branch', ...
+        name, upper(branch));
     params.time_stepping_scheme = 1;
     params.NSTEP = 65000;
     params.DT = 5e-4;
     params.NTSTEP_BETWEEN_OUTPUT_ENERGY = 1000;
+    params.PML_BOUNDARY_CONDITIONS = false;
+    params.STACEY_ABSORBING_CONDITIONS = true;
     % do not save the images when SAVEIMAGE is set to false
     params.output_color_image = saveimage;
     params.output_postscript_snapshot = saveimage;
     %% write Par_file
-    writeparfile(params, sprintf('%sDATA/Par_file_%s', outputdir_kk, name));
+    writeparfile(params, sprintf('%sDATA/Par_file_%s', outputdir_kk, name), branch);
     %% write a supplementary file for runthisexample.m
     %  It is not used by specfem2d.
     save(sprintf('%sDATA/supplementary_%s.mat', outputdir_kk, name), 'water_model'); 

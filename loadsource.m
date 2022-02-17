@@ -22,8 +22,10 @@ function sources = loadsource(fname)
 %               - Mzz
 %               - Mxz
 %               - factor
+%               - vx         (set to zero for 'master' branch)
+%               - vz         (set to zero for 'master' branch)
 %
-% Last modified by Sirawich Pipatprathanporn, 06/08/2021
+% Last modified by Sirawich Pipatprathanporn, 02/16/2022
 
 sources = {};
 num_sources = 0;
@@ -226,10 +228,47 @@ while ischar(line)
     end
     
     source.factor = readfloat(line);
+    
+    % skip comments / headers
+    line = fgetl(fid);
+    while isempty(line) || strcmp(line(1), '#') || ~contains(line, '=')
+        line = fgetl(fid);
+        if ~ischar(line)
+            break;
+        end
+    end
+    if ~ischar(line)
+        break;
+    end
+    
+    % try to read vx and vz. If they are not there, move on to the next.
+    if strcmp(line(1:2), 'vx')
+        source.vx = readfloat(line);
+        
+        % skip comments / headers
+        line = fgetl(fid);
+        while isempty(line) || strcmp(line(1), '#') || ~contains(line, '=')
+            line = fgetl(fid);
+            if ~ischar(line)
+                break;
+            end
+        end
+        if ~ischar(line)
+            break;
+        end
+        
+        source.vz = readfloat(line);
+        
+        line = fgetl(fid);
+    else
+        source.vx = 0.0;
+        source.vz = 0.0;
+    end
+    
     num_sources = num_sources + 1;
     sources{num_sources} = source;
     
-    line = fgetl(fid);
+    
 end
 
 fclose(fid);
