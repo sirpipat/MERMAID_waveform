@@ -27,7 +27,7 @@ function [t_shifts, CCmaxs, scales, n, metadata] = ...
 % SEE ALSO:
 % COMPAREPRESSURE
 %
-% Last modified by sirawich-at-princeton.edu, 01/25/2022
+% Last modified by sirawich-at-princeton.edu, 02/17/2022
 
 defval('obsmasterdir', '/home/sirawich/research/processed_data/MERMAID_reports_updated/')
 defval('synmasterdir', '/home/sirawich/research/SYNTHETICS/')
@@ -52,17 +52,27 @@ for ii = i_begin:i_end
     [allobsfiles, ondex] = allfile([obsmasterdir evid '/']);
     [allsynfiles, sndex] = allfile([allsyndirs{ii} '/']);
     % identify available receivers
-    receiverid = cell(1,ondex);
+    receiverid_obs = cell(1,ondex);
     for jj = 1:ondex
-        receiverid{jj} = indeks(cindeks(split(cindeks(split(...
+        receiverid_obs{jj} = indeks(cindeks(split(cindeks(split(...
             allobsfiles{jj}, '/'), 'end'), '.'), 2), 1:2);
     end
+    
+    receiverid_syn = cell(1,sndex);
+    for jj = 1:sndex
+        receiverid_syn{jj} = cindeks(split(removepath(allsynfiles{jj}), ...
+            '_'), 2);
+    end
+    
     % keep only unique receivers
-    [~, ia, ~] = unique(receiverid);
-    allobsfiles = allobsfiles(ia);
+    [~, i_obs, ~] = unique(receiverid_obs);
+    allobsfiles = allobsfiles(i_obs);
+    
+    [~, i_syn, ~] = unique(receiverid_syn);
+    allsynfiles = allsynfiles(i_syn);
     
     % loop over receivers
-    for jj = 1:sndex
+    for jj = 1:length(allsynfiles)
         % read observed and synthetic SAC files
         [seis_o, hdr_o] = readsac(allobsfiles{jj});
         [seis_s, hdr_s] = readsac(allsynfiles{jj});
@@ -81,7 +91,7 @@ for ii = i_begin:i_end
                 {'hydrophone', 'pressure'}, 1/hdr_o.DELTA, false);
             [t_shifts(n,1), CCmaxs(n,1), ~, ~, scales(n,1)] = ...
                 comparepressure(seis_s, hdr_s, seis_o, hdr_o, rf, t_rf, ...
-                [-10 20], [-10 ], plt, 5);
+                [-10 20], [-10 5], plt, 5);
             fileused{n,1} = allsynfiles{jj};
             n = n + 1;
         catch ME
