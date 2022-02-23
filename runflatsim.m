@@ -1,5 +1,5 @@
-function outputdirs = runflatsim(sacfile, ddir, specfembin, is_run, keepproc, branch)
-% outputdirs = RUNFLATSIM(sacfile, ddir, specfembin, is_run, keepproc, branch)
+function outputdirs = runflatsim(sacfile, ddir, specfembin, is_run, keepproc, branch, gpu_mode)
+% outputdirs = RUNFLATSIM(sacfile, ddir, specfembin, is_run, keepproc, branch, gpu_mode)
 %
 % Sets up fluid-solid simulations in SPECFEM2D with a flat bathymetry. 
 % Then, runs the simulations and then computes the correlation coefficients
@@ -23,16 +23,21 @@ function outputdirs = runflatsim(sacfile, ddir, specfembin, is_run, keepproc, br
 % branch        SPECFEM2D branch [Default: 'master']
 %               'master' (commit: e937ac2f74f23622f6ebbc8901d30fb33c1a2c38)
 %               'devel'  (commit: cf89366717d9435985ba852ef1d41a10cee97884)
+% gpu_mode      whether to enable GPU MODE [Default: false]
 %
 % OUTPUT:
-% outputdirs    directories to the two simulations
+% outputdirs    directories to the simulations
+%       --- 'master' branch ---
 %       outputdirs{1} -- simulation#1 : pressure receivers
 %       outputdirs{2} -- simulation#2 : X/Z displacement receivers
+%       --- 'devel' branch ---
+%       outputdirs    -- both pressures and displacements at OBS and
+%                        hydrophone
 %
 % SEE ALSO:
 % SPECFEM2D_INPUT_SETUP, RUNTHISEXAMPLE, UPDATEHEADER, UPDATESYNTHETICS
 %
-% Last modified by sirawich-at-princeton.edu, 02/17/2022
+% Last modified by sirawich-at-princeton.edu, 02/23/2022
 
 % specify where you want to keep the simulations input/output files
 defval('ddir', getenv('REMOTE2D'))
@@ -41,6 +46,7 @@ defval('specfembin', strcat(getenv('SPECFEM2D'), 'bin/'))
 defval('is_run', true)
 defval('keepproc', false)
 defval('branch', 'master')
+defval('gpu_mode', false)
 
 % bad value in SAC files
 badval = -12345;
@@ -113,47 +119,86 @@ end
 
 %% create the input files and directories for the SPECFEM2D runs
 outputdirs = specfem2d_input_setup_flat(example, -bottom, ...
-    depth, 'homogeneous', 1, theta, [], outputdir, keepproc, branch);
+    depth, 'homogeneous', 1, theta, [], outputdir, keepproc, branch, ...
+    gpu_mode);
 
 if ~is_run
     return
 end
 
 %% run the simulation
-poolobj = parpool('local', 2);
-parfor ii = 1:2
-    runthisexample(example, outputdirs{ii}, specfembin);
-    % remove the model file to save space
+if strcmpi(branch, 'master')
+    poolobj = parpool('local', 2);
+    parfor ii = 1:2
+        runthisexample(example, outputdirs{ii}, specfembin);
+        % remove the model file to save space
+        if ~keepproc
+            system(sprintf('rm -f %sDATA/*.bin', outputdirs{ii}));
+            system(sprintf('rm -f %sOUTPUT_FILES/Database00000.bin', outputdirs{ii}));
+
+            system(sprintf('mkdir %sOUTPUT_FILES/temp/', outputdirs{ii}));
+            system(sprintf('mv %sOUTPUT_FILES/forward_image000*.jpg %s/OUTPUT_FILES/temp', outputdirs{ii}, outputdirs{ii}));
+            system(sprintf('rm -f %sOUTPUT_FILES/forward_image*.jpg', outputdirs{ii}));
+            system(sprintf('mv %sOUTPUT_FILES/temp/forward_image000*.jpg %s/OUTPUT_FILES/', outputdirs{ii}, outputdirs{ii}));
+            system(sprintf('rmdir %sOUTPUT_FILES/temp/', outputdirs{ii}));
+        end
+    end
+    delete(poolobj)
+else
+    runthisexample(example, outputdirs, specfembin);
     if ~keepproc
-        system(sprintf('rm -f %sDATA/*.bin', outputdirs{ii}));
-        system(sprintf('rm -f %sOUTPUT_FILES/Database00000.bin', outputdirs{ii}));
-        
-        system(sprintf('mkdir %sOUTPUT_FILES/temp/', outputdirs{ii}));
-        system(sprintf('mv %sOUTPUT_FILES/forward_image000*.jpg %s/OUTPUT_FILES/temp', outputdirs{ii}, outputdirs{ii}));
-        system(sprintf('rm -f %sOUTPUT_FILES/forward_image*.jpg', outputdirs{ii}));
-        system(sprintf('mv %sOUTPUT_FILES/temp/forward_image000*.jpg %s/OUTPUT_FILES/', outputdirs{ii}, outputdirs{ii}));
-        system(sprintf('rmdir %sOUTPUT_FILES/temp/', outputdirs{ii}));
+        system(sprintf('rm -f %sDATA/*.bin', outputdirs));
+        system(sprintf('rm -f %sOUTPUT_FILES/Database00000.bin', outputdirs));
+
+        system(sprintf('mkdir %sOUTPUT_FILES/temp/', outputdirs));
+        system(sprintf('mv %sOUTPUT_FILES/forward_image000*.jpg %s/OUTPUT_FILES/temp', outputdirs, outputdirs));
+        system(sprintf('rm -f %sOUTPUT_FILES/forward_image*.jpg', outputdirs));
+        system(sprintf('mv %sOUTPUT_FILES/temp/forward_image000*.jpg %s/OUTPUT_FILES/', outputdirs, outputdirs));
+        system(sprintf('rmdir %sOUTPUT_FILES/temp/', outputdirs));
     end
 end
-delete(poolobj)
 %% analyze the data
-% for SYNTHETIC output in dislacement vs. OBSERVED MERMAID pressure
-cctransplot(outputdirs{1}, outputdirs{2}, example, ...
-    {'bottom', 'displacement'}, {'hydrophone', 'pressure'}, fs, true);
+if strcmpi(branch, 'master')
+    % for SYNTHETIC output in dislacement vs. OBSERVED MERMAID pressure
+    cctransplot(outputdirs{1}, outputdirs{2}, example, ...
+        {'bottom', 'displacement'}, {'hydrophone', 'pressure'}, fs, true);
 
-% for response function at the ocean bottom
-cctransplot(outputdirs{1}, outputdirs{2}, example, ...
-    {'bottom', 'displacement'}, {'bottom', 'pressure'}, fs, true);
+    % for response function at the ocean bottom
+    cctransplot(outputdirs{1}, outputdirs{2}, example, ...
+        {'bottom', 'displacement'}, {'bottom', 'pressure'}, fs, true);
 
-% displacment to pressure at the hydrophone
-cctransplot(outputdirs{1}, outputdirs{2}, example, ...
-    {'hydrophone', 'displacement'}, {'hydrophone', 'pressure'}, fs, true);
+    % displacment to pressure at the hydrophone
+    cctransplot(outputdirs{1}, outputdirs{2}, example, ...
+        {'hydrophone', 'displacement'}, {'hydrophone', 'pressure'}, fs, true);
 
-% for pressure propagation from the bottom to the hydrophone
-cctransplot(outputdirs{1}, outputdirs{2}, example, ...
-    {'bottom', 'pressure'}, {'hydrophone', 'pressure'}, fs, true);
+    % for pressure propagation from the bottom to the hydrophone
+    cctransplot(outputdirs{1}, outputdirs{2}, example, ...
+        {'bottom', 'pressure'}, {'hydrophone', 'pressure'}, fs, true);
 
-% for reflection pattern
-cctransplot(outputdirs{1}, outputdirs{2}, example, ...
-    {'hydrophone', 'pressure'}, {'hydrophone', 'pressure'}, fs, true);
+    % for reflection pattern
+    cctransplot(outputdirs{1}, outputdirs{2}, example, ...
+        {'hydrophone', 'pressure'}, {'hydrophone', 'pressure'}, fs, true);
+else
+    % TODO: Implement devel branch option for cctransplot
+    % right now, just use the same directory for argument 1 and 2
+    % for SYNTHETIC output in dislacement vs. OBSERVED MERMAID pressure
+    cctransplot(outputdirs, outputdirs, example, ...
+        {'bottom', 'displacement'}, {'hydrophone', 'pressure'}, fs, true);
+
+    % for response function at the ocean bottom
+    cctransplot(outputdirs, outputdirs, example, ...
+        {'bottom', 'displacement'}, {'bottom', 'pressure'}, fs, true);
+
+    % displacment to pressure at the hydrophone
+    cctransplot(outputdirs, outputdirs, example, ...
+        {'hydrophone', 'displacement'}, {'hydrophone', 'pressure'}, fs, true);
+
+    % for pressure propagation from the bottom to the hydrophone
+    cctransplot(outputdirs, outputdirs, example, ...
+        {'bottom', 'pressure'}, {'hydrophone', 'pressure'}, fs, true);
+
+    % for reflection pattern
+    cctransplot(outputdirs, outputdirs, example, ...
+        {'hydrophone', 'pressure'}, {'hydrophone', 'pressure'}, fs, true);
+end
 end
