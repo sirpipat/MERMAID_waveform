@@ -9,6 +9,9 @@ function [t_cc, cc, t_rf, rf] = cctransplot(ddir1, ddir2, example, channel1, cha
 % INPUT:
 % ddir1         directory to the simulation with the hydrophone output
 % ddir2         directory to the simulation with the 3-comp seismograms output
+%               For 'devel' branch where the simulation can handle multiple
+%               type of receivers, use the same directory for both DDIR1
+%               and DDIR2.
 % example       name of the simulation
 % channel1      input channel       {RECIEVER TYPE} 
 %                   [default: {'bottom' 'displacement'}]
@@ -35,7 +38,7 @@ function [t_cc, cc, t_rf, rf] = cctransplot(ddir1, ddir2, example, channel1, cha
 % SEE ALSO:
 % SPECFEM2D_INPUT_SETUP_FLAT, RUNFLATSIM
 % 
-% Last modified by sirawich-at-princeton.edu, 11/18/2021
+% Last modified by sirawich-at-princeton.edu, 02/18/2022
 
 defval('channel1', {'bottom' 'displacement'})
 defval('channel2', {'hydrophone' 'pressure'})
