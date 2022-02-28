@@ -26,13 +26,13 @@ function [t_shift, CCmax, lag, cc, s] = ...
 %               This is experimental. [default: false]
 %
 % OUTPUT:
-% t_shift       Best time shift where CC is maximum
-% CCmax         Maximum correlation coefficient
+% t_shift       N best time shifts where CCs are at maximum peak
+% CCmax         N maximum correlation coefficients
 % lag           Vector of all time shifts
 % CC            Vector of CC for every time shift in lag
 % s             Scaling to minimize the misfit
 %
-% Last modified by sirawich-at-princeton.edu, 02/17/2022
+% Last modified by sirawich-at-princeton.edu, 02/27/2022
 
 defval('envelope_window', [-10 20])
 defval('waveform_window', [-5 5])
@@ -108,24 +108,19 @@ pres_s2 = pres_s(and(geq(dts_o, ...
 best_lags_time = best_lags_time + best_lags_time_e;
 lags_time = lags_time + best_lags_time_e;
 
-% variables for the output
-t_shift = best_lags_time;
-CCmax = max(cc);
-lag = lags_time;
+% identify NUMPICKS of peaks
+[pks, locs] = findpeaks(cc, lags_time);
+[pks, isort] = sort(pks, 'descend');
+% list of time shifts that give maximum CC peaks (sorted by CC)
+locs = locs(isort);
 
-best_lags = round(best_lags_time * fs_o);
-% [cc, lags] = xcorr(pres_o, pres_s, 'coeff');
-% lags_time = lags / fs_o;
-% best_lags = lags(cc == max(cc));
-% best_lags_time = best_lags / fs_o;
+% variables for the output
+t_shift = locs(1:numpicks);
+CCmax = indeks(cc(logical(sum(lags_time == locs',1))), isort(1:numpicks))';
+lag = lags_time;
 
 %% Part 3: plot the result
 if plt
-    % identify NUMPICKS of peaks on CC plot
-    [pks, locs] = findpeaks(cc, lags_time);
-    [pks, isort] = sort(pks, 'descend');
-    locs = locs(isort);
-    
     % criteria for CMT solution searching
     dt_origin = dt_ref_o + seconds(hdr_o.USER8);
     monthname = {'jan', 'feb', 'mar', 'apr', 'may', 'jun', ...
