@@ -1,7 +1,9 @@
 function [t_shifts, CCmaxs, scales, n, metadata] = ...
-    comparepressure_routine(obsmasterdir, synmasterdir, i_begin, i_end, plt)
+    comparepressure_routine(obsmasterdir, synmasterdir, i_begin, i_end, ...
+    plt, branch)
 % [t_shifts, CCmaxs, scales, n] = ...
-%     COMPAREPRESSURE_ROUTINE(obsmasterdir, synmasterdir, i_begin, i_end, plt)
+%     COMPAREPRESSURE_ROUTINE(obsmasterdir, synmasterdir, i_begin, ...
+%     i_end, plt, branch)
 %
 % A script for run COMPAREPRESSURE over computed the response functions
 % between z-displacement at the ocean bottom and the pressure at the
@@ -16,6 +18,9 @@ function [t_shifts, CCmaxs, scales, n, metadata] = ...
 % i_end             last index for IRIS event ID folders
 % plt               whether to plot the figure from COMPAREPRESSURE or not
 %                   [Default: false]
+% branch            SPECFEM2D branch [default: 'master']
+%                   'master' (commit: e937ac2f74f23622f6ebbc8901d30fb33c1a2c38)
+%                   'devel'  (commit: cf89366717d9435985ba852ef1d41a10cee97884)
 %
 % OUTPUT:
 % t_shifts          Best time shift where CC is maximum
@@ -27,11 +32,12 @@ function [t_shifts, CCmaxs, scales, n, metadata] = ...
 % SEE ALSO:
 % COMPAREPRESSURE
 %
-% Last modified by sirawich-at-princeton.edu, 02/17/2022
+% Last modified by sirawich-at-princeton.edu, 02/23/2022
 
 defval('obsmasterdir', '/home/sirawich/research/processed_data/MERMAID_reports_updated/')
 defval('synmasterdir', '/home/sirawich/research/SYNTHETICS/')
 defval('plt', false)
+defval('branch', 'master')
 
 [allsyndirs, dndex] = allfile(synmasterdir);
 
@@ -80,18 +86,28 @@ for ii = i_begin:i_end
         % locate the output folders from RUNFLATSIM
         example = sprintf('flat_%d_%s', hdr_o.USER7, ...
             replace(hdr_o.KSTNM, ' ', ''));
-        outputdirs = cell(2,1);
-        outputdirs{1} = sprintf('%s%s_1/', getenv('REMOTE2D'), example);
-        outputdirs{2} = sprintf('%s%s_2/', getenv('REMOTE2D'), example);
+        if strcmpi(branch, 'master')
+            outputdirs = cell(2,1);
+            outputdirs{1} = sprintf('%s%s_1/', getenv('REMOTE2D'), example);
+            outputdirs{2} = sprintf('%s%s_2/', getenv('REMOTE2D'), example);
+        else
+            outputdirs = sprintf('%s%s/', getenv('REMOTE2D'), example);
+        end
 
         % get best timeshift, CC, and scaling if the output folders exist
         try
-            [~, ~, t_rf, rf] = cctransplot(outputdirs{1}, ...
-                outputdirs{2}, example, {'bottom', 'displacement'}, ...
-                {'hydrophone', 'pressure'}, 1/hdr_o.DELTA, false);
-            [t_shifts(n,1), CCmaxs(n,1), ~, ~, scales(n,1)] = ...
+            if strcmpi(branch, 'master')
+                [~, ~, t_rf, rf] = cctransplot(outputdirs{1}, ...
+                    outputdirs{2}, example, {'bottom', 'displacement'}, ...
+                    {'hydrophone', 'pressure'}, 1/hdr_o.DELTA, false);
+            else
+                [~, ~, t_rf, rf] = cctransplot(outputdirs, ...
+                    outputdirs, example, {'bottom', 'displacement'}, ...
+                    {'hydrophone', 'pressure'}, 1/hdr_o.DELTA, false);
+            end
+            [t_shifts(n,:), CCmaxs(n,:), ~, ~, scales(n,:)] = ...
                 comparepressure(seis_s, hdr_s, seis_o, hdr_o, rf, t_rf, ...
-                [-10 20], [-10 5], plt, 5, false);
+                [-10 20], [-5 5], plt, 5, false);
             fileused{n,1} = allsynfiles{jj};
             n = n + 1;
         catch ME
