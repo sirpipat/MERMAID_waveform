@@ -1,5 +1,5 @@
-function specfem2d_input_setup(name, topo, water, solid, source, freq, angle, Par_file_base, outputdir, branch)
-% SPECFEM2D_INPUT_SETUP(name, topo, water, solid, source, freq, angle, Par_file_base, outputdir, branch)
+function specfem2d_input_setup(name, topo, tparams, water, solid, source, freq, angle, Par_file_base, outputdir, branch)
+% SPECFEM2D_INPUT_SETUP(name, topo, tparams, water, solid, source, freq, angle, Par_file_base, outputdir, branch)
 %
 % Generates Par_file, source file, and interface file for a fluid-solid
 % simulation.
@@ -8,10 +8,25 @@ function specfem2d_input_setup(name, topo, water, solid, source, freq, angle, Pa
 % name              name for the model
 % topo              topography end member. Options are the followings:
 %                       'flat'          z = B
-%                       'sloped'        z = A tanh(-(x - x0) / x1) + B
-%                       'sinusoidal'    z = \sum (A sin(kx + c)) + B
+%                       'incline'       z = A * (x - x0) / x1 + B
+%                       'sloped'        z = A/2 / (1 + exp((x - x0) / x1)) + B  |||| A tanh(-(x - x0) / x1) + B
+%                       'sinusoidal'    z = \sum (A sin(2*pi*k*x + c)) + B
 %                       'parabolic'     z = A (x - x0)^2 + B
 %                       'hill'          z = \sum (A exp(-(x - x0)^2 / x1^2)) + B
+%                       'custom'        Z = f(X)
+% tparams           struct containing parameters to define the topography
+%                       N  -- the number of such feature
+%                       A  -- amplitude(s) of the feature
+%                       B  -- flat elevation or offset
+%                       x0 -- central location(s) of the feature
+%                       x1 -- length scale(s)
+%                       k  -- wave number(s)
+%                       c  -- phase(s)
+%                       X  -- x-coordinate for 'custom' topography
+%                       Z  -- z-coordinate for 'custom' topography
+%                   Refer to the equations above for the specific usages.
+%                   If the parameters are not defined, they will be assined
+%                   to random values.
 % water             sound speed profile of the water. Options are the followings:
 %                       'homogenous'
 %                       'Munk'          Munk sound speed profile
@@ -113,31 +128,91 @@ itf1.pts = [xmin 0; xmax 0];
 itf2.npts = 401;
 x = linspace(xmin, xmax, itf2.npts)';
 switch lower(topo)
+    case 'incline'
+        if ~isfield(tparams, 'A') || isempty(tparams.A)
+            tparams.A = 1200 * random('unif', 0.9, 1.1);
+        end
+        if ~isfield(tparams, 'B') || isempty(tparams.B)
+            tparams.B = 4800 * random('unif', 0.9, 1.1);
+        end
+        if ~isfield(tparams, 'x0') || isempty(tparams.x0)
+            tparams.x0 = (xmin + xmax) / 2;
+        end
+        if ~isfield(tparams, 'x1') || isempty(tparams.x1)
+            tparams.x1 = (xmax - xmin) / 2;
+        end
+        z = tparams.B + tparams.A * (x - tparams.x0) / tparams.x1;
     case 'sloped'
-        A = 4200 * random('unif', 0.99, 1.01);
-        B = 4800 * random('unif', 0.99, 1.01);
-        x0 = 5400 * random('unif', 0.9, 1.1);
-        x1 = 1000 * random('unif', 0.9, 1.1);
-        z = B + A/2 * (1 + tanh(- (x - x0) / x1));
+        if ~isfield(tparams, 'A') || isempty(tparams.A)
+            tparams.A = 4200 * random('unif', 0.99, 1.01);
+        end
+        if ~isfield(tparams, 'B') || isempty(tparams.B)
+            tparams.B = 4800 * random('unif', 0.99, 1.01);
+        end
+        if ~isfield(tparams, 'x0') || isempty(tparams.x0)
+            tparams.x0 = 5400 * random('unif', 0.9, 1.1);
+        end
+        if ~isfield(tparams, 'x1') || isempty(tparams.x1)
+            tparams.x1 = 1000 * random('unif', 0.9, 1.1);
+        end
+        z = tparams.B + tparams.A/2 / ...
+            (1 + exp((x - tparams.x0) / tparams.x1));
+        %z = B + A/2 * (1 + tanh(- (x - x0) / x1));
     case 'sinusoidal'
-        N = unidrnd(3);
-        A = unifrnd(0, 400, [1 N]);
-        B = 4800 * random('unif', 0.9, 1.1);
-        k = unifrnd(1/10000, 1/1000, [1 N]);
-        c = unifrnd(0, 2*pi, [1 N]);
-        z = B + sum(A .* sin(2 * pi * k .* x + c), 2);
+        if ~isfield(tparams, 'N') || isempty(tparams.N)
+            tparams.N = unidrnd(3);
+        end
+        if ~isfield(tparams, 'A') || isempty(tparams.A)
+            tparams.A = unifrnd(0, 400, [1 tparams.N]);
+        end
+        if ~isfield(tparams, 'B') || isempty(tparams.B)
+            tparams.B = 4800 * random('unif', 0.9, 1.1);
+        end
+        if ~isfield(tparams, 'k') || isempty(tparams.k)
+            tparams.k = unifrnd(1/10000, 1/1000, [1 tparams.N]);
+        end
+        if ~isfield(tparams, 'c') || isempty(tparams.c)
+            tparams.c = unifrnd(0, 2*pi, [1 tparams.N]);
+        end
+        z = tparams.B + sum(tparams.A .* sin(2 * pi * ...
+            tparams.k .* x + tparams.c), 2);
     case 'parabolic'
-        x0 = (xmin + xmax) / 2;
-        A = 4000 * (1/(xmax - x0)^2) * random('unif', 0.2, 1);
-        B = 4800 * random('unif', 0.9, 1.1);
-        z = A * (x - x0) .^ 2 + B;
+        if ~isfield(tparams, 'x0') || isempty(tparams.x0)
+            tparams.x0 = (xmin + xmax) / 2;
+        end
+        if ~isfield(tparams, 'A') || isempty(tparams.A)
+            tparams.A = 4000 * (1/(xmax - tparams.x0)^2) * random('unif', 0.2, 1);
+        end
+        if ~isfield(tparams, 'B') || isempty(tparams.B)
+            tparams.B = 4800 * random('unif', 0.9, 1.1);
+        end
+        z = tparams.A * (x - tparams.x0) .^ 2 + tparams.B;
     case 'hill'
-        N = unidrnd(3);
-        A = unifrnd(200, 1000, [1 N]);
-        B = 4800 * random('unif', 0.9, 1.1);
-        x0 = unifrnd(xmin, xmax, [1 N]);
-        x1 = unifrnd(400, width/10, [1 N]);
-        z = B + sum(A .* exp(- (x - x0) .^ 2 ./ (x1 .^ 2)), 2);
+        if ~isfield(tparams, 'N') || isempty(tparams.N)
+            tparams.N = unidrnd(3);
+        end
+        if ~isfield(tparams, 'A') || isempty(tparams.A)
+            tparams.A = unifrnd(200, 1000, [1 tparams.N]);
+        end
+        if ~isfield(tparams, 'B') || isempty(tparams.B)
+            tparams.B = 4800 * random('unif', 0.9, 1.1);
+        end
+        if ~isfield(tparams, 'x0') || isempty(tparams.x0)
+            tparams.x0 = unifrnd(xmin, xmax, [1 tparams.N]);
+        end
+        if ~isfield(tparams, 'x1') || isempty(tparams.x1)
+            tparams.x1 = unifrnd(400, width/10, [1 tparams.N]);
+        end
+        z = tparams.B + sum(tparams.A .* exp(- (x - tparams.x0) .^ 2 ./ ...
+            (tparams.x1 .^ 2)), 2);
+    case 'custom'
+        if ~isfield(tparams, 'X') || ~isfield(tparams, 'Z') || ...
+                ~isempty(tparams.X) || ~isempty(tparams.Z) || ...
+                size(tparams.X) ~= size(tparams.Z)
+            z = 4800 * random('unif', 0.9, 1.1) * ones(size(x));
+        else
+            z = interp1(tparams.X, tparams.Z, x, 'linear', 'extrap');
+        end
     otherwise
         z = 4800 * random('unif', 0.9, 1.1) * ones(size(x));
 end
