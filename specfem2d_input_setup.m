@@ -44,7 +44,7 @@ function specfem2d_input_setup(name, topo, tparams, water, solid, source, freq, 
 %                   'master' (commit: e937ac2f74f23622f6ebbc8901d30fb33c1a2c38)
 %                   'devel'  (commit: cf89366717d9435985ba852ef1d41a10cee97884)
 %
-% Last modified by sirawich-at-princeton.edu, 02/16/2022
+% Last modified by sirawich-at-princeton.edu, 03/14/2022
 
 defval('topo', 'flat')
 defval('water', 'homogeneous')
