@@ -10,7 +10,7 @@ function drawsetting(ddir, name, savedir, savename, sv)
 % savename      name of the saved file
 % sv            whether to save or not          [Default: true]
 %
-% Last modified by sirawich@princeton.edu, 10/25/2021
+% Last modified by sirawich@princeton.edu, 03/15/2022
 
 defval('name', removepath(ddir(1:end-1)))
 interfacefile = [ddir 'DATA/interfaces_' name '.dat'];
@@ -23,7 +23,7 @@ ax = subplot('Position', [0.05 0.05 0.9 0.9]);
 ax = drawbackground(interfacefile, ax);
 
 % plot sources
-sources = loadsource([ddir 'DATA/SOURCE_' name]);
+sources = loadsource([ddir 'DATA/SOURCE']);
 for ii = 1:length(sources)
     scatter(ax, sources{ii}.xs, sources{ii}.zs, 15, 's', ...
         'MarkerEdgeColor',  rgbcolor('k'), 'MarkerFaceColor', ...
