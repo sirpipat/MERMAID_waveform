@@ -1,5 +1,5 @@
 function plotoutput(ddir, name)
-% PLOTOUTPUT(ddir)
+% PLOTOUTPUT(ddir, name)
 %
 % Makes various plots from the output. Then, saves to ddir/PLOTS/.
 %
@@ -7,7 +7,7 @@ function plotoutput(ddir, name)
 % ddir          simulation directory
 % name          name for the model
 %
-% Last modified by sirawich@princeton.edu, 10/26/2021
+% Last modified by sirawich@princeton.edu, 03/14/2022
 
 defval('name', removepath(ddir(1:end-1)));
 
