@@ -20,7 +20,7 @@ function [tims, seisdata] = getarrivaltemplate(ddir, example, station)
 % SEE ALSO:
 % READ_SEISMOGRAM, SPECFEM2D_INPUT_SETUP_FLAT
 %
-% Last modified by sirawich-at-princeton.edu, 11/11/2021
+% Last modified by sirawich-at-princeton.edu, 03/17/2022
 
 defval('station', 'bottom')
 
@@ -36,7 +36,7 @@ s = data(2,:)';
 t_end = 1; %max(t(wh));
 
 % read source file
-sources = loadsource(sprintf('%sDATA/SOURCE_%s', ddir, example));
+sources = loadsource(sprintf('%sDATA/SOURCE', ddir));
 x0 = sources{1}.xs;
 z0 = sources{1}.zs;
 t0 = sources{1}.tshift;
@@ -47,7 +47,7 @@ dx = sources{2}.xs - sources{1}.xs;
 [~, name, network, x, z] = read_stations(sprintf('%sDATA/STATIONS', ddir));
 
 % read parameter file
-params = loadparfile(sprintf('%sDATA/Par_file_%s', ddir, example));
+params = loadparfile(sprintf('%sDATA/Par_file', ddir));
 vp = params.MODELS{1}.vp;       % P-wave velocity in the solid
 vc = params.MODELS{2}.vp;       % P-wave (acoustic) velocity in the fluid
 
