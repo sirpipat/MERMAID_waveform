@@ -1,5 +1,5 @@
 function [r, dd, n, val] = spectraldivision(d, u, w, reg, val)
-% r = SPECTRALDIVISION(d, u, w, reg, val)
+% [r, dd, n, val] = SPECTRALDIVISION(d, u, w, reg, val)
 %
 % compute r where d = conv(r, u) via spectral division
 % See Pesce+2010 for method details
@@ -14,10 +14,10 @@ function [r, dd, n, val] = spectraldivision(d, u, w, reg, val)
 % OUTPUT:
 % r         result time-series with the length of the longest input signal
 % dd        convolution of 'r' and 'u' with the same length as 'd'
-% n         residue norm between 'd' and 'dd'
+% n         residual norm between 'd' and 'dd'
 % val       regularization value
 %
-% Last modified by sirawich-at-princeton.edu, 11/17/2021
+% Last modified by sirawich-at-princeton.edu, 03/10/2022
 
 
 % run the demo
