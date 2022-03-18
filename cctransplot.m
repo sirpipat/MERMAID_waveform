@@ -4,7 +4,8 @@ function [t_cc, cc, t_rf, rf] = cctransplot(ddir1, ddir2, example, channel1, cha
 % Plot the transfer function and cross correlation coefficient between the
 % z-component displacement at the ocean bottom seismometer and the pressure
 % at the hydrophone right above the ocean bottom seismometer. These 
-% directories have to be created by SPECFEM2D_INPUT_SETUP_FLAT.
+% directories have to be created by SPECFEM2D_INPUT_SETUP_FLAT or
+% SPECFEM2D_INPUT_SETUP_RESPONSE.
 %
 % INPUT:
 % ddir1         directory to the simulation with the hydrophone output
@@ -36,7 +37,7 @@ function [t_cc, cc, t_rf, rf] = cctransplot(ddir1, ddir2, example, channel1, cha
 % rf        response funtion
 %
 % SEE ALSO:
-% SPECFEM2D_INPUT_SETUP_FLAT, RUNFLATSIM
+% SPECFEM2D_INPUT_SETUP_FLAT, SPECFEM2D_INPUT_SETUP_RESPONSE, RUNFLATSIM
 % 
 % Last modified by sirawich-at-princeton.edu, 03/18/2022
 
