@@ -1,5 +1,5 @@
 function [t_cc, cc, t_rf, rf] = cctransplot(ddir1, ddir2, example, channel1, channel2, fs, plt)
-% CCTRANSPLOT(ddir1, ddir2, example, channel1, channel2, fs, plt)
+% [t_cc, cc, t_rf, rf] = CCTRANSPLOT(ddir1, ddir2, example, channel1, channel2, fs, plt)
 %
 % Plot the transfer function and cross correlation coefficient between the
 % z-component displacement at the ocean bottom seismometer and the pressure
@@ -38,7 +38,7 @@ function [t_cc, cc, t_rf, rf] = cctransplot(ddir1, ddir2, example, channel1, cha
 % SEE ALSO:
 % SPECFEM2D_INPUT_SETUP_FLAT, RUNFLATSIM
 % 
-% Last modified by sirawich-at-princeton.edu, 02/18/2022
+% Last modified by sirawich-at-princeton.edu, 03/18/2022
 
 defval('channel1', {'bottom' 'displacement'})
 defval('channel2', {'hydrophone' 'pressure'})
