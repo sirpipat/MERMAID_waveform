@@ -33,7 +33,7 @@ function [x, z] = bathymetryprofile(width, npts, lonlat, az)
 % SEE ALSO
 % BATHYMETRY
 % 
-% Last modified by sirawich-at-princeton.edu, 03/18/2022
+% Last modified by sirawich-at-princeton.edu, 03/21/2022
 
 % Earth's radius in meter
 R = 6371000;
@@ -43,30 +43,51 @@ m2deg = 180 / pi / R;
 
 %% demo
 if ischar(width) && strcmp(width, 'demo')
-    lon = -171.9965;
-    lat = -12.0744;
+    lon = -171.9965;%-175.13;%-159.74;%-175.18;%-174.9;
+    lat = -12.0744;%-13.75;%-8.88;%-25.925;%-14.425;
     azs = 0:45:135;
     npts = 401;
     width = 20000;
     % half length in degrees
     halflength = width / 2 * m2deg;
+    hl = 1.02 * halflength;
+    % half widith of the small map in degrees
+    hw = 1;
     
     figure(11)
     clf
-    set(gcf, 'Units', 'inches', 'Position', [18 8 6 8])
+    set(gcf, 'Units', 'inches', 'Position', [12 8 8 8])
     % bathymetry
-    ax1 = subplot(2,1,1);
+    ax1 = subplot(12,7,[1,21]);
     hold on
 
     % orientation
-    ax2 = subplot(2,1,2);
-    [~, ~, ~, ~, c, xoffset] = bathymetry([], [-0.09 0.09] + lon, ...
-        [-0.09 0.09] + lat, true, ax2);
-    c.Label.String = 'elevation (m)';
-    c.Label.FontSize = 12;
+    ax2 = subplot(12,7,[29,52]);
+    [~, ~, ~, ~, c, xoffset] = bathymetry([], [-hl hl] + lon, ...
+        [-hl hl] + lat, true, ax2);
     hold on
-    colormap(ax2, flip(kelicol, 1));
-    ax2.CLim = [-4900 -4600];
+    
+    % plot small map
+    ax3 = subplot(12,7,[33,56]);
+    [~, ~, ~, ~, c3, xoffset3] = bathymetry([], [-hw hw] + lon, ...
+        [-hw hw] + lat, true, ax3);
+    hold on
+    [xbox, ybox] = boxcorner(mod(1 * [-hl hl] + lon + xoffset3, 360), ...
+        1 * [-hl hl] + lat);
+    plot(xbox, ybox, 'LineWidth', 2, 'Color', 'y')
+    xlabel('longitude (degrees)')
+    ylabel('latitude (degrees)')
+    
+    % plot large map
+    ax4 = subplot(12,7,[64,84]);
+    [~, ~, ~, ~, c4, xoffset4] = bathymetry([], [120 270], ...
+        [-30 10], true, ax4);
+    hold on
+    [xbox, ybox] = boxcorner(mod([-hw hw] + lon + xoffset4, 360), ...
+        [-hw hw] + lat);
+    plot(xbox, ybox, 'LineWidth', 2, 'Color', 'y')
+    xlabel('longitude (degrees)')
+    ylabel('latitude (degrees)')
     
     for ii = 1:length(azs)
         % plot the bathymetry (cross section)
@@ -86,14 +107,31 @@ if ischar(width) && strcmp(width, 'demo')
     xlabel('location (m)')
     ylabel('elevation below sea level (m)')
     title('bathymetry')
-    set(ax1, 'TickDir', 'both', 'FontSize', 12)
+    set(ax1, 'TickDir', 'both', 'FontSize', 11)
     legend(ax1, '180 -- 0', '225 -- 45', '270 -- 90', '315 -- 135', ...
-        'Location', 'northwest')
+        'Location', 'best')
     
     axes(ax2)
     xlabel('longitude (degrees)')
     ylabel('latitude (degrees)')
-    set(ax2, 'TickDir', 'both', 'FontSize', 12)
+    set(ax2, 'TickDir', 'both', 'FontSize', 11)
+    c.Label.String = 'elevation (m)';
+    c.Label.FontSize = 12;
+    hold on
+    colormap(ax2, flip(kelicol, 1));
+    ax2.CLim = ax1.YLim;
+    
+    axes(ax3)
+    c3.Label.String = 'elevation (m)';
+    c3.Label.FontSize = 12;
+    hold on
+    set(ax3, 'TickDir', 'both', 'FontSize', 11)
+    
+    axes(ax4)
+    c4.Label.String = 'elevation (m)';
+    c4.Label.FontSize = 12;
+    hold on
+    set(ax4, 'TickDir', 'both', 'FontSize', 11)
     
     % save the figure
     set(gcf, 'Renderer', 'painters')
