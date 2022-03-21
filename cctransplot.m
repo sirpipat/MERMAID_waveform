@@ -1,5 +1,5 @@
-function [t_cc, cc, t_rf, rf] = cctransplot(ddir1, ddir2, example, channel1, channel2, fs, plt)
-% [t_cc, cc, t_rf, rf] = CCTRANSPLOT(ddir1, ddir2, example, channel1, channel2, fs, plt)
+function [t_cc, cc, t_rf, rf, d] = cctransplot(ddir1, ddir2, example, channel1, channel2, d, fs, plt)
+% [t_cc, cc, t_rf, rf, d] = CCTRANSPLOT(ddir1, ddir2, example, channel1, channel2, d, fs, plt)
 %
 % Plot the transfer function and cross correlation coefficient between the
 % z-component displacement at the ocean bottom seismometer and the pressure
@@ -26,6 +26,8 @@ function [t_cc, cc, t_rf, rf] = cctransplot(ddir1, ddir2, example, channel1, cha
 %           'displacement'
 %           'pressure'
 %
+% d             damping value for spectral division [default: optimized
+%               value (see: SPECTRALDIVISION)]
 % fs            sampling rate of the output [Default: the sampling rate of
 %               the two channels]
 % plt           whether to plot or not [Default: true]
@@ -35,11 +37,13 @@ function [t_cc, cc, t_rf, rf] = cctransplot(ddir1, ddir2, example, channel1, cha
 % cc        cross correlation coefficient
 % t_rf      time for response function
 % rf        response funtion
+% d         damping value for spectral divisio
 %
 % SEE ALSO:
-% SPECFEM2D_INPUT_SETUP_FLAT, SPECFEM2D_INPUT_SETUP_RESPONSE, RUNFLATSIM
+% SPECFEM2D_INPUT_SETUP_FLAT, SPECFEM2D_INPUT_SETUP_RESPONSE, RUNFLATSIM,
+% SPECTRALDIVISION
 % 
-% Last modified by sirawich-at-princeton.edu, 03/18/2022
+% Last modified by sirawich-at-princeton.edu, 03/21/2022
 
 defval('channel1', {'bottom' 'displacement'})
 defval('channel2', {'hydrophone' 'pressure'})
@@ -100,7 +104,7 @@ t_cc = lags' * dt;
 
 asq = max(abs(seisdata_i)).^2;
 
-[rf, x_h_tran, n, d] = spectraldivision(seisdata_o, seisdata_i, w, 'damp', '');
+[rf, x_h_tran, n, d] = spectraldivision(seisdata_o, seisdata_i, w, 'damp', d);
 t_rf = (0:(N-1))' * dt;
 
 if plt

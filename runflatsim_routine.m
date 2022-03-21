@@ -180,10 +180,10 @@ for ii = i_begin:i_end
         if is_plt
             if strcmpi(branch, 'master')
                 [~, ~, t_rf, rf] = cctransplot(outputdirs{1}, outputdirs{2}, example, ...
-                    {'bottom', 'displacement'}, {'hydrophone', 'pressure'}, 1/hdr_o.DELTA, false);
+                    {'bottom', 'displacement'}, {'hydrophone', 'pressure'}, [], 1/hdr_o.DELTA, false);
             else
                 [~, ~, t_rf, rf] = cctransplot(outputdirs, outputdirs, example, ...
-                    {'bottom', 'displacement'}, {'hydrophone', 'pressure'}, 1/hdr_o.DELTA, false);
+                    {'bottom', 'displacement'}, {'hydrophone', 'pressure'}, [], 1/hdr_o.DELTA, false);
             end
             try
                 comparepressure(seis_s, hdr_s, seis_o, hdr_o, rf, t_rf, ...

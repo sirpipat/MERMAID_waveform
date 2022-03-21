@@ -37,7 +37,7 @@ function outputdirs = runflatsim(sacfile, ddir, specfembin, is_run, keepproc, br
 % SEE ALSO:
 % SPECFEM2D_INPUT_SETUP, RUNTHISEXAMPLE, UPDATEHEADER, UPDATESYNTHETICS
 %
-% Last modified by sirawich-at-princeton.edu, 02/23/2022
+% Last modified by sirawich-at-princeton.edu, 03/21/2022
 
 % specify where you want to keep the simulations input/output files
 defval('ddir', getenv('REMOTE2D'))
@@ -161,44 +161,44 @@ end
 if strcmpi(branch, 'master')
     % for SYNTHETIC output in dislacement vs. OBSERVED MERMAID pressure
     cctransplot(outputdirs{1}, outputdirs{2}, example, ...
-        {'bottom', 'displacement'}, {'hydrophone', 'pressure'}, fs, true);
+        {'bottom', 'displacement'}, {'hydrophone', 'pressure'}, [], fs, true);
 
     % for response function at the ocean bottom
     cctransplot(outputdirs{1}, outputdirs{2}, example, ...
-        {'bottom', 'displacement'}, {'bottom', 'pressure'}, fs, true);
+        {'bottom', 'displacement'}, {'bottom', 'pressure'}, [], fs, true);
 
     % displacment to pressure at the hydrophone
     cctransplot(outputdirs{1}, outputdirs{2}, example, ...
-        {'hydrophone', 'displacement'}, {'hydrophone', 'pressure'}, fs, true);
+        {'hydrophone', 'displacement'}, {'hydrophone', 'pressure'}, [], fs, true);
 
     % for pressure propagation from the bottom to the hydrophone
     cctransplot(outputdirs{1}, outputdirs{2}, example, ...
-        {'bottom', 'pressure'}, {'hydrophone', 'pressure'}, fs, true);
+        {'bottom', 'pressure'}, {'hydrophone', 'pressure'}, [], fs, true);
 
     % for reflection pattern
     cctransplot(outputdirs{1}, outputdirs{2}, example, ...
-        {'hydrophone', 'pressure'}, {'hydrophone', 'pressure'}, fs, true);
+        {'hydrophone', 'pressure'}, {'hydrophone', 'pressure'}, [], fs, true);
 else
     % TODO: Implement devel branch option for cctransplot
     % right now, just use the same directory for argument 1 and 2
     % for SYNTHETIC output in dislacement vs. OBSERVED MERMAID pressure
     cctransplot(outputdirs, outputdirs, example, ...
-        {'bottom', 'displacement'}, {'hydrophone', 'pressure'}, fs, true);
+        {'bottom', 'displacement'}, {'hydrophone', 'pressure'}, [], fs, true);
 
     % for response function at the ocean bottom
     cctransplot(outputdirs, outputdirs, example, ...
-        {'bottom', 'displacement'}, {'bottom', 'pressure'}, fs, true);
+        {'bottom', 'displacement'}, {'bottom', 'pressure'}, [], fs, true);
 
     % displacment to pressure at the hydrophone
     cctransplot(outputdirs, outputdirs, example, ...
-        {'hydrophone', 'displacement'}, {'hydrophone', 'pressure'}, fs, true);
+        {'hydrophone', 'displacement'}, {'hydrophone', 'pressure'}, [], fs, true);
 
     % for pressure propagation from the bottom to the hydrophone
     cctransplot(outputdirs, outputdirs, example, ...
-        {'bottom', 'pressure'}, {'hydrophone', 'pressure'}, fs, true);
+        {'bottom', 'pressure'}, {'hydrophone', 'pressure'}, [], fs, true);
 
     % for reflection pattern
     cctransplot(outputdirs, outputdirs, example, ...
-        {'hydrophone', 'pressure'}, {'hydrophone', 'pressure'}, fs, true);
+        {'hydrophone', 'pressure'}, {'hydrophone', 'pressure'}, [], fs, true);
 end
 end
