@@ -40,7 +40,7 @@ function outputdirs = runflatsim_routine(obsmasterdir, synmasterdir, i_begin, i_
 % SEE ALSO:
 % RUNFLATSIM, CCTRANSPLOT, COMPAREPRESSURE
 %
-% Last modified by sirawich-at-princeton.edu, 02/23/2022
+% Last modified by sirawich-at-princeton.edu, 03/21/2022
 
 defval('obsmasterdir', '/home/sirawich/research/processed_data/MERMAID_reports_updated/')
 defval('synmasterdir', '/home/sirawich/research/SYNTHETICS/')
@@ -49,6 +49,8 @@ defval('is_run', true)
 defval('is_plt', true)
 defval('branch', 'master')
 defval('gpu_mode', false)
+
+badval = -12345;
 
 [allsyndirs, dndex] = allfile(synmasterdir);
 
@@ -75,7 +77,86 @@ for ii = i_begin:i_end
             replace(hdr_o.KSTNM, ' ', ''));
         % create directories for files I/O for SPECFEM2D
         if is_create
-            outputdirs = runflatsim(allobsfiles{jj}, [], [], is_run, false, branch, gpu_mode);
+            use_bathymetry = true;
+            if ~use_bathymetry
+                outputdirs = runflatsim(allobsfiles{jj}, [], [], is_run, false, branch, gpu_mode);
+            else
+                % use GEBCO bathymetry instead
+                [x, z] = bathymetryprofile(20000, 401, ...
+                    [hdr_s.STLO hdr_s.STLA], hdr_s.AZ);
+                tparams.X = x;
+                tparams.Z = z + 9600;
+                
+                % compute the incident angle
+                if hdr_s.USER9 ~= badval
+                    theta = atan(hdr_s.USER9 * 3.4 / (6371-8.88)) * 180 / pi;
+                else
+                    % compute theoretical travel times at the ocean bottom below MERMAID.
+                    % [lat lon] of the receiver is slightly shifted if incident angle is not
+                    % close to zero.
+                    tt = taupPierce('ak135', hdr_s.EVDP, ...
+                        'p,s,P,S,PP,SS,PKP,SKS,PKIKP,SKIKS', ...
+                        'sta', [hdr_s.STLA hdr_s.STLO], ...
+                        'evt', [hdr_s.EVLA hdr_s.EVLO], ...
+                        'pierce', -hdr_s.STEL/1000, 'nodiscon');
+
+                    % remove all zero piercings
+                    for kk = 1:length(tt)
+                        index = length(tt(kk).pierce.p);
+                        while tt(kk).pierce.time(index) <= 0 && index > 1
+                            index = index - 1;
+                        end
+                        tt(kk).time = tt(kk).pierce.time(index);
+                        tt(kk).distance = tt(kk).pierce.distance(index);
+                    end
+
+                    % keep only one arrival for each phase
+                    ph = cell(size(tt));
+                    for kk = 1:length(ph)
+                        ph{kk} = tt(kk).phaseName;
+                    end
+                    [~, ia] = unique(ph);
+                    tt = tt(ia);
+
+                    % sort the arrivals by time
+                    tp = zeros(size(tt));
+                    for kk = 1:length(tp)
+                        tp(kk) = tt(kk).time;
+                    end
+                    [~, is] = sort(tp);
+                    tt = tt(is);
+
+                    theta = atan(tt(1).rayParam * 3.4 / (6371-8.88)) * 180 / pi;
+                end
+                
+                if hdr_s.STDP == badval
+                    depth = 1500;
+                else
+                    depth = hdr_s.STDP;
+                end
+                
+                outputdir = sprintf('%sAK135_RUNS_BATHYMETRY/%s/', ...
+                    getenv('REMOTE2D'), example);
+                outputdirs = specfem2d_input_setup_response(example, ...
+                    'custom', tparams, depth, 'homogeneous', ...
+                    'homogeneous', 1, theta, [], outputdir, false, branch, ...
+                    gpu_mode);
+                
+                % plot the bathymetry
+                try
+                    plotoutput(outputdir, example)
+                catch
+                    delete(gcf)
+                end
+                if is_run
+                    if strcmpi(branch, 'master')
+                        runthisexample(example, outputdirs{1}, specfembin);
+                        runthisexample(example, outputdirs{2}, specfembin);
+                    else
+                        runthisexample(example, outputdirs, specfembin);
+                    end
+                end
+            end
         % use the existing directories
         else
             if strcmpi(branch, 'master')
