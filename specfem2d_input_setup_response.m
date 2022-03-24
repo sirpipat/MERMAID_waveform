@@ -270,8 +270,8 @@ for kk = index_list
                 (tparams.x1 .^ 2)), 2);
         case 'custom'
             if ~isfield(tparams, 'X') || ~isfield(tparams, 'Z') || ...
-                    ~isempty(tparams.X) || ~isempty(tparams.Z) || ...
-                    size(tparams.X) ~= size(tparams.Z)
+                    isempty(tparams.X) || isempty(tparams.Z) || ...
+                    all(size(tparams.X) ~= size(tparams.Z))
                 z = 4800 * random('unif', 0.9, 1.1) * ones(size(x));
             else
                 z = interp1(tparams.X, tparams.Z, x, 'linear', 'extrap');
@@ -424,7 +424,7 @@ for kk = index_list
     if theta >= 5
         tshift = 0;
         pf = depthprofile(200, itfs, 'linear');
-        for ii = 1:50
+        for ii = 1:100
             zs = 720 + ii * 100;
             % for safety purpose as the meshed fluid-solid boundary is not
             % exactly at the interface
