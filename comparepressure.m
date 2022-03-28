@@ -1,9 +1,10 @@
 function [t_shift, CCmax, lag, cc, s] = ...
     comparepressure(seis_s, hdr_s, seis_o, hdr_o, seis_r, t_r, ...
-    envelope_window, waveform_window, plt, numpicks, is_rmnoise)
+    envelope_window, waveform_window, fcorners, plt, numpicks, is_rmnoise)
 % [t_shift, CCmax, lag, cc, s]  = ...
 %     COMPAREPRESSURE(seis_s, hdr_s, seis_o, hdr_o, seis_r, t_r, ...
-%                     [E_B E_E], [W_B W_E], plt, numpicks, is_rmnoise)
+%                     [E_B E_E], [W_B W_E], [lo hi], plt, numpicks, ...
+%                     is_rmnoise)
 %
 % interpolates synthetic and response. Then, convolves the two and compares
 % with the observed with instrument response removed.
@@ -19,6 +20,8 @@ function [t_shift, CCmax, lag, cc, s] = ...
 %               [Default: [-10 20]]
 % [W_B W_E]     begin and end of the window for waveform correlation
 %               [Default: [-5 5]]
+% [lo hi]       corner frequencies for bandpass filtering 
+%               [Default: [0.4 1] Hz]
 % plt           whether to plot or not [Default: true]
 % numpicks      the number of bestshift candidates. Only work with plots.
 %               [Default: 1]
@@ -32,10 +35,11 @@ function [t_shift, CCmax, lag, cc, s] = ...
 % CC            Vector of CC for every time shift in lag
 % s             Scaling to minimize the misfit
 %
-% Last modified by sirawich-at-princeton.edu, 02/27/2022
+% Last modified by sirawich-at-princeton.edu, 03/28/2022
 
 defval('envelope_window', [-10 20])
 defval('waveform_window', [-5 5])
+defval('fcorners', [0.4 1])
 defval('plt', true)
 defval('numpicks', 1)
 defval('is_rmnoise', false)
@@ -63,12 +67,14 @@ seis_r = shannon(t_r, seis_r, tr_r_interp);
 % convolve
 pres_s = conv(seis_s, seis_r) ;
 pres_s = pres_s(1:length(seis_o), 1);
-pres_s = bandpass(pres_s, fs_o, 0.4, 1, 4, 2, 'butter', 'linear');
+pres_s = bandpass(pres_s, fs_o, fcorners(1), fcorners(2), 4, 2, ...
+    'butter', 'linear');
 
 % remove instrument response and filter
 pres_o = counts2pa(seis_o, fs_o, [0.05 0.1 10 20], [], 'sacpz', false);
 pres_o = real(pres_o);
-pres_o = bandpass(pres_o, fs_o, 0.4, 1, 4, 2, 'butter', 'linear');
+pres_o = bandpass(pres_o, fs_o, fcorners(1), fcorners(2), 4, 2, ...
+    'butter', 'linear');
 
 % EXPERIMENT: use removenoise to remove noise prior to the arrival
 if is_rmnoise

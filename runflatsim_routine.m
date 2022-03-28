@@ -40,7 +40,7 @@ function outputdirs = runflatsim_routine(obsmasterdir, synmasterdir, i_begin, i_
 % SEE ALSO:
 % RUNFLATSIM, CCTRANSPLOT, COMPAREPRESSURE
 %
-% Last modified by sirawich-at-princeton.edu, 03/21/2022
+% Last modified by sirawich-at-princeton.edu, 03/28/2022
 
 defval('obsmasterdir', '/home/sirawich/research/processed_data/MERMAID_reports_updated/')
 defval('synmasterdir', '/home/sirawich/research/SYNTHETICS/')
@@ -187,7 +187,7 @@ for ii = i_begin:i_end
             end
             try
                 comparepressure(seis_s, hdr_s, seis_o, hdr_o, rf, t_rf, ...
-                    [-10 20], [-10 5], true, 5, false);
+                    [-10 20], [-10 5], [0.4 1], true, 5, false);
             catch ME
                 fprintf('%s\n', ME.getReport);
                 fprintf('Error occured. Move on to the next iteration.\n');

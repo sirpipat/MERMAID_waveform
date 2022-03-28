@@ -32,7 +32,7 @@ function [t_shifts, CCmaxs, scales, n, metadata] = ...
 % SEE ALSO:
 % COMPAREPRESSURE
 %
-% Last modified by sirawich-at-princeton.edu, 03/21/2022
+% Last modified by sirawich-at-princeton.edu, 03/28/2022
 
 defval('obsmasterdir', '/home/sirawich/research/processed_data/MERMAID_reports_updated/')
 defval('synmasterdir', '/home/sirawich/research/SYNTHETICS/')
@@ -107,7 +107,7 @@ for ii = i_begin:i_end
             end
             [t_shifts(n,:), CCmaxs(n,:), ~, ~, scales(n,:)] = ...
                 comparepressure(seis_s, hdr_s, seis_o, hdr_o, rf, t_rf, ...
-                [-10 20], [-5 5], plt, 5, false);
+                [-10 20], [-5 5], [0.4 1], plt, 5, false);
             fileused{n,1} = allsynfiles{jj};
             n = n + 1;
         catch ME
