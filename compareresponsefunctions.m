@@ -18,6 +18,10 @@ function compareresponsefunctions(obsfile, synfile, ddir1, ddir2)
 %
 % Last modified by sirawich-at-princeton.edu, 03/28/2022
 
+fcorners = [0.4 1];
+window_envelope = [-10 20];
+window_waveform = [-5 5];
+
 %% read the data
 % read the observed data
 [seis_o, hdr_o] = readsac(obsfile);
@@ -29,7 +33,7 @@ t_relative = seconds(dts_o - dt_ref_o) - hdr_o.T0;
 % remove instrument response and filter
 pres_o = counts2pa(seis_o, fs_o, [0.05 0.1 10 20], [], 'sacpz', false);
 pres_o = real(pres_o);
-pres_o = bandpass(pres_o, fs_o, 1, 2, 4, 2, 'butter', 'linear');
+pres_o = bandpass(pres_o, fs_o, fcorners(1), fcorners(2), 4, 2, 'butter', 'linear');
 
 % read the synthetic data
 [seis_s, hdr_s] = readsac(synfile);
@@ -62,18 +66,21 @@ fname2 = cindeks(ls2cell(sprintf('%sDATA/interfaces*.dat', ddir2), 1), 1);
 %% convolve
 pres_s1 = conv(seis_s_interp, seis_r1);
 pres_s1 = pres_s1(1:length(seis_o), 1);
-pres_s1 = bandpass(pres_s1, fs_o, 1, 2, 4, 2, 'butter', 'linear');
+pres_s1 = bandpass(pres_s1, fs_o, fcorners(1), fcorners(2), 4, 2, ...
+    'butter', 'linear');
 
 pres_s2 = conv(seis_s_interp, seis_r2);
 pres_s2 = pres_s2(1:length(seis_o), 1);
-pres_s2 = bandpass(pres_s2, fs_o, 1, 2, 4, 2, 'butter', 'linear');
+pres_s2 = bandpass(pres_s2, fs_o, fcorners(1), fcorners(2), 4, 2, ...
+    'butter', 'linear');
 
 %% determine the best timeshift
 [t_shift1, CCmax1, lags1, cc1, s1] = comparepressure(seis_s, hdr_s, ...
-    seis_o, hdr_o, seis_r1, t_r1, [-10 20], [-5 5], [0.4 1], false, 1, ...
-    false);
+    seis_o, hdr_o, seis_r1, t_r1, window_envelope, window_waveform, ...
+    fcorners, false, 1, false);
 [t_shift2, CCmax2, lags2, cc2, s2] = comparepressure(seis_s, hdr_s, ...
-    seis_o, hdr_o, seis_r2, t_r2, [-10 20], [-5 5], [0.4 1], false, 1, ...
+    seis_o, hdr_o, seis_r2, t_r2, window_envelope, window_waveform, ...
+    fcorners, false, 1, ...
     false);
 
 %% correlation coefficient between two synthetics
@@ -91,7 +98,7 @@ set(gcf, 'Units', 'inches', 'Position', [9 8 6 8])
 clf
 
 % report
-ax0 = subplot(26,1,1);
+ax0 = subplot(27,1,1);
 % criteria for CMT solution searching
 dt_origin = dt_ref_o + seconds(hdr_o.USER8);
 monthname = {'jan', 'feb', 'mar', 'apr', 'may', 'jun', ...
@@ -138,7 +145,7 @@ ax0.XAxis.Visible = 'off';
         ax0.YAxis.Visible = 'off';
 
 % bathymetry
-ax1 = subplot(26,1,[2,8]);
+ax1 = subplot(27,1,[2,8]);
 [ax1, hs] = drawbackground(fname2, ax1);
 ax1.YTick = 9600 - (8000:-2000:0);
 ax1.YTickLabel = string(ax1.YTick-9600);
@@ -152,30 +159,32 @@ ylabel('elevation (m)')
 %title('bathymetry')
 
 % response function
-ax2 = subplot(26,1,[11,14]);
+ax2 = subplot(27,1,[11,14]);
 plot(t_r1, seis_r1 / max(abs(seis_r1)) + 1, 'LineWidth', 1, 'Color', red)
 hold on
 grid on
 plot(t_r2, seis_r2 / max(abs(seis_r1)) - 1, 'LineWidth', 1, 'Color', blue)
+ylim([-2 2])
 legend('flat', 'bathymetry', 'location', 'east')
 xlabel('time (s)')
 ylabel('response')
 title('response function')
 set(ax2, 'Box', 'on')
 
-ax3 = subplot(26,1,[17,18]);
-plot(t_relative, bandpass(seis_s_interp, fs_o, 1, 2, 4, 2, 'butter', ...
-    'linear'), 'LineWidth', 1, 'Color', black)
+ax3 = subplot(27,1,[17,18]);
+plot(t_relative, bandpass(seis_s_interp, fs_o, fcorners(1), ...
+    fcorners(2), 4, 2, 'butter', 'linear'), 'LineWidth', 1, 'Color', black)
 hold on
 grid on
 xlim([-10 25])
 vline(ax3, 0, 'LineWidth', 2, 'LineStyle', '--', 'Color', [0.1 0.8 0.1]);
 xlabel('time since first picked arrival (s)')
 ylabel('u_z (m)')
-title('synthetic waveform: vertical displacement')
+title(sprintf('synthetic vertical displacement: bp%.1f-%.1f', fcorners(1), ...
+    fcorners(2)))
 set(ax3, 'Box', 'on')
 
-ax4 = subplot(26,1,[21,26]);
+ax4 = subplot(27,1,[22,27]);
 plot(t_relative, pres_o, 'LineWidth', 1, 'Color', black)
 hold on
 grid on
@@ -190,7 +199,9 @@ legend('observed', ...
     'Location', 'southoutside', 'Interpreter', 'latex')
 xlabel('time since first picked arrival (s)')
 ylabel('P (Pa)')
-title('acoustic pressure record: waveform')
+title(sprintf(['acoustic pressure record: bp%.1f-%.1f W^E[%d %d]' ...
+    ' W^W[%d %d]'], fcorners(1), fcorners(2), window_envelope(1), ...
+    window_envelope(2), window_waveform(1), window_waveform(2)))
 set(ax4, 'Box', 'on')
 
 set(gcf, 'Renderer', 'painters')
