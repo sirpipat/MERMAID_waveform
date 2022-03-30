@@ -168,7 +168,7 @@ ylim([-2 2])
 legend('flat', 'bathymetry', 'location', 'east')
 xlabel('time (s)')
 ylabel('response')
-title('response function')
+title('response function', 'Interpreter', 'latex', 'FontSize', 11)
 set(ax2, 'Box', 'on')
 
 ax3 = subplot(27,1,[17,18]);
@@ -181,7 +181,7 @@ vline(ax3, 0, 'LineWidth', 2, 'LineStyle', '--', 'Color', [0.1 0.8 0.1]);
 xlabel('time since first picked arrival (s)')
 ylabel('u_z (m)')
 title(sprintf('synthetic vertical displacement: bp%.1f-%.1f', fcorners(1), ...
-    fcorners(2)))
+    fcorners(2)), 'Interpreter', 'latex', 'FontSize', 11)
 set(ax3, 'Box', 'on')
 
 ax4 = subplot(27,1,[22,27]);
@@ -194,14 +194,15 @@ xlim([-10 25])
 %ylim([-1.1 1.1] * max(max(abs(pres_o)), max(abs(s_e * pres_s1))))
 vline(ax4, 0, 'LineWidth', 2, 'LineStyle', '--', 'Color', [0.1 0.8 0.1]);
 legend('observed', ...
-    sprintf('flat : $\\tau^W = %.2f$ s, $X^W = %.2f$', t_shift1, CCmax1), ...
-    sprintf('bathymetry : $\\tau^W = %.2f$ s, $X^W = %.2f$', t_shift2, CCmax2), ...
+    sprintf('flat : \\tau^W = %.2f s, X^W = %.2f', t_shift1, CCmax1), ...
+    sprintf('bathymetry : \\tau^W = %.2f s, X^W = %.2f', t_shift2, CCmax2), ...
     'Location', 'southoutside', 'Interpreter', 'latex')
 xlabel('time since first picked arrival (s)')
 ylabel('P (Pa)')
-title(sprintf(['acoustic pressure record: bp%.1f-%.1f W^E[%d %d]' ...
-    ' W^W[%d %d]'], fcorners(1), fcorners(2), window_envelope(1), ...
-    window_envelope(2), window_waveform(1), window_waveform(2)))
+title(sprintf(['acoustic pressure record: bp%.1f-%.1f W$^E$[%d %d]' ...
+    ' W$^W$[%d %d]'], fcorners(1), fcorners(2), window_envelope(1), ...
+    window_envelope(2), window_waveform(1), window_waveform(2)), ...
+    'Interpreter', 'latex', 'FontSize', 11)
 set(ax4, 'Box', 'on')
 
 set(gcf, 'Renderer', 'painters')
