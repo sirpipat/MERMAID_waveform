@@ -191,6 +191,7 @@ if plt
     title('response function', 'Interpreter', 'latex', 'FontSize', 11)
     set(ax2, 'Box', 'on')
 
+    % synthetic vertical displacement at the ocean bottom
     ax3 = subplot(27,1,[17,18]);
     plot(t_relative, bandpass(seis_s_interp, fs_o, fcorners(1), ...
         fcorners(2), 4, 2, 'butter', 'linear'), 'LineWidth', 1, 'Color', black)
@@ -204,16 +205,28 @@ if plt
         fcorners(2)), 'Interpreter', 'latex', 'FontSize', 11)
     set(ax3, 'Box', 'on')
 
+    % pressure recorded by the hydrophone
     ax4 = subplot(27,1,[22,27]);
-    plot(t_relative, pres_o, 'LineWidth', 1, 'Color', black)
+    p1 = plot(t_relative, pres_o, 'LineWidth', 1, 'Color', black);
     hold on
     grid on
-    plot(t_relative + t_shift1, pres_s1 * s1, 'LineWidth', 1, 'Color', red)
-    plot(t_relative + t_shift2, pres_s2 * s2, 'LineWidth', 1, 'Color', blue)
+    p2 = plot(t_relative + t_shift1, pres_s1 * s1, 'LineWidth', 1, 'Color', red);
+    p3 = plot(t_relative + t_shift2, pres_s2 * s2, 'LineWidth', 1, 'Color', blue);
     xlim([-10 25])
-    %ylim([-1.1 1.1] * max(max(abs(pres_o)), max(abs(s_e * pres_s1))))
-    vline(ax4, 0, 'LineWidth', 2, 'LineStyle', '--', 'Color', [0.1 0.8 0.1]);
-    legend('observed', ...
+    wh = and(t_relative >= window_waveform(1), ...
+        t_relative <= window_waveform(2));
+    ylim([-1.2 1.2] * max([max(abs(pres_o(wh))), ...
+                           max(abs(s1 * pres_s1(wh))), ...
+                           max(abs(s2 * pres_s2(wh))) ...
+                          ]));
+    [~, v] = vline(ax4, 0, 'LineWidth', 2, 'LineStyle', '--', 'Color', [0.1 0.8 0.1]);
+    
+    % high light the waveform window
+    [xbox, ybox] = boxcorner(window_waveform, ax4.YLim);
+    pgon = polyshape(xbox, ybox);
+    bx = plot(ax4, pgon, 'FaceColor', [0.5 0.5 0.9], 'FaceAlpha', 0.15, ...
+        'EdgeAlpha', 0);
+    legend([p1, p2, p3], 'observed', ...
         sprintf('flat : \\tau^W = %.2f s, X^W = %.2f', t_shift1, CCmax1), ...
         sprintf('bathymetry : \\tau^W = %.2f s, X^W = %.2f', t_shift2, CCmax2), ...
         'Location', 'southoutside', 'Interpreter', 'latex')
