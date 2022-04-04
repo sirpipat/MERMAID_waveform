@@ -49,7 +49,7 @@ defval('sname', sprintf('%s_%s.mat', mfilename, ...
 
 pname = fullfile(getenv('IFILES'), 'HASHES', sname);
 
-if ~exist(pname, 'file')
+if plt || ~exist(pname, 'file')
     CCmaxs_flat = [];
     CCmaxs_bath = [];
     t_shifts_flat = [];
