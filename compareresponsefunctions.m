@@ -31,7 +31,7 @@ function [t_shift1, t_shift2, CCmax1, CCmax2, bath1, bath2] = ...
 % bath2         bathymetry profile [x, z] for second SPECFEM2D 
 %               fluid-solid simulation
 %
-% Last modified by sirawich-at-princeton.edu, 03/31/2022
+% Last modified by sirawich-at-princeton.edu, 04/03/2022
 
 defval('plt', true)
 
@@ -117,8 +117,8 @@ if plt
     set(gcf, 'Units', 'inches', 'Position', [9 8 6 8])
     clf
 
-    % report
-    ax0 = subplot(27,1,1);
+    %% report
+    ax0 = subplot('Position', [0.1300 0.9400 0.7750 0.0220]);
     % criteria for CMT solution searching
     dt_origin = dt_ref_o + seconds(hdr_o.USER8);
     monthname = {'jan', 'feb', 'mar', 'apr', 'may', 'jun', ...
@@ -136,36 +136,53 @@ if plt
     [~,~,CMT] = readCMT(fname, strcat(getenv('IFILES'),'CMT'), tbeg, ...
         tend, mblo, mbhi, depmin, depmax, 'hypocenter');
 
-    titlestr = ['$$ \textnormal{CMT}-\textnormal{' ...
-                CMT.EventName ...
-                sprintf('}, M_w=%.2f', hdr_o.MAG) ...
-                ',~\Delta=' ...
-                sprintf('%.2f', hdr_o.GCARC) ...
-                '^{\circ},~\textnormal{depth} = ' ...
-                sprintf('%.2f', hdr_o.EVDP) ...
-                '~\textnormal{km} $$'];
-    title(titlestr, 'Interpreter', 'latex')
-
+    txtstr0 = ['$$ \textnormal{' ...
+               CMT.EventName ...
+               sprintf(', lat} = %.2f', hdr_o.EVLA) ...
+               '^{\circ},~\textnormal{lon} = ' ...
+               sprintf('%.2f', hdr_o.EVLO) ...
+               '^{\circ},~\textnormal{depth} = ' ...
+               sprintf('%.2f', hdr_o.EVDP) ...
+               '~\textnormal{km},~' ...
+               sprintf('M_w=%.2f', hdr_o.MAG) ...
+               ' $$'];
+    [x_pos0, y_pos0] = norm2trueposition(ax0, -4/40, 1.5);
+    text(x_pos0, y_pos0, txtstr0, 'FontSize', 11, 'Interpreter', 'latex');
+    % LaTeX string reporting the receiver
+    txtstr1 = ['$$ \textnormal{MH-' ...
+               replace(hdr_o.KSTNM, ' ', '') ...
+               ', lat} = ' ...
+               sprintf('%.2f', hdr_o.STLA) ...
+               '^{\circ},~\textnormal{lon} = ' ...
+               sprintf('%.2f', hdr_o.STLO) ...
+               '^{\circ},~\textnormal{elev} = ' ...
+               sprintf('%.2f', -hdr_o.STDP) ...
+               '~\textnormal{m},~\Delta=' ...
+               sprintf('%.2f', hdr_o.GCARC) ...
+               '^{\circ} $$'];
+    [x_pos1, y_pos1] = norm2trueposition(ax0, -4/40, 0.7);
+    text(x_pos1, y_pos1, txtstr1, 'FontSize', 11, 'Interpreter', 'latex');
     % LaTeX string reporting the waveform timeshift finding
-    txtstr = ['$$ \theta =' ...
-              sprintf('%.2f', asin(hdr_s.USER9 * 3400 / 6365000) * 180/pi) ...
-              '^{\circ}~\textnormal{, avg depth} = ' ...
-              sprintf('%.2f', 9600-mean(itfs2{2}.pts(:,2))) ...
-              '~\textnormal{m, std depth} = ' ...
-              sprintf('%.2f', std(itfs2{2}.pts(:,2))) ...
-              '~\textnormal{m, slope} = ' ...
-              sprintf('%.2f^{\\circ} $$', ...
-              atan(indeks(polyfit(itfs2{2}.pts(:,1), ...
-              itfs2{2}.pts(:,2), 1), 1)) * 180/pi)];
-    [x_pos, y_pos] = norm2trueposition(ax0, -3/40, 3/4);
-    text(x_pos, y_pos, txtstr, 'FontSize', 12, 'Interpreter', 'latex');
+    txtstr2 = ['$$ \theta_i =' ...
+               sprintf('%.2f', asin(hdr_s.USER9 * 3400 / 6365000) * 180/pi) ...
+               '^{\circ}~\textnormal{, avg depth} = ' ...
+               sprintf('%.2f', 9600-mean(itfs2{2}.pts(:,2))) ...
+               '~\textnormal{m, std depth} = ' ...
+               sprintf('%.2f', std(itfs2{2}.pts(:,2))) ...
+               '~\textnormal{m, slope} = ' ...
+               sprintf('%.2f^{\\circ} $$', ...
+               atan(indeks(polyfit(itfs2{2}.pts(:,1), ...
+               itfs2{2}.pts(:,2), 1), 1)) * 180/pi)];
+    [x_pos2, y_pos2] = norm2trueposition(ax0, -4/40, -0.1);
+    text(x_pos2, y_pos2, txtstr2, 'FontSize', 11, 'Interpreter', 'latex');
 
-    set(ax0, 'FontSize', 12, 'Color', 'none');
+    set(ax0, 'FontSize', 11, 'Color', 'none');
+    set(ax0.Title, 'FontSize', 11)
     ax0.XAxis.Visible = 'off';
-            ax0.YAxis.Visible = 'off';
+    ax0.YAxis.Visible = 'off';
 
-    % bathymetry
-    ax1 = subplot(27,1,[2,8]);
+    %% bathymetry
+    ax1 = subplot('Position', [0.1300 0.7100 0.7750 0.2050]);
     [ax1, hs] = drawbackground(fname2, ax1);
     ax1.YTick = 9600 - (8000:-2000:0);
     ax1.YTickLabel = string(ax1.YTick-9600);
@@ -176,10 +193,12 @@ if plt
     plot(itfs1{2}.pts(:,1), itfs1{2}.pts(:,2), 'LineStyle', '--', 'LineWidth', 2, 'Color', 'r')
     xlabel('x (m)')
     ylabel('elevation (m)')
-    %title('bathymetry')
+    set(ax1, 'Box', 'on', 'TickDir', 'both')
+    
+    axb1 = boxedlabel(ax1, 'northwest', 0.18, [], 'a');
 
-    % response function
-    ax2 = subplot(27,1,[11,14]);
+    %% response function
+    ax2 = subplot('Position', [0.1300 0.5175 0.7750 0.1135]);
     plot(t_r1, seis_r1 / max(abs(seis_r1)) + 1, 'LineWidth', 1, 'Color', red)
     hold on
     grid on
@@ -189,54 +208,111 @@ if plt
     xlabel('time (s)')
     ylabel('response')
     title('response function', 'Interpreter', 'latex', 'FontSize', 11)
-    set(ax2, 'Box', 'on')
+    set(ax2, 'Box', 'on', 'TickDir', 'both')
+    axb2 = boxedlabel(ax2, 'northwest', 0.18, [], 'b');
 
-    % synthetic vertical displacement at the ocean bottom
-    ax3 = subplot(27,1,[17,18]);
+    %% synthetic vertical displacement at the ocean bottom
+    ax3 = subplot('Position', [0.1300 0.3970 0.7750 0.0525]);
     plot(t_relative, bandpass(seis_s_interp, fs_o, fcorners(1), ...
         fcorners(2), 4, 2, 'butter', 'linear'), 'LineWidth', 1, 'Color', black)
     hold on
     grid on
     xlim([-10 25])
     vline(ax3, 0, 'LineWidth', 2, 'LineStyle', '--', 'Color', [0.1 0.8 0.1]);
-    xlabel('time since first picked arrival (s)')
     ylabel('u_z (m)')
     title(sprintf('synthetic vertical displacement: bp%.1f-%.1f', fcorners(1), ...
         fcorners(2)), 'Interpreter', 'latex', 'FontSize', 11)
-    set(ax3, 'Box', 'on')
+    set(ax3, 'Box', 'on', 'TickDir', 'both', 'XTickLabel', {})
+    axb3 = boxedlabel(ax3, 'northwest', 0.18, [], 'c');
 
-    % pressure recorded by the hydrophone
-    ax4 = subplot(27,1,[22,27]);
+    %% pressure recorded by the hydrophone
+    ax4 = subplot(27,1,[20,25]);
     p1 = plot(t_relative, pres_o, 'LineWidth', 1, 'Color', black);
     hold on
     grid on
-    p2 = plot(t_relative + t_shift1, pres_s1 * s1, 'LineWidth', 1, 'Color', red);
+    p2 = plot(t_relative + t_shift1, pres_s1 * s1, 'LineWidth', 0.5, 'Color', red);
     p3 = plot(t_relative + t_shift2, pres_s2 * s2, 'LineWidth', 1, 'Color', blue);
     xlim([-10 25])
     wh = and(t_relative >= window_waveform(1), ...
         t_relative <= window_waveform(2));
+    wh1 = and(t_relative + t_shift1 >= window_waveform(1), ...
+        t_relative + t_shift1 <= window_waveform(2));
+    wh2 = and(t_relative + t_shift2 >= window_waveform(1), ...
+        t_relative + t_shift2 <= window_waveform(2));
     ylim([-1.2 1.2] * max([max(abs(pres_o(wh))), ...
-                           max(abs(s1 * pres_s1(wh))), ...
-                           max(abs(s2 * pres_s2(wh))) ...
+                           max(abs(s1 * pres_s1(wh1))), ...
+                           max(abs(s2 * pres_s2(wh2))) ...
                           ]));
     [~, v] = vline(ax4, 0, 'LineWidth', 2, 'LineStyle', '--', 'Color', [0.1 0.8 0.1]);
+    set(v,'tag','vline','handlevisibility','on');
     
-    % high light the waveform window
-    [xbox, ybox] = boxcorner(window_waveform, ax4.YLim);
-    pgon = polyshape(xbox, ybox);
-    bx = plot(ax4, pgon, 'FaceColor', [0.5 0.5 0.9], 'FaceAlpha', 0.15, ...
-        'EdgeAlpha', 0);
-    legend([p1, p2, p3], 'observed', ...
-        sprintf('flat : \\tau^W = %.2f s, X^W = %.2f', t_shift1, CCmax1), ...
-        sprintf('bathymetry : \\tau^W = %.2f s, X^W = %.2f', t_shift2, CCmax2), ...
+    ax4.Children = [p3 p2 p1 v];
+    
+    label2 = sprintf('$$ \\textnormal{flat} : \\tau^W = %.2f~\\textnormal{s, X}^W = %.2f $$', t_shift1, CCmax1);
+    label3 = sprintf('$$ \\textnormal{bathymetry} : \\tau^W = %.2f~\\textnormal{s, X}^W = %.2f $$', t_shift2, CCmax2);
+    legend([p1, p2, p3], {'observed', label2, label3}, ...
         'Location', 'southoutside', 'Interpreter', 'latex')
     xlabel('time since first picked arrival (s)')
     ylabel('P (Pa)')
+    set(ax4, 'Box', 'on', 'TickDir', 'both', 'Color', 'none', ...
+        'Position', [0.1300 0.3080 0.7750 0.0525])
+    
+    % high light the waveform window
+    ax4s = doubleaxes(ax4);
+    [xbox, ybox] = boxcorner(window_waveform, 0.98 * ax4.YLim);
+    pgon = polyshape(xbox, ybox);
+    bx = plot(ax4s, pgon, 'FaceColor', [1 0.9 0.4], 'FaceAlpha', 0.4, ...
+        'EdgeAlpha', 0);
+    ax4s.XAxis.Visible = 'off';
+    ax4s.YAxis.Visible = 'off';
+    set(ax4s, 'Box', 'on', 'TickDir', 'both', 'XLim', ax4.XLim, 'YLim', ...
+        ax4.YLim, 'Position', ax4.Position);
+    
+    % fix the title
+    axes(ax4);
     title(sprintf(['acoustic pressure record: bp%.1f-%.1f W$^E$[%d %d]' ...
         ' W$^W$[%d %d]'], fcorners(1), fcorners(2), window_envelope(1), ...
         window_envelope(2), window_waveform(1), window_waveform(2)), ...
         'Interpreter', 'latex', 'FontSize', 11)
-    set(ax4, 'Box', 'on')
+    
+    axb4 = boxedlabel(ax4, 'northwest', 0.18, [], 'd');
+    
+    %% cross correlation between the observed and flat
+    ax5 = subplot('Position', [0.1300 0.1180 0.7750 0.0525]);
+    plot(lags1, cc1, 'Color', red, 'LineWidth', 0.5)
+    grid on
+    ylim([-1 1])
+    ylabel('X^W')
+    title('correlation coefficients (red - flat, blue - bathymetry)', ...
+        'Interpreter', 'latex', 'FontSize', 11)
+    set(ax5, 'Box', 'on', 'TickDir', 'both', 'XTickLabel', {})
+    
+    % cross correlation between the observed and bathymetry
+    ax6 = subplot('Position', [0.1300 0.0500 0.7750 0.0525]);
+    plot(lags2, cc2, 'Color', blue, 'LineWidth', 0.5)
+    grid on
+    ylim([-1 1])
+    xlabel('time shift (s)')
+    ylabel('X^W')
+    set(ax6, 'Box', 'on', 'TickDir', 'both')
+    
+    % align the two cross correlation plots
+    extend = [min(ax5.XLim(1), ax6.XLim(1)) max(ax5.XLim(2), ax6.XLim(2))];
+    ax5.XLim = extend;
+    ax6.XLim = extend;
+    
+    vline(ax5, t_shift1, 'LineStyle', '--', ...
+        'Color', 'k', 'LineWidth', 1.5);
+    hline(ax5, CCmax1, 'LineStyle', '--', ...
+        'Color', 'k', 'LineWidth', 1.5);
+    
+    vline(ax6, t_shift2, 'LineStyle', '--', ...
+        'Color', 'k', 'LineWidth', 1.5);
+    hline(ax6, CCmax2, 'LineStyle', '--', ...
+        'Color', 'k', 'LineWidth', 1.5);
+    
+    axb5 = boxedlabel(ax5, 'northwest', 0.18, [], 'e');
+    axb6 = boxedlabel(ax6, 'northwest', 0.18, [], 'f');
 
     set(gcf, 'Renderer', 'painters')
     savename = sprintf('%s_%d_%s.eps', mfilename, hdr_o.USER7, ...
