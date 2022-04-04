@@ -1,7 +1,7 @@
-function [t_shifts, CCmaxs, depthstats, n, metadata] = ...
+function [t_shifts, CCmaxs, depthstats, slopestats, peakstats, n, metadata] = ...
     bathymatter(obsmasterdir, synmasterdir, flatmasterdir, ...
     bathmasterdir, plt)
-% [t_shifts, CCmaxs, depthstats, n, metadata] = ...
+% [t_shifts, CCmaxs, depthstats, slopestats, peakstats, n, metadata] = ...
 %     BATHYMATTER(obsmasterdir, synmasterdir, flatmasterdir, bathmasterdir)
 %
 % Compares 2 responses from flat ocean bottom and bathymetry from GEBCO in
@@ -24,12 +24,29 @@ function [t_shifts, CCmaxs, depthstats, n, metadata] = ...
 % t_shifts          Best time shift where CC is maximum     [flat, bath]
 % CCmaxs            Maximum correlation coefficient         [flat, bath]
 % depthstats        struct contatining the following fields
-%       - depth_mid         depth at the middle of the profile right below
+%       depth_mid           depth at the middle of the profile right below
 %                           the hydrophone
-%       - depth_avg         mean of the depth of the bathymetry profile
-%       - depth_std         standard deviation
-%       - depth_range       difference between the highest and the lowest
-%       - slope             slope in degree, positive when sloping upward
+%       depth_avg           mean of the depth of the bathymetry profile
+%       depth_std           standard deviation
+%       depth_range        difference between the highest and the lowest
+% slopestats        struct containing the following fields every field has 
+%                   a unit in degree and is positive when sloping upward 
+%                   except SLOPE_EXTREME which is always positive
+%       slope_full          general trend over the bathymetry profile. It
+%                           is calculated from linear fitting.
+%       slope_left          same as SLOPE_FULL but using the left side or
+%                           the side where the wave is coming from
+%       slope_right         same as SLOPE_FULL but using the right side or
+%                           the side where the wave is going forward
+%       slope_local         slope within 25th and 75th percentile of the
+%                           distance along the profile
+%       slope_extreme       maximum of absolute slope from moving average
+%                           slope over 1000 m section
+% peakstats         struct containing the following fields
+%       N                   the number of observed peaks
+%       prominence_max      maximum prominence of the peaks (0 if N == 0)
+%       prominence_avg      average prominence of the peaks (0 if N == 0)
+%       width_avg           avarage width of the peaks      (0 if N == 0)
 % n                 the number of data points
 % metadata          SAC header variables sorted by variable names
 %
@@ -49,7 +66,7 @@ defval('sname', sprintf('%s_%s.mat', mfilename, ...
 
 pname = fullfile(getenv('IFILES'), 'HASHES', sname);
 
-if ~exist(pname, 'file')
+if plt || ~exist(pname, 'file')
     CCmaxs_flat = [];
     CCmaxs_bath = [];
     t_shifts_flat = [];
@@ -58,7 +75,15 @@ if ~exist(pname, 'file')
     depth_avg = [];
     depth_std = [];
     depth_range = [];
-    slope = [];
+    slope_full = [];
+    slope_local = [];
+    slope_left = [];
+    slope_right = [];
+    slope_extreme = [];
+    N = [];
+    prominence_max = [];
+    prominence_avg = [];
+    width_avg = [];
     fileused = {};
     n = 1;
 
@@ -81,12 +106,51 @@ if ~exist(pname, 'file')
             t_shifts_bath(n,1) = t_shift2;
             CCmaxs_flat(n,1) = CCmax1;
             CCmaxs_bath(n,1) = CCmax2;
+            
+            % statistics of the bathymetry
             depth_mid(n,1) = bath2((size(bath2,1)+1)/2,2);
             depth_avg(n,1) = mean(bath2(:,2));
             depth_std(n,1) = std(bath2(:,2));
             depth_range(n,1) = range(bath2(:,2));
-            slope(n,1) = atan(indeks(polyfit(bath2(:,1), ...
+            
+            % statistics of the slope
+            dx = bath2(2,1) - bath2(1,1);
+            x_mid   = (0.5 * bath2(1,1) + 0.5 * bath2(size(bath2,1),1));
+            x_width = (-bath2(1,1) + bath2(size(bath2,1),1));
+            wh_left = (bath2(:,1) <= x_mid);
+            wh_right = (bath2(:,1) >= x_mid);
+            wh_local = and(bath2(:,1) >= x_mid - 0.5 * x_width/2, ...
+                bath2(:,1) <= x_mid + 0.5 * x_width/2);
+            
+            slope_full(n,1) = atan(indeks(polyfit(bath2(:,1), ...
                 bath2(:,2), 1), 1)) * 180/pi;
+            slope_left(n,1) = atan(indeks(polyfit(bath2(wh_left,1), ...
+                bath2(wh_left,2), 1), 1)) * 180/pi;
+            slope_right(n,1) = atan(indeks(polyfit(bath2(wh_right,1), ...
+                bath2(wh_right,2), 1), 1)) * 180/pi;
+            slope_local(n,1) = atan(indeks(polyfit(bath2(wh_local,1), ...
+                bath2(wh_local,2), 1), 1)) * 180/pi;
+            
+            moving_slope = movmean((bath2(2:size(bath2,1),2) - ...
+                bath2(1:size(bath2,1)-1,2)) / dx, 21);
+            slope_extreme(n,1) = atan(max(abs(moving_slope))) * 180/pi;
+            
+            % peaks
+            [pks,locs,w,p] = findpeaks(bath2(:,2),bath2(:,1));
+            N(n,1) = length(w);
+            if isempty(p)
+                prominence_max(n,1) = 0;
+                prominence_avg(n,1) = 0;
+            else
+                prominence_max(n,1) = max(p);
+                prominence_avg(n,1) = mean(p);
+            end
+            if isempty(w)
+                width_avg(n,1) = 0;
+            else
+                width_avg(n,1) = mean(w);
+            end
+            
             fileused{n,1} = synfile;
             n = n + 1;
         catch ME
@@ -101,18 +165,25 @@ if ~exist(pname, 'file')
     t_shifts = [t_shifts_flat, t_shifts_bath];
     CCmaxs = [CCmaxs_flat, CCmaxs_bath];
     depthstats = struct('depth_mid', depth_mid, 'depth_avg', depth_avg, ...
-        'depth_std', depth_std, 'depth_range', depth_range, 'slope', slope);
+        'depth_std', depth_std, 'depth_range', depth_range);
+    slopestats = struct('slope_full', slope_full, ...
+        'slope_local', slope_local, 'slope_left', slope_left, ...
+        'slope_right', slope_right, 'slope_extreme', slope_extreme);
+    peakstats = struct('N', N, 'prominence_max', prominence_max, ...
+        'prominence_avg', prominence_avg, 'width_avg', width_avg');
 
     % gather metadata
     metadata = getheaderarray(fileused);
     
     % save
     fprintf('save the output to a file to %s ...\n', pname);
-    save(pname, 't_shifts', 'CCmaxs', 'depthstats', 'n', 'metadata');
+    save(pname, 't_shifts', 'CCmaxs', 'depthstats', 'slopestats', ...
+        'peakstats', 'n', 'metadata');
 else
     % load
     fprintf('found the save in a file in %s\n', pname);
-    frpintf('load the variables ...\n');
-    load(pname, 't_shifts', 'CCmaxs', 'depthstats', 'n', 'metadata');
+    fprintf('load the variables ...\n');
+    load(pname, 't_shifts', 'CCmaxs', 'depthstats', 'slopestats', ...
+        'peakstats', 'n', 'metadata');
 end
 end
