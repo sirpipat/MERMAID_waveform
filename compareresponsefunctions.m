@@ -31,11 +31,11 @@ function [t_shift1, t_shift2, CCmax1, CCmax2, bath1, bath2] = ...
 % bath2         bathymetry profile [x, z] for second SPECFEM2D 
 %               fluid-solid simulation
 %
-% Last modified by sirawich-at-princeton.edu, 04/03/2022
+% Last modified by sirawich-at-princeton.edu, 05/11/2022
 
 defval('plt', true)
 
-fcorners = [0.4 1];
+fcorners = [1 2];
 window_envelope = [-10 20];
 window_waveform = [-5 5];
 
@@ -218,7 +218,7 @@ if plt
     hold on
     grid on
     xlim([-10 25])
-    vline(ax3, 0, 'LineWidth', 2, 'LineStyle', '--', 'Color', [0.1 0.8 0.1]);
+%     vline(ax3, 0, 'LineWidth', 2, 'LineStyle', '--', 'Color', [0.1 0.8 0.1]);
     ylabel('u_z (m)')
     title(sprintf('synthetic vertical displacement: bp%.1f-%.1f', fcorners(1), ...
         fcorners(2)), 'Interpreter', 'latex', 'FontSize', 11)
@@ -243,10 +243,10 @@ if plt
                            max(abs(s1 * pres_s1(wh1))), ...
                            max(abs(s2 * pres_s2(wh2))) ...
                           ]));
-    [~, v] = vline(ax4, 0, 'LineWidth', 2, 'LineStyle', '--', 'Color', [0.1 0.8 0.1]);
-    set(v,'tag','vline','handlevisibility','on');
-    
-    ax4.Children = [p3 p2 p1 v];
+%     [~, v] = vline(ax4, 0, 'LineWidth', 2, 'LineStyle', '--', 'Color', [0.1 0.8 0.1]);
+%     set(v,'tag','vline','handlevisibility','on');
+%     
+%     ax4.Children = [p3 p2 p1 v];
     
     label2 = sprintf('$$ \\textnormal{flat} : \\tau^W = %.2f~\\textnormal{s, X}^W = %.2f $$', t_shift1, CCmax1);
     label3 = sprintf('$$ \\textnormal{bathymetry} : \\tau^W = %.2f~\\textnormal{s, X}^W = %.2f $$', t_shift2, CCmax2);
@@ -301,15 +301,15 @@ if plt
     ax5.XLim = extend;
     ax6.XLim = extend;
     
-    vline(ax5, t_shift1, 'LineStyle', '--', ...
-        'Color', 'k', 'LineWidth', 1.5);
-    hline(ax5, CCmax1, 'LineStyle', '--', ...
-        'Color', 'k', 'LineWidth', 1.5);
+    vline(ax5, t_shift1, 'LineStyle', ':', ...
+        'Color', [0.4 0.4 0.4], 'LineWidth', 1.);
+    hline(ax5, CCmax1, 'LineStyle', ':', ...
+        'Color', [0.4 0.4 0.4], 'LineWidth', 1.);
     
-    vline(ax6, t_shift2, 'LineStyle', '--', ...
-        'Color', 'k', 'LineWidth', 1.5);
-    hline(ax6, CCmax2, 'LineStyle', '--', ...
-        'Color', 'k', 'LineWidth', 1.5);
+    vline(ax6, t_shift2, 'LineStyle', ':', ...
+        'Color', [0.4 0.4 0.4], 'LineWidth', 1.);
+    hline(ax6, CCmax2, 'LineStyle', ':', ...
+        'Color', [0.4 0.4 0.4], 'LineWidth', 1.);
     
     axb5 = boxedlabel(ax5, 'northwest', 0.18, [], 'e');
     axb6 = boxedlabel(ax6, 'northwest', 0.18, [], 'f');
