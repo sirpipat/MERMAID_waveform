@@ -2,7 +2,8 @@ function [t_shifts, CCmaxs, depthstats, slopestats, peakstats, n, metadata] = ..
     bathymatter(obsmasterdir, synmasterdir, flatmasterdir, ...
     bathmasterdir, plt)
 % [t_shifts, CCmaxs, depthstats, slopestats, peakstats, n, metadata] = ...
-%     BATHYMATTER(obsmasterdir, synmasterdir, flatmasterdir, bathmasterdir)
+%     BATHYMATTER(obsmasterdir, synmasterdir, flatmasterdir, ...
+%                 bathmasterdir, plt)
 %
 % Compares 2 responses from flat ocean bottom and bathymetry from GEBCO in
 % order to determine whether bathymatry matters and when.
@@ -53,7 +54,7 @@ function [t_shifts, CCmaxs, depthstats, slopestats, peakstats, n, metadata] = ..
 % SEE ALSO
 % RUNFLATSIM, COMPARERESPONSEFUNCTIONS
 %
-% Last modified by sirawich-at-princeton.edu, 03/31/2022
+% Last modified by sirawich-at-princeton.edu, 05/11/2022
 
 defval('true', plt)
 
