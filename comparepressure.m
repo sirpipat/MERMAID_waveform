@@ -35,7 +35,7 @@ function [t_shift, CCmax, lag, cc, s] = ...
 % CC            Vector of CC for every time shift in lag
 % s             Scaling to minimize the misfit
 %
-% Last modified by sirawich-at-princeton.edu, 03/28/2022
+% Last modified by sirawich-at-princeton.edu, 05/11/2022
 
 defval('envelope_window', [-10 20])
 defval('waveform_window', [-5 5])
@@ -124,6 +124,50 @@ locs = locs(isort);
 t_shift = locs(1:numpicks);
 CCmax = indeks(cc(logical(sum(lags_time == locs',1))), isort(1:numpicks))';
 lag = lags_time;
+
+%% Part 2B: track correlation coefficient as the waveform window grows
+if false
+    ww = [0, 5; 0, 10; 0, 15; 0, 20; 0, 25] + waveform_window;
+    win = [waveform_window(2); ww(:,2)] - waveform_window(1);
+    CCmax_after = zeros(size(ww, 1), numpicks);
+    for ii = 1:size(ww, 1)
+        dt_start3 = dt_ref_o + seconds(hdr_o.T0 + ww(ii, 1));
+        dt_end3 = dt_ref_o + seconds(hdr_o.T0 + ww(ii, 2));
+        pres_o3 = pres_o(and(geq(dts_o, dt_start3, ep), leq(dts_o, dt_end3, ep)));
+        pres_s3 = pres_s(and(geq(dts_o, ...
+            dt_start3 - seconds(best_lags_time_e), ep), ...
+            leq(dts_o, dt_end3 - seconds(best_lags_time_e), ep)));
+
+        [blt3, ~, lt3, cc3, s3] = ccscale(pres_o3, pres_s3, ...
+            dt_start3, dt_start3, fs_o, ...
+            seconds(ww(ii, 2) - ww(ii, 1)) / 2, 'soft', false);
+
+        lt3 = lt3 + best_lags_time_e;
+        for jj = 1:numpicks
+            CCmax_after(ii, jj) = cc3(lt3 == t_shift(jj));
+        end
+    end
+
+    CCmax_all = [CCmax; CCmax_after];
+
+    figure(2)
+    clf
+    plot(win, CCmax_all, '-o', 'LineWidth', 1)
+    grid on
+    xlabel('waveform window length')
+    ylabel('correlation coefficient')
+    set(gca, 'TickDir', 'both', 'FontSize', 12)
+    legend(sprintf('%.2f s', t_shift(1)), sprintf('%.2f s', t_shift(2)), ...
+        sprintf('%.2f s', t_shift(3)), sprintf('%.2f s', t_shift(4)), ...
+        sprintf('%.2f s', t_shift(5)));
+    title(sprintf('Event ID: %d, Magnitude: %.2f, Distance: %.2f\\circ, Station: %s', ...
+        hdr_o.USER7, hdr_o.MAG, hdr_o.GCARC, replace(hdr_o.KSTNM, ' ', '')));
+
+    set(gcf, 'Renderer', 'painters')
+    savename = sprintf('%s_%d_%s_extended.eps', mfilename, hdr_o.USER7, ...
+        replace(hdr_o.KSTNM, ' ', ''));
+    figdisp(savename, [], [], 2, [], 'epstopdf');
+end
 
 %% Part 3: plot the result
 if plt
