@@ -12,7 +12,7 @@ function arrayccshiftplot(CCmaxs, t_shifts, metadata)
 % SEE ALSO:
 % COMPAREPRESSURE_ROUTINE
 %
-% Last modified by sirawich-at-princeton.edu, 03/01/2022
+% Last modified by sirawich-at-princeton.edu, 05/06/2022
 
 % get station number
 metadata.STNM = zeros(size(metadata.T0));
@@ -79,7 +79,6 @@ for ii = 1:length(uniqevent)
             lonmax = lonmid + (latmax - latmin) * original_x2y_ratio / 2;
         end
         
-        
         maxSTNM = max(metadata.STNM(whevent));
         minSTNM = min(metadata.STNM(whevent));
         colormap(gca, jet(n));
@@ -89,7 +88,12 @@ for ii = 1:length(uniqevent)
         caxis([0.5 n+0.5])
         xlabel('longitude (degrees)')
         ylabel('latitude (degrees)')
-        set(gca, 'TickDir', 'both', 'FontSize', 12)
+        
+        % add countour lines
+        addcontourlines(ax1, evlo, evla);
+        
+        set(gca, 'TickDir', 'both', 'FontSize', 12, 'GridAlpha', 0.5, ...
+            'GridLineStyle', ':')
         
         % add event's focal mechanism
         ax1s = doubleaxes(ax1);
@@ -117,14 +121,19 @@ for ii = 1:length(uniqevent)
         plate = plotplates();
         plate.Color = 'r';
         
-        colormap(gca, bwrmap(255, 'rwb'));
+        colormap(gca, kelicol);
         colorbar
         caxis([0 1])
         xlim([lonmin lonmax])
         ylim([latmin latmax])
         xlabel('longitude (degrees)')
         ylabel('latitude (degrees)')
-        set(gca, 'TickDir', 'both', 'FontSize', 12)
+        
+        % add countour lines
+        addcontourlines(ax2, evlo, evla);
+        
+        set(gca, 'TickDir', 'both', 'FontSize', 12, 'GridAlpha', 0.5, ...
+            'GridLineStyle', ':')
         
         % add event's focal mechanism
         ax2s = doubleaxes(ax2);
@@ -138,7 +147,7 @@ for ii = 1:length(uniqevent)
         ax2s.XAxis.Visible = 'off';
         ax2s.YAxis.Visible = 'off';
         ax2s.TickDir = 'both';
-        title(ax2, sprintf('Event ID: %d, maximum correlation coefficients', uniqevent(ii)))
+        title(ax2, sprintf('Event ID: %d, correlation coefficients', uniqevent(ii)))
         
         ax3 = subplot('Position', subplotposition(3, 1, 3, ...
             [0.08 0.12 0.02 0.2], [0.05 0.05 0.01 -0.04]));
@@ -152,13 +161,18 @@ for ii = 1:length(uniqevent)
         plate = plotplates();
         plate.Color = 'r';
         
-        colormap(gca, bwrmap(255, 'rwb'));
+        colormap(gca, kelicol);
         colorbar
         xlim([lonmin lonmax])
         ylim([latmin latmax])
         xlabel('longitude (degrees)')
         ylabel('latitude (degrees)')
-        set(gca, 'TickDir', 'both', 'FontSize', 12)
+        
+        % add countour lines
+        addcontourlines(ax3, evlo, evla);
+        
+        set(gca, 'TickDir', 'both', 'FontSize', 12, 'GridAlpha', 0.5, ...
+            'GridLineStyle', ':')
         
         % add event's focal mechanism
         ax3s = doubleaxes(ax3);
@@ -172,7 +186,12 @@ for ii = 1:length(uniqevent)
         ax3s.XAxis.Visible = 'off';
         ax3s.YAxis.Visible = 'off';
         ax3s.TickDir = 'both';
-        title(ax3, sprintf('Event ID: %d, best time-shift (s)', uniqevent(ii)))
+        title(ax3, sprintf('Event ID: %d, time shift (s)', uniqevent(ii)))
+        
+        % save figure
+        set(gcf, 'Renderer', 'painters')
+        fname = sprintf('%s_%d_map', mfilename, uniqevent(ii));
+        figdisp(fname, [], [], 2, [], 'epstopdf');
         
         [azDeg,distDeg] = azimproj([evlo evla], [stlo stla]);
         
@@ -202,7 +221,44 @@ for ii = 1:length(uniqevent)
         colorbar('Ticks', 1:n, 'TickLabels', metadata.STNM(whevent))
         caxis([0.5 n+0.5])
         
-        keyboard
+        % save figure
+        set(gcf, 'Renderer', 'painters')
+        fname = sprintf('%s_%d_azimdist', mfilename, uniqevent(ii));
+        figdisp(fname, [], [], 2, [], 'epstopdf');
     end
+end
+end
+
+function addcontourlines(ax, lon, lat)
+% distant lines
+for distant = 10:10:180
+    [latout, lonout] = reckon(lat, lon, distant, 0:360);
+    lonout = mod(lonout, 360);
+    
+    % find if the track cross the cut-off longitude
+    is_cross = (abs(lonout(2:end) - lonout(1:end-1)) > 90);
+    where_cross = find(is_cross > 0);
+    % add NaN points at the crossing
+    latout = insert(latout, NaN(size(where_cross)), where_cross + 1);
+    lonout = insert(lonout, NaN(size(where_cross)), where_cross + 1);
+    
+    plot(ax, lonout, latout, 'LineWidth', 0.5, ...
+        'Color', [0.8 0.8 0.8]);
+end
+
+% azimuth lines
+for azimuth = 0:30:330
+    [latout, lonout] = reckon(lat, lon, 0:180, azimuth);
+    lonout = mod(lonout, 360);
+    
+    % find if the track cross the cut-off longitude
+    is_cross = (abs(lonout(2:end) - lonout(1:end-1)) > 90);
+    where_cross = find(is_cross > 0);
+    % add NaN points at the crossing
+    latout = insert(latout, NaN(size(where_cross)), where_cross + 1);
+    lonout = insert(lonout, NaN(size(where_cross)), where_cross + 1);
+    
+    plot(ax, lonout, latout, 'LineWidth', 0.5, ...
+        'Color', [0.8 0.8 0.8]);
 end
 end
