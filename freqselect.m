@@ -45,11 +45,16 @@ for ii = 1:length(fcs)
             continue
         end
         xs = x - xf;
-        halfwin = 2/sqrt((fcs(ii)+fcs(jj))/2);
+        if jj < length(fcs)
+            fmid = (2 * fcs(ii) + fcs(jj)) / 3;
+        else
+            fmid = (2 * fcs(ii) + fs) / 3;
+        end
+        halfwin = 2/sqrt(fmid);
         [A(jj, ii), T(jj, ii)] = snrvar(t, xf, [-1 1] * halfwin, ...
-            -60, 80);
+            -60, 80, 5 * halfwin);
         [B(jj, ii), U(jj, ii)] = snrvar(t, xs, [-1 1] * halfwin, ...
-            -60, 80);
+            -60, 80, 5 * halfwin);
     end
 end
 
@@ -137,8 +142,9 @@ if plt
     title('optimal time for bandpass')
     c4 = colorbar(ax4, 'EastOutside');
     colormap(ax4, kelicol)
-    setimagenan(ax4, im4, [1 1 1]);
-    ax4.CLim = [-1 1] * max(abs(T), [], 'all');
+    clim = [-1 1] * max(abs(T), [], 'all');
+    ax4.CLim = clim;
+    setimagenan(ax4, im4, [1 1 1], clim(1), clim(2));
     [~,v4] = vline(ax4, ax4.XTick, 'LineWidth', 1, 'LineStyle', ':', ...
         'Color', [0.4 0.4 0.4]);
     [~,h4] = hline(ax4, ax4.YTick, 'LineWidth', 1, 'LineStyle', ':', ...
@@ -148,11 +154,43 @@ if plt
     set(ax4, 'FontSize', 12, 'TickDir', 'out')
     set(c4, 'FontSize', 12, 'TickDir', 'out')
     
+    % filtered seismogram
     ax5 = subplot('Position', [0.08 0.08 0.88 0.13]);
     xf = bandpass(x, fs, fc(1), fc(2), 2, 2, 'butter', 'linear');
     plot(ax5, t, xf, 'Color', 'k', 'LineWidth', 1)
-    xlim(10 * round([-30 30] / 10 * 1/fc(1)))
+    hold on
     grid on
+    
+    % fix the upper corner frequency for hipass case
+    if fc(2) == fcs(end)
+        fc(2) = fs;
+    end
+    
+    % highlight noise window
+    t0 = T(I(J), J);
+    fmid = (2*fc(1) + fc(2)) / 3;
+    halfwin = 2/sqrt(fmid);
+    t_start = max(-60, t0 - 5 * halfwin);
+    t_end = min(80, t0 + 5 * halfwin);
+    xn = xf(and(t >= t_start, t < t0));
+    tn = t(and(t >= t_start, t < t0));
+    plot(ax5, tn, xn, 'Color', rgbcolor('1'), 'LineWidth', 1.5)
+    
+    % highlight signal window
+    xs = xf(and(t >= t0, t < t_end));
+    ts = t(and(t >= t0, t < t_end));
+    plot(ax5, ts, xs, 'Color', rgbcolor('2'), 'LineWidth', 1.5)
+    
+    % fix y-limits
+    ylimits = ax5.YLim;
+    ylimits = [-1 1] * abs(max(ylimits));
+    ylim(ylimits)
+    
+    % fix x_limits
+    xlimits = [max(10 * round(-30 / 10 * 1/fc(1)), min(t)), ...
+        min(10 * round(30 / 10 * 1/fc(1)), max(t))];
+    xlim(xlimits)
+    
     [~, v5] = vline(ax5, T(I(J), J), 'LineWidth', 1, 'Color', [0 0.6 1]);
     xlabel('time since picked first arrival (s)')
     ylabel('pressure (pa)')
@@ -163,9 +201,15 @@ if plt
     axes(axb51)
     set(ax5, 'FontSize', 12, 'TickDir', 'out')
     
+    
+    
     set(gcf, 'Renderer', 'painters')
     figdisp(sprintf('%s_%s', mfilename, savename), [], [], 2, [], ...
         'epstopdf');
+else
+    if fc(2) == fcs(end)
+        fc(2) = fs;
+    end
 end
 end
 
@@ -177,16 +221,17 @@ end
 % win_select    time window for time search
 % t_begin       begining time for noise window
 % t_end         ending time for signal window
+% t_length      length of noise and signal windows
 %
 % OUTPUT:
 % s             signal-to-noise ratio
 % t_max         time that give the maximum signal-to-noise ratio
-function [s, t_max] = snrvar(t, x, win_select, t_begin, t_end)
+function [s, t_max] = snrvar(t, x, win_select, t_begin, t_end, t_length)
 tt = t(and(t >= win_select(1), t <= win_select(2)));
 ss = zeros(size(tt));
 for ii = 1:length(tt)
-    ss(ii) = var(x(and(t >= tt(ii), t < t_end))) / ...
-        var(x(and(t >= t_begin, t < tt(ii))));
+    ss(ii) = var(x(and(t >= tt(ii), t < min(t_end, tt(ii) + t_length)))) / ...
+        var(x(and(t >= max(t_begin, tt(ii) - t_length), t < tt(ii))));
 end
 s = max(ss);
 t_max = tt(ss == s);
