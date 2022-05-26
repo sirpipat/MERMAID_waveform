@@ -19,7 +19,7 @@ function [fc, s] = freqselect(t, x, fs, plt, titlename, savename)
 % Last modified by sirawich-at-princeton.edu, 05/26/2022
 
 % list of corner frequency candidates
-fcs = 0:0.05:2;
+fcs = 0:0.05:2.05;
 
 % bandpass/lowpass SNR
 A = NaN(length(fcs), length(fcs));
@@ -31,11 +31,16 @@ U = NaN(length(fcs), length(fcs));
 
 for ii = 1:length(fcs)
     for jj = (ii+1):length(fcs)
-        % for zero lower frequency: lowpass
-        if fcs(ii) == 0
+        % for zero lower corner frequency: lowpass
+        if fcs(ii) == 0 && jj < length(fcs)
             xf = lowpass(x, fs, fcs(jj), 2, 2, 'butter', 'linear');
-        elseif fcs(jj) / fcs(ii) >= 1.2
+        % for the highest upper corner frequency: high pass
+        elseif fcs(ii) > 0 && jj == length(fcs)
+            xf = hipass(x, fs, fcs(ii), 2, 2, 'butter', 'linear');
+        % bandpass
+        elseif fcs(ii) > 0 && fcs(jj) / fcs(ii) >= 1.2
             xf = bandpass(x, fs, fcs(ii), fcs(jj), 2, 2, 'butter', 'linear');
+        % skip if the window is too narrow or [0 Inf]
         else
             continue
         end
