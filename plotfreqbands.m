@@ -38,21 +38,55 @@ for ii = 1:length(sacfiles)
 
             % signal-to-noise ratio
             % snr = var(pa_1(t_relative >= 0)) / var(pa_1(t_relative < 0));
-            tt = t_relative(and(t_relative >= -2/sqrt(fc1), t_relative <= 2/sqrt(fc1)));
-            snrs = zeros(size(tt));
-            for kk = 1:length(tt)
-                snrs(kk) = var(pa_1(and(t_relative >= tt(kk), t_relative < 60))) / ...
-                    var(pa_1(and(t_relative < tt(kk), t_relative >= -80)));
-            end
-            snr = max(snrs);
-            tt_max = tt(snrs == snr);
+%             tt = t_relative(and(t_relative >= -2/sqrt(fc1), t_relative <= 2/sqrt(fc1)));
+%             snrs = zeros(size(tt));
+%             for kk = 1:length(tt)
+%                 snrs(kk) = var(pa_1(and(t_relative >= tt(kk), t_relative < 60))) / ...
+%                     var(pa_1(and(t_relative < tt(kk), t_relative >= -80)));
+%             end
+%             snr = max(snrs);
+%             tt_max = tt(snrs == snr);
+            
+            halfwin = 2 / sqrt(fc1);
+            [snr, tt_max] = snrvar(t_relative, pa_1, [-1 1] * halfwin, ...
+                -60, 60, 5 * halfwin);
 
-            % plot the filtered seismogran
+            % plot the filtered seismogram
             ax = subplot('Position', [0.13 1-jj*0.118 0.7750 0.085]);
-            plot(t_relative, pa_1 .* shanning(length(pa), 0.05, 0), 'k', ...
-                'LineWidth', 0.8)
+            if snr >= 4
+                plot(t_relative, pa_1 .* shanning(length(pa), 0.05, 0), ...
+                    'Color', [0.3 0.3 0.3], 'LineWidth', 0.8)
+                hold on
+                % plot the noise window
+                t_start = max(-60, tt_max - 5 * halfwin);
+                t_end = min(60, tt_max + 5 * halfwin);
+                pan = pa_1(and(t_relative >= t_start, t_relative < tt_max));
+                tn = t_relative(and(t_relative >= t_start, t_relative < tt_max));
+                plot(tn, pan, 'Color', rgbcolor('1'), 'LineWidth', 1.5)
+                % plot the signal window
+                pas = pa_1(and(t_relative >= tt_max, t_relative < t_end));
+                ts = t_relative(and(t_relative >= tt_max, t_relative < t_end));
+                plot(ts, pas, 'Color', rgbcolor('2'), 'LineWidth', 1.5)
+            else
+                plot(t_relative, pa_1 .* shanning(length(pa), 0.05, 0), ...
+                    'Color', [0.7 0.7 0.7], 'LineWidth', 0.8)
+                hold on
+                % plot the noise window
+                t_start = max(-60, tt_max - 5 * halfwin);
+                t_end = min(60, tt_max + 5 * halfwin);
+                pan = pa_1(and(t_relative >= t_start, t_relative < tt_max));
+                tn = t_relative(and(t_relative >= t_start, t_relative < tt_max));
+                plot(tn, pan, 'Color', [0.6 0.6 0.6], 'LineWidth', 1.5)
+                % plot the signal window
+                pas = pa_1(and(t_relative >= tt_max, t_relative < t_end));
+                ts = t_relative(and(t_relative >= tt_max, t_relative < t_end));
+                plot(ts, pas, 'Color', [0.6 0.6 0.6], 'LineWidth', 1.5)
+            end
             xlim([-100 100] / 2 ^ (4-jj/2))
             ylim([-1 1] * max(abs(pa_1 .* shanning(length(pa), 0.05, 0))))
+            ax.XTick = (-1:(1/3):1) * ax.XLim(2);
+            ax.XTickLabel = {round(ax.XTick(1), 1), [], [], 0, [], [], ...
+                round(ax.XTick(end), 1)};
             ylabel('pressure (Pa)')
             grid on
             %nolabels(ax, 1)
@@ -71,10 +105,14 @@ for ii = 1:length(sacfiles)
 
             % label SNR
             axb2 = addbox(ax, [0.75 0 0.25 0.2]);
-            text(0.2, 0.45, sprintf('SNR = %.2f', snr), 'FontSize', 12);
+            if snr > 5
+                text(0.2, 0.45, sprintf('SNR = %.d', round(snr)), 'FontSize', 12);
+            else
+                text(0.2, 0.45, sprintf('SNR = %.2f', snr), 'FontSize', 12);
+            end
 
             axes(axb1)
-            set(ax, 'TickDir', 'both', 'FontSize', 12)
+            set(ax, 'TickDir', 'out', 'FontSize', 12)
         end
         % corner frequencies
         fc1 = 0.05;
@@ -84,21 +122,54 @@ for ii = 1:length(sacfiles)
         pa_1 = bandpass(pa, fs, fc1, fc2, 2, 2, 'butter', 'linear');
 
         % signal-to-noise ratio (Adaptive)
-        tt = t_relative(and(t_relative >= -20, t_relative <= 20));
-        snrs = zeros(size(tt));
-        for kk = 1:length(tt)
-            snrs(kk) = var(pa_1(and(t_relative >= tt(kk), t_relative < 60))) / ...
-                var(pa_1(and(t_relative < tt(kk), t_relative >= -60)));
-        end
-        snr = max(snrs);
-        tt_max = tt(snrs == snr);
+%         tt = t_relative(and(t_relative >= -20, t_relative <= 20));
+%         snrs = zeros(size(tt));
+%         for kk = 1:length(tt)
+%             snrs(kk) = var(pa_1(and(t_relative >= tt(kk), t_relative < 60))) / ...
+%                 var(pa_1(and(t_relative < tt(kk), t_relative >= -60)));
+%         end
+%         snr = max(snrs);
+%         tt_max = tt(snrs == snr);
+        halfwin = 2 / sqrt(fc1);
+        [snr, tt_max] = snrvar(t_relative, pa_1, [-1 1] * halfwin, ...
+            -60, 60, 5 * halfwin);
 
         % plot the filtered seismogran
         ax = subplot('Position', [0.13 0.056 0.7750 0.085]);
-        plot(t_relative, pa_1 .* shanning(length(pa), 0.05, 0), 'k', ...
-            'LineWidth', 0.8)
+        if snr >= 4
+            plot(t_relative, pa_1 .* shanning(length(pa), 0.05, 0), ...
+                'Color', [0.3 0.3 0.3], 'LineWidth', 0.8)
+            hold on
+            % plot the noise window
+            t_start = max(-60, tt_max - 5 * halfwin);
+            t_end = min(60, tt_max + 5 * halfwin);
+            pan = pa_1(and(t_relative >= t_start, t_relative < tt_max));
+            tn = t_relative(and(t_relative >= t_start, t_relative < tt_max));
+            plot(tn, pan, 'Color', rgbcolor('1'), 'LineWidth', 1.5)
+            % plot the signal window
+            pas = pa_1(and(t_relative >= tt_max, t_relative < t_end));
+            ts = t_relative(and(t_relative >= tt_max, t_relative < t_end));
+            plot(ts, pas, 'Color', rgbcolor('2'), 'LineWidth', 1.5)
+        else
+            plot(t_relative, pa_1 .* shanning(length(pa), 0.05, 0), ...
+                'Color', [0.7 0.7 0.7], 'LineWidth', 0.8)
+            hold on
+            % plot the noise window
+            t_start = max(-60, tt_max - 5 * halfwin);
+            t_end = min(60, tt_max + 5 * halfwin);
+            pan = pa_1(and(t_relative >= t_start, t_relative < tt_max));
+            tn = t_relative(and(t_relative >= t_start, t_relative < tt_max));
+            plot(tn, pan, 'Color', [0.6 0.6 0.6], 'LineWidth', 1.5)
+            % plot the signal window
+            pas = pa_1(and(t_relative >= tt_max, t_relative < t_end));
+            ts = t_relative(and(t_relative >= tt_max, t_relative < t_end));
+            plot(ts, pas, 'Color', [0.6 0.6 0.6], 'LineWidth', 1.5)
+        end
         xlim([-100 100])
         ylim([-1 1] * max(abs(pa_1 .* shanning(length(pa), 0.05, 0))))
+        ax.XTick = (-1:(1/3):1) * ax.XLim(2);
+        ax.XTickLabel = {round(ax.XTick(1), 1), [], [], 0, [], [], ...
+            round(ax.XTick(end), 1)};
         xlabel('time since picked first arrival (s)')
         ylabel('pressure (Pa)')
         grid on
@@ -112,10 +183,14 @@ for ii = 1:length(sacfiles)
 
         % label SNR
         axb2 = addbox(ax, [0.75 0 0.25 0.2]);
-        text(0.2, 0.45, sprintf('SNR = %.2f', snr), 'FontSize', 12);
+        if snr > 5
+            text(0.2, 0.45, sprintf('SNR = %.d', round(snr)), 'FontSize', 12);
+        else
+            text(0.2, 0.45, sprintf('SNR = %.2f', snr), 'FontSize', 12);
+        end
 
         axes(axb1)
-        set(ax, 'TickDir', 'both', 'FontSize', 12)
+        set(ax, 'TickDir', 'out', 'FontSize', 12)
 
         % save a figure
         set(gcf, 'Renderer', 'painters')
@@ -126,4 +201,29 @@ for ii = 1:length(sacfiles)
         fprintf('%s\n', ME.getReport);
         fprintf('Error occured. Move on to the next iteration.\n');
     end
+end
+end
+
+% compute signal-to-noise ratio
+%
+% INPUT:
+% t             time
+% x             signal
+% win_select    time window for time search
+% t_begin       begining time for noise window
+% t_end         ending time for signal window
+% t_length      length of noise and signal windows
+%
+% OUTPUT:
+% s             signal-to-noise ratio
+% t_max         time that give the maximum signal-to-noise ratio
+function [s, t_max] = snrvar(t, x, win_select, t_begin, t_end, t_length)
+tt = t(and(t >= win_select(1), t <= win_select(2)));
+ss = zeros(size(tt));
+for ii = 1:length(tt)
+    ss(ii) = var(x(and(t >= tt(ii), t < min(t_end, tt(ii) + t_length)))) / ...
+        var(x(and(t >= max(t_begin, tt(ii) - t_length), t < tt(ii))));
+end
+s = max(ss);
+t_max = tt(ss == s);
 end
