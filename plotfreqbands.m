@@ -9,7 +9,7 @@ function plotfreqbands(sacfiles)
 % INPUT:
 % sacfiles      cell array of fullfile paths to those SAC files
 %
-% Last modified by sirawich-at-princeton.edu, 05/18/2022
+% Last modified by sirawich-at-princeton.edu, 05/31/2022
 
 for ii = 1:length(sacfiles)
     try
@@ -47,9 +47,10 @@ for ii = 1:length(sacfiles)
 %             snr = max(snrs);
 %             tt_max = tt(snrs == snr);
             
-            halfwin = 2 / sqrt(fc1);
-            [snr, tt_max] = snrvar(t_relative, pa_1, [-1 1] * halfwin, ...
-                -60, 60, 5 * halfwin);
+            % TODO: try to use halfwin = 3 * wavelength = 3 / fc1
+            halfwin = 2 / fc1;
+            [snr, tt_max] = snrvar(t_relative, pa_1, [-1 1] * halfwin/2, ...
+                -60, 60, 1 * halfwin);
 
             % plot the filtered seismogram
             ax = subplot('Position', [0.13 1-jj*0.118 0.7750 0.085]);
@@ -57,12 +58,14 @@ for ii = 1:length(sacfiles)
                 plot(t_relative, pa_1 .* shanning(length(pa), 0.05, 0), ...
                     'Color', [0.3 0.3 0.3], 'LineWidth', 0.8)
                 hold on
+                
                 % plot the noise window
-                t_start = max(-60, tt_max - 5 * halfwin);
-                t_end = min(60, tt_max + 5 * halfwin);
-                pan = pa_1(and(t_relative >= t_start, t_relative < tt_max));
-                tn = t_relative(and(t_relative >= t_start, t_relative < tt_max));
+                t_start = max(-60, tt_max - 1 * halfwin);
+                t_end = min(60, tt_max + 1 * halfwin);
+                pan = pa_1(and(t_relative >= t_start, t_relative <= tt_max));
+                tn = t_relative(and(t_relative >= t_start, t_relative <= tt_max));
                 plot(tn, pan, 'Color', rgbcolor('1'), 'LineWidth', 1.5)
+                
                 % plot the signal window
                 pas = pa_1(and(t_relative >= tt_max, t_relative < t_end));
                 ts = t_relative(and(t_relative >= tt_max, t_relative < t_end));
@@ -71,19 +74,23 @@ for ii = 1:length(sacfiles)
                 plot(t_relative, pa_1 .* shanning(length(pa), 0.05, 0), ...
                     'Color', [0.7 0.7 0.7], 'LineWidth', 0.8)
                 hold on
+                
                 % plot the noise window
-                t_start = max(-60, tt_max - 5 * halfwin);
-                t_end = min(60, tt_max + 5 * halfwin);
-                pan = pa_1(and(t_relative >= t_start, t_relative < tt_max));
-                tn = t_relative(and(t_relative >= t_start, t_relative < tt_max));
+                t_start = max(-60, tt_max - 1 * halfwin);
+                t_end = min(60, tt_max + 1 * halfwin);
+                pan = pa_1(and(t_relative >= t_start, t_relative <= tt_max));
+                tn = t_relative(and(t_relative >= t_start, t_relative <= tt_max));
                 plot(tn, pan, 'Color', [0.6 0.6 0.6], 'LineWidth', 1.5)
+                
                 % plot the signal window
                 pas = pa_1(and(t_relative >= tt_max, t_relative < t_end));
                 ts = t_relative(and(t_relative >= tt_max, t_relative < t_end));
                 plot(ts, pas, 'Color', [0.6 0.6 0.6], 'LineWidth', 1.5)
             end
-            xlim([-100 100] / 2 ^ (4-jj/2))
-            ylim([-1 1] * max(abs(pa_1 .* shanning(length(pa), 0.05, 0))))
+            xlim([-200 200] / 2 ^ (8-jj))
+            % limit y-axis using only samples within x-limit
+            wh = and(t_relative >= ax.XLim(1), t_relative <= ax.XLim(2));
+            ylim([-1.2 1.2] * max(abs(pa_1(wh)) .* indeks(shanning(length(pa), 0.05, 0), wh)))
             ax.XTick = (-1:(1/3):1) * ax.XLim(2);
             ax.XTickLabel = {round(ax.XTick(1), 1), [], [], 0, [], [], ...
                 round(ax.XTick(end), 1)};
@@ -130,21 +137,21 @@ for ii = 1:length(sacfiles)
 %         end
 %         snr = max(snrs);
 %         tt_max = tt(snrs == snr);
-        halfwin = 2 / sqrt(fc1);
-        [snr, tt_max] = snrvar(t_relative, pa_1, [-1 1] * halfwin, ...
-            -60, 60, 5 * halfwin);
+        halfwin = 2 / fc1;
+        [snr, tt_max] = snrvar(t_relative, pa_1, [-1 1] * halfwin/2, ...
+            -60, 60, 1 * halfwin);
 
-        % plot the filtered seismogran
+        % plot the filtered seismogram
         ax = subplot('Position', [0.13 0.056 0.7750 0.085]);
         if snr >= 4
             plot(t_relative, pa_1 .* shanning(length(pa), 0.05, 0), ...
                 'Color', [0.3 0.3 0.3], 'LineWidth', 0.8)
             hold on
             % plot the noise window
-            t_start = max(-60, tt_max - 5 * halfwin);
-            t_end = min(60, tt_max + 5 * halfwin);
-            pan = pa_1(and(t_relative >= t_start, t_relative < tt_max));
-            tn = t_relative(and(t_relative >= t_start, t_relative < tt_max));
+            t_start = max(-60, tt_max - 1 * halfwin);
+            t_end = min(60, tt_max + 1 * halfwin);
+            pan = pa_1(and(t_relative >= t_start, t_relative <= tt_max));
+            tn = t_relative(and(t_relative >= t_start, t_relative <= tt_max));
             plot(tn, pan, 'Color', rgbcolor('1'), 'LineWidth', 1.5)
             % plot the signal window
             pas = pa_1(and(t_relative >= tt_max, t_relative < t_end));
@@ -155,18 +162,20 @@ for ii = 1:length(sacfiles)
                 'Color', [0.7 0.7 0.7], 'LineWidth', 0.8)
             hold on
             % plot the noise window
-            t_start = max(-60, tt_max - 5 * halfwin);
-            t_end = min(60, tt_max + 5 * halfwin);
-            pan = pa_1(and(t_relative >= t_start, t_relative < tt_max));
-            tn = t_relative(and(t_relative >= t_start, t_relative < tt_max));
+            t_start = max(-60, tt_max - 1 * halfwin);
+            t_end = min(60, tt_max + 1 * halfwin);
+            pan = pa_1(and(t_relative >= t_start, t_relative <= tt_max));
+            tn = t_relative(and(t_relative >= t_start, t_relative <= tt_max));
             plot(tn, pan, 'Color', [0.6 0.6 0.6], 'LineWidth', 1.5)
             % plot the signal window
             pas = pa_1(and(t_relative >= tt_max, t_relative < t_end));
             ts = t_relative(and(t_relative >= tt_max, t_relative < t_end));
             plot(ts, pas, 'Color', [0.6 0.6 0.6], 'LineWidth', 1.5)
         end
-        xlim([-100 100])
-        ylim([-1 1] * max(abs(pa_1 .* shanning(length(pa), 0.05, 0))))
+        xlim([-160 160])
+        % limit y-axis using only samples within x-limit
+        wh = and(t_relative >= ax.XLim(1), t_relative <= ax.XLim(2));
+        ylim([-1.2 1.2] * max(abs(pa_1(wh) .* indeks(shanning(length(pa), 0.05, 0), wh))))
         ax.XTick = (-1:(1/3):1) * ax.XLim(2);
         ax.XTickLabel = {round(ax.XTick(1), 1), [], [], 0, [], [], ...
             round(ax.XTick(end), 1)};

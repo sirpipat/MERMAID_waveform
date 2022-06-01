@@ -16,7 +16,7 @@ function [fc, s] = freqselect(t, x, fs, plt, titlename, savename)
 % fc            best corner frequency
 % s             best signal-to-noise ratio
 %
-% Last modified by sirawich-at-princeton.edu, 05/26/2022
+% Last modified by sirawich-at-princeton.edu, 05/31/2022
 
 % Nyquist frequency
 fNq = fs/2;
@@ -53,11 +53,11 @@ for ii = 1:length(fcs)
         else
             fmid = max(fcs(ii), 0.05); %(2 * fcs(ii) + fNq) / 3;
         end
-        halfwin = 2/sqrt(fmid);
-        [A(jj, ii), T(jj, ii)] = snrvar(t, xf, [-1 1] * halfwin, ...
-            -60, 80, 5 * halfwin);
-        [B(jj, ii), U(jj, ii)] = snrvar(t, xs, [-1 1] * halfwin, ...
-            -60, 80, 5 * halfwin);
+        halfwin = 2/ fmid;
+        [A(jj, ii), T(jj, ii)] = snrvar(t, xf, [-1 1] * halfwin/2, ...
+            -60, 80, 1 * halfwin);
+        [B(jj, ii), U(jj, ii)] = snrvar(t, xs, [-1 1] * halfwin/2, ...
+            -60, 80, 1 * halfwin);
     end
 end
 
@@ -235,9 +235,9 @@ if plt
     % highlight noise window
     t0 = T(I(J), J);
     fmid = max(fc(1), 0.05);%(2*fc(1) + fc(2)) / 3;
-    halfwin = 2/sqrt(fmid);
-    t_start = max(-60, t0 - 5 * halfwin);
-    t_end = min(80, t0 + 5 * halfwin);
+    halfwin = 2 / fmid;
+    t_start = max(-60, t0 - 1 * halfwin);
+    t_end = min(80, t0 + 1 * halfwin);
     xn = xf(and(t >= t_start, t < t0));
     tn = t(and(t >= t_start, t < t0));
     plot(ax6, tn, xn, 'Color', rgbcolor('1'), 'LineWidth', 1.5)
@@ -253,8 +253,8 @@ if plt
     ylim(ylimits)
     
     % fix x_limits
-    xlimits = [max(10 * round(-30 / 10 * 1/fc(1)), min(t)), ...
-        min(10 * round(30 / 10 * 1/fc(1)), max(t))];
+    xlimits = [max(10 * round(-20 / 10 * 1/fc(1)), min(t)), ...
+        min(10 * round(20 / 10 * 1/fc(1)), max(t))];
     xlim(xlimits)
     
     [~, v6] = vline(ax6, T(I(J), J), 'LineWidth', 1, 'Color', [0 0.6 1]);
