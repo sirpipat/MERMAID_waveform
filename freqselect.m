@@ -41,7 +41,7 @@ for ii = 1:length(fcs)
         elseif fcs(ii) > 0 && jj == length(fcs)
             xf = hipass(x, fs, fcs(ii), 2, 2, 'butter', 'linear');
         % bandpass
-        elseif fcs(ii) > 0 && fcs(jj) / fcs(ii) >= 1.2
+        elseif fcs(ii) > 0 && fcs(jj) / fcs(ii) >= 1.5
             xf = bandpass(x, fs, fcs(ii), fcs(jj), 2, 2, 'butter', 'linear');
         % skip if the window is too narrow or [0 Inf]
         else
