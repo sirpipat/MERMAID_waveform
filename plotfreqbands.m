@@ -11,6 +11,9 @@ function plotfreqbands(sacfiles)
 %
 % Last modified by sirawich-at-princeton.edu, 05/31/2022
 
+% Parameters
+SNR_THRESHOLD = 10;
+
 for ii = 1:length(sacfiles)
     try
         % read the seismograms
@@ -36,25 +39,14 @@ for ii = 1:length(sacfiles)
             % filter
             pa_1 = bandpass(pa, fs, fc1, fc2, 2, 2, 'butter', 'linear');
 
-            % signal-to-noise ratio
-            % snr = var(pa_1(t_relative >= 0)) / var(pa_1(t_relative < 0));
-%             tt = t_relative(and(t_relative >= -2/sqrt(fc1), t_relative <= 2/sqrt(fc1)));
-%             snrs = zeros(size(tt));
-%             for kk = 1:length(tt)
-%                 snrs(kk) = var(pa_1(and(t_relative >= tt(kk), t_relative < 60))) / ...
-%                     var(pa_1(and(t_relative < tt(kk), t_relative >= -80)));
-%             end
-%             snr = max(snrs);
-%             tt_max = tt(snrs == snr);
-            
-            % TODO: try to use halfwin = 3 * wavelength = 3 / fc1
+            % signal-to-noise ratio]
             halfwin = 2 / fc1;
             [snr, tt_max] = snrvar(t_relative, pa_1, [-1 1] * halfwin/2, ...
                 -60, 60, 1 * halfwin);
 
             % plot the filtered seismogram
             ax = subplot('Position', [0.13 1-jj*0.118 0.7750 0.085]);
-            if snr >= 4
+            if snr >= SNR_THRESHOLD
                 plot(t_relative, pa_1 .* shanning(length(pa), 0.05, 0), ...
                     'Color', [0.3 0.3 0.3], 'LineWidth', 0.8)
                 hold on
@@ -128,22 +120,14 @@ for ii = 1:length(sacfiles)
         % filter
         pa_1 = bandpass(pa, fs, fc1, fc2, 2, 2, 'butter', 'linear');
 
-        % signal-to-noise ratio (Adaptive)
-%         tt = t_relative(and(t_relative >= -20, t_relative <= 20));
-%         snrs = zeros(size(tt));
-%         for kk = 1:length(tt)
-%             snrs(kk) = var(pa_1(and(t_relative >= tt(kk), t_relative < 60))) / ...
-%                 var(pa_1(and(t_relative < tt(kk), t_relative >= -60)));
-%         end
-%         snr = max(snrs);
-%         tt_max = tt(snrs == snr);
+        % signal-to-noise ratio (Adaptive)]
         halfwin = 2 / fc1;
         [snr, tt_max] = snrvar(t_relative, pa_1, [-1 1] * halfwin/2, ...
             -60, 60, 1 * halfwin);
 
         % plot the filtered seismogram
         ax = subplot('Position', [0.13 0.056 0.7750 0.085]);
-        if snr >= 4
+        if snr >= SNR_THRESHOLD
             plot(t_relative, pa_1 .* shanning(length(pa), 0.05, 0), ...
                 'Color', [0.3 0.3 0.3], 'LineWidth', 0.8)
             hold on
