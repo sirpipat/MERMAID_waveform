@@ -54,7 +54,7 @@ function [t_shifts, CCmaxs, depthstats, slopestats, peakstats, n, metadata] = ..
 % SEE ALSO
 % RUNFLATSIM, COMPARERESPONSEFUNCTIONS
 %
-% Last modified by sirawich-at-princeton.edu, 05/11/2022
+% Last modified by sirawich-at-princeton.edu, 06/07/2022
 
 defval('true', plt)
 
@@ -155,6 +155,7 @@ if plt || ~exist(pname, 'file')
             fileused{n,1} = synfile;
             n = n + 1;
         catch ME
+            fprintf('%s\n', ME.getReport);
             continue
         end
     end

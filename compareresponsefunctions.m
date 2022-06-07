@@ -31,11 +31,10 @@ function [t_shift1, t_shift2, CCmax1, CCmax2, bath1, bath2] = ...
 % bath2         bathymetry profile [x, z] for second SPECFEM2D 
 %               fluid-solid simulation
 %
-% Last modified by sirawich-at-princeton.edu, 05/11/2022
+% Last modified by sirawich-at-princeton.edu, 06/07/2022
 
 defval('plt', true)
 
-fcorners = [1 2];
 window_envelope = [-10 20];
 window_waveform = [-5 5];
 
@@ -50,6 +49,11 @@ t_relative = seconds(dts_o - dt_ref_o) - hdr_o.T0;
 % remove instrument response and filter
 pres_o = counts2pa(seis_o, fs_o, [0.05 0.1 10 20], [], 'sacpz', false);
 pres_o = real(pres_o);
+
+% determine corner frequency
+fcorners = freqselect(t_relative, pres_o, fs_o, false);
+
+% filter
 pres_o = bandpass(pres_o, fs_o, fcorners(1), fcorners(2), 4, 2, 'butter', 'linear');
 
 % read the synthetic data
