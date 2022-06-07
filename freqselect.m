@@ -159,6 +159,10 @@ if plt
     
     % power spectral density
     ax5 = subplot('Position', [0.08 0.35 0.88 0.09]);
+    % fix the upper corner frequency for hipass case
+    if fc(2) == fcs(end)
+        fc(2) = fNq;
+    end
     p = specdensplot(x, round(fs * 40), fs, round(fs * 40), 70, 10, 's');
     p(1).Color = [0 0 0.5];
     p(1).LineWidth = 1;
@@ -201,10 +205,6 @@ if plt
     % add period axis
     ax5s = doubleaxes(ax5);
     inverseaxis(ax5s.XAxis, 'period (s)');
-    % fix the upper corner frequency for hipass case
-    if fc(2) == fcs(end)
-        fc(2) = fNq;
-    end
     % highlight the window
     ax5h = doubleaxes(ax5);
     [xbox, ybox] = boxcorner(fc, ax5.YLim);
