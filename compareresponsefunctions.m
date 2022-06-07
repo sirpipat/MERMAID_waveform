@@ -52,6 +52,10 @@ pres_o = real(pres_o);
 
 % determine corner frequency
 fcorners = freqselect(t_relative, pres_o, fs_o, false);
+% TODO: unset this and change filter to lowpass if fcorners(1) == 0 and
+% change filter to highpass if fcorners(1) > 2
+fcorners(1) = max(fcorners(1), 0.05);
+fcorners(2) = min(fcorners(2), 2);
 
 % filter
 pres_o = bandpass(pres_o, fs_o, fcorners(1), fcorners(2), 4, 2, 'butter', 'linear');
