@@ -16,7 +16,7 @@ function [fc, s] = freqselect(t, x, fs, plt, titlename, savename)
 % fc            best corner frequency
 % s             best signal-to-noise ratio
 %
-% Last modified by sirawich-at-princeton.edu, 05/31/2022
+% Last modified by sirawich-at-princeton.edu, 06/08/2022
 
 % Nyquist frequency
 fNq = fs/2;
@@ -36,12 +36,14 @@ for ii = 1:length(fcs)
     for jj = (ii+1):length(fcs)
         % for zero lower corner frequency: lowpass
         if fcs(ii) == 0 && jj < length(fcs)
+            continue
             xf = lowpass(x, fs, fcs(jj), 2, 2, 'butter', 'linear');
         % for the highest upper corner frequency: high pass
         elseif fcs(ii) > 0 && jj == length(fcs)
+            continue
             xf = hipass(x, fs, fcs(ii), 2, 2, 'butter', 'linear');
         % bandpass
-        elseif fcs(ii) > 0 && fcs(jj) / fcs(ii) >= 1.5
+        elseif fcs(ii) > 0 && fcs(jj) / fcs(ii) >= 2.
             xf = bandpass(x, fs, fcs(ii), fcs(jj), 2, 2, 'butter', 'linear');
         % skip if the window is too narrow or [0 Inf]
         else
@@ -62,7 +64,7 @@ for ii = 1:length(fcs)
 end
 
 % pick the best corner frequencies
-[M, I] = max(A./B, [], 1);
+[M, I] = max(A./1, [], 1);
 [MM, J] = max(M);
 fc = [fcs(J) fcs(I(J))];
 
@@ -145,7 +147,7 @@ if plt
     title('optimal time for bandpass')
     c4 = colorbar(ax4, 'EastOutside');
     colormap(ax4, kelicol)
-    clim = [-1 1] * max(abs(T), [], 'all');
+    clim = [-1 1] * max(max(abs(T)));
     ax4.CLim = clim;
     setimagenan(ax4, im4, [1 1 1], clim(1), clim(2));
     [~,v4] = vline(ax4, ax4.XTick, 'LineWidth', 1, 'LineStyle', ':', ...
