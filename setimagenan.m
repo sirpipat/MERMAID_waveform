@@ -12,7 +12,7 @@ function setimagenan(ax, im, c, minval, maxval)
 % maxval        upper limit of color axis
 %               [default: max(im.CData, [], 'all')]
 %
-% Last modified by sirawich-at-princeton.edu, 05/26/2022
+% Last modified by sirawich-at-princeton.edu, 06/07/2022
 
 defval('c', [1 1 1])
 
@@ -24,7 +24,7 @@ cmap = [c; cmap];
 colormap(ax, cmap);
 
 % set NaN to the target color
-defval('minval', min(im.CData, [], 'all'))
-defval('maxval', max(im.CData, [], 'all'))
+defval('minval', min(min(im.CData, [], 'omitnan'), [], 'omitnan'))
+defval('maxval', max(max(im.CData, [], 'omitnan'), [], 'omitnan'))
 im.CData(isnan(im.CData)) = minval - 2 * (maxval - minval) / (size(cmap, 1) - 1);
 end
