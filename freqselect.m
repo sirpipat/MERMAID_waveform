@@ -16,34 +16,39 @@ function [fc, s] = freqselect(t, x, fs, plt, titlename, savename)
 % fc            best corner frequency
 % s             best signal-to-noise ratio
 %
-% Last modified by sirawich-at-princeton.edu, 06/08/2022
+% Last modified by sirawich-at-princeton.edu, 06/22/2022
 
 % Nyquist frequency
 fNq = fs/2;
 
 % list of corner frequency candidates
-fcs = 0:0.05:2.05;
+fcs = 0.4:0.05:2.05;
 
-% bandpass/lowpass SNR
+% pass SNR and optimal time
 A = NaN(length(fcs), length(fcs));
 T = NaN(length(fcs), length(fcs));
 
-% bandstop/highpass SNR
+% stop SNR and optimal time
 B = NaN(length(fcs), length(fcs));
 U = NaN(length(fcs), length(fcs));
+
+% detrend the original signal
+x = detrend(x .* shanning(length(x), 0.05, 0), 1);
+
+% remove frequency content below the lowest lower corner frequency
+x = hipass(x, fs, fcs(1), 2, 2, 'butter', 'linear');
 
 for ii = 1:length(fcs)
     for jj = (ii+1):length(fcs)
         % for zero lower corner frequency: lowpass
         if fcs(ii) == 0 && jj < length(fcs)
-            continue
             xf = lowpass(x, fs, fcs(jj), 2, 2, 'butter', 'linear');
         % for the highest upper corner frequency: high pass
         elseif fcs(ii) > 0 && jj == length(fcs)
             continue
             xf = hipass(x, fs, fcs(ii), 2, 2, 'butter', 'linear');
         % bandpass
-        elseif fcs(ii) > 0 && fcs(jj) / fcs(ii) >= 2.
+        elseif fcs(ii) > 0 && fcs(jj) - fcs(ii) >= 0.4995
             xf = bandpass(x, fs, fcs(ii), fcs(jj), 2, 2, 'butter', 'linear');
         % skip if the window is too narrow or [0 Inf]
         else
@@ -58,13 +63,19 @@ for ii = 1:length(fcs)
         halfwin = 2/ fmid;
         [A(jj, ii), T(jj, ii)] = snrvar(t, xf, [-1 1] * halfwin/2, ...
             -60, 80, 1 * halfwin);
-        [B(jj, ii), U(jj, ii)] = snrvar(t, xs, [-1 1] * halfwin/2, ...
-            -60, 80, 1 * halfwin);
+        % for bandstop window length = 2 / lowest freq exist in bandstop
+        if jj < length(fcs)
+            [B(jj, ii), U(jj, ii)] = snrvar(t, xs, [-1 1] * 5/2, ...
+                -60, 80, 1 * 5);
+        else
+            [B(jj, ii), U(jj, ii)] = snrvar(t, xs, [-1 1] / fcs(ii), ...
+                -60, 80, 1 * 2 / fcs(ii));
+        end
     end
 end
 
 % pick the best corner frequencies
-[M, I] = max(A./1, [], 1);
+[M, I] = max(A./B, [], 1);
 [MM, J] = max(M);
 fc = [fcs(J) fcs(I(J))];
 
@@ -93,7 +104,7 @@ if plt
     axis xy
     xlabel('lower corner frequency (Hz)')
     ylabel('upper corner frequency (Hz)')
-    title('bandpass')
+    title('pass')
     setimagenan(ax1, im1, [1 1 1]);
     c1 = colorbar(ax1, 'EastOutside');
     [~,v1] = vline(ax1, ax1.XTick, 'LineWidth', 1, 'LineStyle', ':', ...
@@ -110,7 +121,7 @@ if plt
     axis xy
     xlabel('lower corner frequency (Hz)')
     ylabel('upper corner frequency (Hz)')
-    title('bandstop')
+    title('stop')
     setimagenan(ax2, im2, [1 1 1]);
     c2 = colorbar(ax2, 'EastOutside');
     [~,v2] = vline(ax2, ax2.XTick, 'LineWidth', 1, 'LineStyle', ':', ...
@@ -144,7 +155,7 @@ if plt
     axis xy
     xlabel('lower corner frequency (Hz)')
     ylabel('upper corner frequency (Hz)')
-    title('optimal time for bandpass')
+    title('optimal time for pass')
     c4 = colorbar(ax4, 'EastOutside');
     colormap(ax4, kelicol)
     clim = [-1 1] * max(max(abs(T)));
@@ -161,63 +172,78 @@ if plt
     
     % power spectral density
     ax5 = subplot('Position', [0.08 0.35 0.88 0.09]);
-    % fix the upper corner frequency for hipass case
-    if fc(2) == fcs(end)
-        fc(2) = fNq;
-    end
-    p = specdensplot(x, round(fs * 40), fs, round(fs * 40), 70, 10, 's');
-    p(1).Color = [0 0 0.5];
-    p(1).LineWidth = 1;
-    delete(p(2))
-    delete(p(3))
-    delete(p(4))
-    hold on
-    grid on
-    % plot cosine filter when removing instrument response
-    ff = (0:0.001:(fs/2))';
-    fac = zeros(size(ff));
-    fl = [0.01 0.02 10 20];
-    for ii = 1:length(ff)
-        freq = ff(ii);
-        if freq < fl(1)
-            fac(ii) = 0.0;
-        elseif freq >= fl(1) && freq <= fl(2)
-            fac(ii) = 0.5 * (1 - cos(pi*(freq - fl(1)) / (fl(2) - fl(1))));
-        elseif freq >= fl(3) && freq <= fl(4)
-            fac(ii) = 0.5 * (1 + cos(pi*(freq - fl(3)) / (fl(4) - fl(3))));
-        elseif freq > fl(4)
-            fac(ii) = 0.0;
-        else
-            fac(ii) = 1.0;
+    if false
+        % fix the upper corner frequency for hipass case
+        if fc(2) == fcs(end)
+            fc(2) = fNq;
         end
+        p = specdensplot(x, round(fs * 40), fs, round(fs * 40), 70, 10, 's');
+        p(1).Color = [0 0 0.5];
+        p(1).LineWidth = 1;
+        delete(p(2))
+        delete(p(3))
+        delete(p(4))
+        hold on
+        grid on
+    %     % plot cosine filter when removing instrument response
+    %     ff = (0:0.001:(fs/2))';
+    %     fac = zeros(size(ff));
+    %     fl = [0.01 0.02 10 20];
+    %     for ii = 1:length(ff)
+    %         freq = ff(ii);
+    %         if freq < fl(1)
+    %             fac(ii) = 0.0;
+    %         elseif freq >= fl(1) && freq <= fl(2)
+    %             fac(ii) = 0.5 * (1 - cos(pi*(freq - fl(1)) / (fl(2) - fl(1))));
+    %         elseif freq >= fl(3) && freq <= fl(4)
+    %             fac(ii) = 0.5 * (1 + cos(pi*(freq - fl(3)) / (fl(4) - fl(3))));
+    %         elseif freq > fl(4)
+    %             fac(ii) = 0.0;
+    %         else
+    %             fac(ii) = 1.0;
+    %         end
+    %     end
+    %     fac = ax5.YLim(1) + fac * 0.5 * (ax5.YLim(2) - ax5.YLim(1));
+    %     semilogx(ax5, ff, fac, 'LineWidth', 1, 'Color', 'k');
+        xlim([fs/round(fs * 40) fs/2])
+        ylabel('spectral density (Pa^2/Hz)')
+        [~, v5] = vline(ax5, fc, 'LineWidth', 1, 'Color', [0 0.6 1]);
+        set(ax5, 'FontSize', 12, 'TickDir', 'out', 'Color', 'none')
+        % add x-tick label at the axis limits
+        if ax5.XTick(1) / ax5.XLim(1) >= 2
+            ax5.XTick = [ax5.XLim(1) ax5.XTick];
+        end
+        if ax5.XLim(2) / ax5.XTick(end) >= 2
+            ax5.XTick = [ax5.XTick ax5.XLim(2)];
+        end
+        % add period axis
+        ax5s = doubleaxes(ax5);
+        inverseaxis(ax5s.XAxis, 'period (s)');
+        % highlight the window
+        ax5h = doubleaxes(ax5);
+        [xbox, ybox] = boxcorner(fc, ax5.YLim);
+        pgon = polyshape(xbox, ybox);
+        bx = plot(ax5h, pgon, 'FaceColor', [1 0.9 0.4], 'FaceAlpha', 0.4, ...
+            'EdgeAlpha', 0);
+        ax5h.XAxis.Visible = 'off';
+        ax5h.YAxis.Visible = 'off';
+        ax5h.XScale = 'log';
+        set(ax5h, 'Box', 'on', 'TickDir', 'both', 'XLim', ax5.XLim, 'YLim', ...
+            ax5.YLim, 'Position', ax5.Position);
+    else
+        plot(ax5, t, x, 'Color', 'k', 'LineWidth', 1)
+        grid on
+        set(ax5, 'FontSize', 12, 'TickDir', 'out')
+        %xlim(ax6.XLim)
+        ylim([-1 1] * abs(max(x)))
+        [~, v5] = vline(ax5, T(I(J), J), 'LineWidth', 1, 'Color', [0 0.6 1]);
+        xlabel('time since picked first arrival (s)')
+        ylabel('pressure (pa)')
+        title('original: highpass 0.4 Hz')
+        axb51 = addbox(ax5, [0 0 0.25 0.2]);
+        text(0.15, 0.45, sprintf('0.4--%.2f Hz', fNq), 'FontSize', 12);
+        axes(axb51)
     end
-    fac = ax5.YLim(1) + fac * 0.5 * (ax5.YLim(2) - ax5.YLim(1));
-    semilogx(ax5, ff, fac, 'LineWidth', 1, 'Color', 'k');
-    xlim([fs/round(fs * 40) fs/2])
-    ylabel('spectral density (Pa^2/Hz)')
-    [~, v5] = vline(ax5, fc, 'LineWidth', 1, 'Color', [0 0.6 1]);
-    set(ax5, 'FontSize', 12, 'TickDir', 'out', 'Color', 'none')
-    % add x-tick label at the axis limits
-    if ax5.XTick(1) / ax5.XLim(1) >= 2
-        ax5.XTick = [ax5.XLim(1) ax5.XTick];
-    end
-    if ax5.XLim(2) / ax5.XTick(end) >= 2
-        ax5.XTick = [ax5.XTick ax5.XLim(2)];
-    end
-    % add period axis
-    ax5s = doubleaxes(ax5);
-    inverseaxis(ax5s.XAxis, 'period (s)');
-    % highlight the window
-    ax5h = doubleaxes(ax5);
-    [xbox, ybox] = boxcorner(fc, ax5.YLim);
-    pgon = polyshape(xbox, ybox);
-    bx = plot(ax5h, pgon, 'FaceColor', [1 0.9 0.4], 'FaceAlpha', 0.4, ...
-        'EdgeAlpha', 0);
-    ax5h.XAxis.Visible = 'off';
-    ax5h.YAxis.Visible = 'off';
-    ax5h.XScale = 'log';
-    set(ax5h, 'Box', 'on', 'TickDir', 'both', 'XLim', ax5.XLim, 'YLim', ...
-        ax5.YLim, 'Position', ax5.Position);
     
     % filtered seismogram
     ax6 = subplot('Position', [0.08 0.2 0.88 0.09]);
@@ -273,19 +299,46 @@ if plt
     axes(axb61)
     set(ax6, 'FontSize', 12, 'TickDir', 'out')
     
-    % unfiltered seismogram
+    % bandstop seismogram
+    xt = x - xf;
     ax7 = subplot('Position', [0.08 0.06 0.88 0.09]);
-    plot(ax7, t, x, 'Color', 'k', 'LineWidth', 1)
+    plot(ax7, t, xt, 'Color', [0.4 0.4 0.4], 'LineWidth', 1)
     grid on
+    hold on
     set(ax7, 'FontSize', 12, 'TickDir', 'out')
-    xlim(ax6.XLim)
-    ylim([-1 1] * abs(max(x)))
-    [~, v7] = vline(ax7, T(I(J), J), 'LineWidth', 1, 'Color', [0 0.6 1]);
+    
+    % highlight noise window
+    t0 = U(I(J), J);
+    fmid = fcs(1);
+    halfwin = 2 / fmid;
+    t_start = max(-60, t0 - 1 * halfwin);
+    t_end = min(80, t0 + 1 * halfwin);
+    xn = xt(and(t >= t_start, t < t0));
+    tn = t(and(t >= t_start, t < t0));
+    plot(ax7, tn, xn, 'Color', rgbcolor('1'), 'LineWidth', 1.5)
+    
+    % highlight signal window
+    xs = xt(and(t >= t0, t < t_end));
+    ts = t(and(t >= t0, t < t_end));
+    plot(ax7, ts, xs, 'Color', rgbcolor('2'), 'LineWidth', 1.5)
+    
+    ax7.XLim = ax6.XLim;
+    %xlim([-20 20])
+    ylim([-1 1] * abs(max(x-xf)))
+    [~, v7] = vline(ax7, U(I(J), J), 'LineWidth', 1, 'Color', [0 0.6 1]);
     xlabel('time since picked first arrival (s)')
     ylabel('pressure (pa)')
     axb71 = addbox(ax7, [0 0 0.25 0.2]);
-    text(0.45, 0.45, 'all', 'FontSize', 12);
-    axes(axb61)
+    text(0.40, 0.45, 'stop', 'FontSize', 12);
+    axb72 = addbox(ax7, [0.75 0 0.25 0.2]);
+    if B(I(J), J) > 5
+        text(0.2, 0.45, sprintf('SNR = %d', round(B(I(J),J))), 'FontSize', 12);
+    else
+        text(0.2, 0.45, sprintf('SNR = %.2f', B(I(J),J)), 'FontSize', 12);
+    end
+    axes(axb71)
+    
+    ax5.XLim = ax6.XLim;
     
     set(gcf, 'Renderer', 'painters')
     figdisp(sprintf('%s_%s', mfilename, savename), [], [], 2, [], ...
