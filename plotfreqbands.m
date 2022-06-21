@@ -1,4 +1,4 @@
-function plotfreqbands(sacfiles)
+function plotfreqbands(sacfiles, is_pass)
 % PLOTFREQBANDS(sacfiles)
 %
 % plot the seismograms from the sacfiles in various frequency bands to
@@ -8,8 +8,12 @@ function plotfreqbands(sacfiles)
 %
 % INPUT:
 % sacfiles      cell array of fullfile paths to those SAC files
+% is_pass       true  : bandpass                [default]
+%               false : original - bandpass
 %
 % Last modified by sirawich-at-princeton.edu, 05/31/2022
+
+defval('is_pass', true)
 
 % Parameters
 SNR_THRESHOLD = 10;
@@ -38,9 +42,16 @@ for ii = 1:length(sacfiles)
 
             % filter
             pa_1 = bandpass(pa, fs, fc1, fc2, 2, 2, 'butter', 'linear');
+            if ~is_pass
+                pa_1 = pa - pa_1;
+            end
 
             % signal-to-noise ratio]
-            halfwin = 2 / fc1;
+            if is_pass
+                halfwin = 2 / fc1;
+            else
+                halfwin = 2 / 0.05;
+            end
             [snr, tt_max] = snrvar(t_relative, pa_1, [-1 1] * halfwin/2, ...
                 -60, 60, 1 * halfwin);
 
@@ -79,7 +90,11 @@ for ii = 1:length(sacfiles)
                 ts = t_relative(and(t_relative >= tt_max, t_relative < t_end));
                 plot(ts, pas, 'Color', [0.6 0.6 0.6], 'LineWidth', 1.5)
             end
-            xlim([-200 200] / 2 ^ (8-jj))
+            if is_pass
+                xlim([-200 200] / 2 ^ (8-jj))
+            else
+                xlim([-160 160])
+            end
             % limit y-axis using only samples within x-limit
             wh = and(t_relative >= ax.XLim(1), t_relative <= ax.XLim(2));
             ylim([-1.2 1.2] * max(abs(pa_1(wh)) .* indeks(shanning(length(pa), 0.05, 0), wh)))
@@ -119,6 +134,9 @@ for ii = 1:length(sacfiles)
 
         % filter
         pa_1 = bandpass(pa, fs, fc1, fc2, 2, 2, 'butter', 'linear');
+        if ~is_pass
+            pa_1 = pa - pa_1;
+        end
 
         % signal-to-noise ratio (Adaptive)]
         halfwin = 2 / fc1;
