@@ -1,4 +1,4 @@
-function [fc, s] = freqselect_routine(sacfiles)
+function [fc, s] = freqselect_routine(sacfiles, plt)
 % [fc, s] = FREQSELECT_ROUTINE(sacfiles)
 %
 % Figures out the frequency band where the signal stands out the most from
@@ -6,6 +6,7 @@ function [fc, s] = freqselect_routine(sacfiles)
 % 
 % INPUT:
 % sacfiles      cell array to sacfiles
+% plt           whether to plot and save figure or not
 %
 % OUTPUT:
 % fc            best corner frequency for each seismogram
@@ -16,7 +17,7 @@ function [fc, s] = freqselect_routine(sacfiles)
 badval = -12345;
 
 fc = zeros(length(sacfiles), 2);
-s = zeros(length(sacfiles), 2);
+s = zeros(length(sacfiles), 1);
 for ii = 1:length(sacfiles)
     [seisdata, hdrdata] = readsac(sacfiles{ii});
     [dt_ref, dt_B, ~, fs, ~, dts] = gethdrinfo(hdrdata);
@@ -53,7 +54,7 @@ for ii = 1:length(sacfiles)
         hdrdata.USER7, hdrdata.MAG, hdrdata.GCARC, hdrdata.KSTNM);
     savename = sprintf('%d_%s', hdrdata.USER7, replace(hdrdata.KSTNM, ' ', ''));
     try
-        [fc(ii,:), s(ii)] = freqselect(t, pa, fs, true, titlename, savename);
+        [fc(ii,:), s(ii)] = freqselect(t, pa, fs, plt, titlename, savename);
     catch ME
         fprintf('%s\n', ME.getReport);
         continue
