@@ -75,7 +75,7 @@ for ii = 1:length(fcs)
 end
 
 % pick the best corner frequencies
-[M, I] = max(A./B, [], 1);
+[M, I] = max(A./1, [], 1);
 [MM, J] = max(M);
 fc = [fcs(J) fcs(I(J))];
 
