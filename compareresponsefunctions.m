@@ -1,7 +1,7 @@
-function [t_shift1, t_shift2, CCmax1, CCmax2, bath1, bath2] = ...
-    compareresponsefunctions(obsfile, synfile, ddir1, ddir2, plt)
+function [t_shift1, t_shift2, CCmax1, CCmax2, bath1, bath2, fcorners] = ...
+    compareresponsefunctions(obsfile, synfile, ddir1, ddir2, opt, plt)
 % [t_shift1, t_shift2, CCmax1, CCmax2, bath1, bath2] = ...
-%     compareresponsefunctions(obsfile, synfile, ddir1, ddir2, plt)
+%     compareresponsefunctions(obsfile, synfile, ddir1, ddir2, opt, plt)
 %
 % Plot two synthetic pressure records obtained by convolving the synthetic
 % vertical displacement at the ocean bottom with the two response functions
@@ -15,6 +15,10 @@ function [t_shift1, t_shift2, CCmax1, CCmax2, bath1, bath2] = ...
 %               from INSTASEIS
 % ddir1         directory to first  SPECFEM2D fluid-solid simulation
 % ddir2         directory to second SPECFEM2D fluid-solid simulation
+% opt           corner frequency options
+%                   1             fixed at 1-2 Hz
+%                   2             selected by FREQSELECT  [Defatult]
+%                   [fc1 fc2]     user defined corner frequencies
 % plt           whether to plot or not [Defatult: true]
 %
 % OUTPUT
@@ -30,9 +34,12 @@ function [t_shift1, t_shift2, CCmax1, CCmax2, bath1, bath2] = ...
 %               fluid-solid simulation
 % bath2         bathymetry profile [x, z] for second SPECFEM2D 
 %               fluid-solid simulation
+% fcorners      corner frequencies used for comparing synthetic and
+%               observed acoustic pressures
 %
-% Last modified by sirawich-at-princeton.edu, 06/07/2022
+% Last modified by sirawich-at-princeton.edu, 06/28/2022
 
+defval('fopt', 2)
 defval('plt', true)
 
 window_envelope = [-10 20];
@@ -51,11 +58,18 @@ pres_o = counts2pa(seis_o, fs_o, [0.05 0.1 10 20], [], 'sacpz', false);
 pres_o = real(pres_o);
 
 % determine corner frequency
-fcorners = freqselect(t_relative, pres_o, fs_o, false);
-% TODO: unset this and change filter to lowpass if fcorners(1) == 0 and
-% change filter to highpass if fcorners(1) > 2
-fcorners(1) = max(fcorners(1), 0.05);
-fcorners(2) = min(fcorners(2), 2);
+if length(opt) == 1 && opt == 1
+    fcorners = [1 2];
+elseif length(opt) == 1 && opt == 2
+    fcorners = freqselect(t_relative, pres_o, fs_o, false);
+    fcorners(1) = max(fcorners(1), 0.05);
+    fcorners(2) = min(fcorners(2), 2);
+elseif length(opt) == 2
+    fcorners = opt;
+else
+    fprintf('ERROR: invalid corner frequency option\n');
+    return
+end
 
 % filter
 pres_o = bandpass(pres_o, fs_o, fcorners(1), fcorners(2), 4, 2, 'butter', 'linear');

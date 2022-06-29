@@ -1,9 +1,9 @@
-function [t_shifts, CCmaxs, depthstats, slopestats, peakstats, n, metadata] = ...
+function [t_shifts, CCmaxs, fcorners, depthstats, slopestats, peakstats, n, metadata] = ...
     bathymatter(obsmasterdir, synmasterdir, flatmasterdir, ...
-    bathmasterdir, plt)
-% [t_shifts, CCmaxs, depthstats, slopestats, peakstats, n, metadata] = ...
+    bathmasterdir, opt, plt)
+% [t_shifts, CCmaxs, fcorners, depthstats, slopestats, peakstats, n, metadata] = ...
 %     BATHYMATTER(obsmasterdir, synmasterdir, flatmasterdir, ...
-%                 bathmasterdir, plt)
+%                 bathmasterdir, opt, plt)
 %
 % Compares 2 responses from flat ocean bottom and bathymetry from GEBCO in
 % order to determine whether bathymatry matters and when.
@@ -19,11 +19,17 @@ function [t_shifts, CCmaxs, depthstats, slopestats, peakstats, n, metadata] = ..
 % bathmasterdir     the master directory to the output folders from
 %                   SPECFEM2D run for fluid-solid setting with GEBCO
 %                   bathymetry sorted into IRIS event ID folders
+% opt               corner frequency options
+%                       1             fixed at 1-2 Hz
+%                       2             selected by FREQSELECT  [Defatult]
+%                       [fc1 fc2]     user defined corner frequencies
 % plt               whether to plot or not [Default: true]
 %
 % OUTPUT
 % t_shifts          Best time shift where CC is maximum     [flat, bath]
 % CCmaxs            Maximum correlation coefficient         [flat, bath]
+% fcorners          corner frequencies used for comparing synthetic and
+%                   observed acoustic pressures
 % depthstats        struct contatining the following fields
 %       depth_mid           depth at the middle of the profile right below
 %                           the hydrophone
@@ -54,8 +60,9 @@ function [t_shifts, CCmaxs, depthstats, slopestats, peakstats, n, metadata] = ..
 % SEE ALSO
 % RUNFLATSIM, COMPARERESPONSEFUNCTIONS
 %
-% Last modified by sirawich-at-princeton.edu, 06/07/2022
+% Last modified by sirawich-at-princeton.edu, 06/28/2022
 
+defval('opt', 2)
 defval('true', plt)
 
 [allflatdirs, fndex] = allfile(flatmasterdir);
@@ -63,7 +70,7 @@ defval('true', plt)
 
 defval('sname', sprintf('%s_%s.mat', mfilename, ...
     hash([obsmasterdir synmasterdir flatmasterdir bathmasterdir ...
-    double(plt) fndex bndex], 'SHA-1')))
+    double(plt) fndex bndex sum(opt)], 'SHA-1')))
 
 pname = fullfile(getenv('IFILES'), 'HASHES', sname);
 
@@ -72,6 +79,7 @@ if plt || ~exist(pname, 'file')
     CCmaxs_bath = [];
     t_shifts_flat = [];
     t_shifts_bath = [];
+    fcorners = [];
     depth_mid = [];
     depth_avg = [];
     depth_std = [];
@@ -98,13 +106,14 @@ if plt || ~exist(pname, 'file')
         synfile = cindeks(ls2cell(sprintf('%s%s/*_%s_0_*.sac', ...
             synmasterdir, eventid, stationid), 1), 1);
         try
-            [t_shift1, t_shift2, CCmax1, CCmax2, bath1, bath2] = ...
+            [t_shift1, t_shift2, CCmax1, CCmax2, bath1, bath2, fcs] = ...
                 compareresponsefunctions(obsfile, synfile, ...
-                [allflatdirs{ii} '/'], [allbathdirs{ii} '/'], plt);
+                [allflatdirs{ii} '/'], [allbathdirs{ii} '/'], opt, plt);
             bath1(:,2) = bath1(:,2) - 9600;
             bath2(:,2) = bath2(:,2) - 9600;
             t_shifts_flat(n,1) = t_shift1;
             t_shifts_bath(n,1) = t_shift2;
+            fcorners(n,:) = fcs;
             CCmaxs_flat(n,1) = CCmax1;
             CCmaxs_bath(n,1) = CCmax2;
             
