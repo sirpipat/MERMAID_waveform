@@ -1,7 +1,7 @@
 function [t_shift1, t_shift2, CCmax1, CCmax2, bath1, bath2, fcorners] = ...
-    compareresponsefunctions(obsfile, synfile, ddir1, ddir2, opt, plt)
+    compareresponsefunctions(obsfile, synfile, ddir1, ddir2, opt, plt, la)
 % [t_shift1, t_shift2, CCmax1, CCmax2, bath1, bath2] = ...
-%     compareresponsefunctions(obsfile, synfile, ddir1, ddir2, opt, plt)
+%     compareresponsefunctions(obsfile, synfile, ddir1, ddir2, opt, plt, la)
 %
 % Plot two synthetic pressure records obtained by convolving the synthetic
 % vertical displacement at the ocean bottom with the two response functions
@@ -20,6 +20,8 @@ function [t_shift1, t_shift2, CCmax1, CCmax2, bath1, bath2, fcorners] = ...
 %                   2             selected by FREQSELECT  [Defatult]
 %                   [fc1 fc2]     user defined corner frequencies
 % plt           whether to plot or not [Defatult: true]
+% la            label in the plot referred as {first_record, second_record}
+%               [Default: {'flat', 'bathymetry'}
 %
 % OUTPUT
 % t_shift1      best time shifts where CCs are at maximum peak for first  
@@ -37,10 +39,11 @@ function [t_shift1, t_shift2, CCmax1, CCmax2, bath1, bath2, fcorners] = ...
 % fcorners      corner frequencies used for comparing synthetic and
 %               observed acoustic pressures
 %
-% Last modified by sirawich-at-princeton.edu, 06/28/2022
+% Last modified by sirawich-at-princeton.edu, 07/28/2022
 
 defval('fopt', 2)
 defval('plt', true)
+defval('la', {'flat', 'bathymetry'})
 
 window_envelope = [-10 20];
 window_waveform = [-5 5];
@@ -226,7 +229,7 @@ if plt
     grid on
     plot(t_r2, seis_r2 / max(abs(seis_r1)) - 1, 'LineWidth', 1, 'Color', blue)
     ylim([-2 2])
-    legend('flat', 'bathymetry', 'location', 'east')
+    legend(la{1}, la{2}, 'location', 'east')
     xlabel('time (s)')
     ylabel('response')
     title('response function', 'Interpreter', 'latex', 'FontSize', 11)
@@ -270,8 +273,8 @@ if plt
 %     
 %     ax4.Children = [p3 p2 p1 v];
     
-    label2 = sprintf('$$ \\textnormal{flat} : \\tau^W = %.2f~\\textnormal{s, X}^W = %.2f $$', t_shift1, CCmax1);
-    label3 = sprintf('$$ \\textnormal{bathymetry} : \\tau^W = %.2f~\\textnormal{s, X}^W = %.2f $$', t_shift2, CCmax2);
+    label2 = sprintf('$$ \\textnormal{%s} : \\tau^W = %.2f~\\textnormal{s, X}^W = %.2f $$', la{1}, t_shift1, CCmax1);
+    label3 = sprintf('$$ \\textnormal{%s} : \\tau^W = %.2f~\\textnormal{s, X}^W = %.2f $$', la{2}, t_shift2, CCmax2);
     legend([p1, p2, p3], {'observed', label2, label3}, ...
         'Location', 'southoutside', 'Interpreter', 'latex')
     xlabel('time since first picked arrival (s)')
@@ -299,17 +302,17 @@ if plt
     
     axb4 = boxedlabel(ax4, 'northwest', 0.18, [], 'd');
     
-    %% cross correlation between the observed and flat
+    %% cross correlation between the observed and first synthetic
     ax5 = subplot('Position', [0.1300 0.1180 0.7750 0.0525]);
     plot(lags1, cc1, 'Color', red, 'LineWidth', 0.5)
     grid on
     ylim([-1 1])
     ylabel('X^W')
-    title('correlation coefficients (red - flat, blue - bathymetry)', ...
-        'Interpreter', 'latex', 'FontSize', 11)
+    title(sprintf('correlation coefficients (red - %s, blue - %s)', ...
+        la{1}, la{2}), 'Interpreter', 'latex', 'FontSize', 11)
     set(ax5, 'Box', 'on', 'TickDir', 'both', 'XTickLabel', {})
     
-    % cross correlation between the observed and bathymetry
+    % cross correlation between the observed and second synthetic
     ax6 = subplot('Position', [0.1300 0.0500 0.7750 0.0525]);
     plot(lags2, cc2, 'Color', blue, 'LineWidth', 0.5)
     grid on
