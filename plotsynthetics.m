@@ -24,14 +24,19 @@ function plotsynthetics(obsmasterdir, synmasterdir, specmasterdir, ...
 %
 % Last modified by sirawich-at-princeton.edu, 07/14/2022
 
+%% window lengths
 window_waveform = [-5 5];
 window_plot = [-40 60];
 
+%% compute for extra metadata
 % get station number
 metadata.STNM = zeros(size(metadata.T0));
 for ii = 1:length(metadata.STNM)
     metadata.STNM(ii) = str2double(indeks(metadata.KSTNM{ii},4:5));
 end
+
+% compute relative travel-time difference
+metadata.DLNT = t_shifts ./ (metadata.T0 - metadata.USER8);
 
 [uniqevent, ~, ~] = unique(metadata.USER7);
 
@@ -41,6 +46,7 @@ for ii = 1:length(uniqevent)
     
     % only make a plot when there are more than one station
     if sum(whevent) >= 2
+        %% list used metadata for making map
         % list of source and receriver locations for an event
         stlo = mod(metadata.STLO(whevent), 360);
         stla = metadata.STLA(whevent);
@@ -50,6 +56,7 @@ for ii = 1:length(uniqevent)
         % MERMAID number
         n = length(stlo);
         
+        %% plot the map of source and receivers
         % map extent
         latmin = min(min(stla), evla);
         latmax = max(max(stla), evla);
@@ -66,22 +73,6 @@ for ii = 1:length(uniqevent)
         latmax = latmid + 1.2 * halfheight;
         lonmin = lonmid - 1.2 * halfwidth;
         lonmax = lonmid + 1.2 * halfwidth;
-        
-        % filter out the data from other events
-        stationid = metadata.STNM(whevent);
-        CCmax = CCmaxs(whevent);
-        t_shift = t_shifts(whevent);
-        fcs = fcorners(whevent, :);
-        gcarc = metadata.GCARC(whevent);
-        azim = metadata.AZ(whevent);
-        
-        % sort everything by epicentral distance
-        [gcarc, i_gcarc] = sort(gcarc);
-        stationid = stationid(i_gcarc);
-        CCmax = CCmax(i_gcarc);
-        t_shift = t_shift(i_gcarc);
-        fcs = fcs(i_gcarc, :);
-        azim = azim(i_gcarc);
         
         figure(3)
         clf
@@ -127,7 +118,7 @@ for ii = 1:length(uniqevent)
         % add countour lines
         addcontourlines(ax1, evlo, evla);
         
-        set(gca, 'TickDir', 'both', 'FontSize', 12, 'GridAlpha', 0.5, ...
+        set(gca, 'TickDir', 'out', 'FontSize', 12, 'GridAlpha', 0.5, ...
             'GridLineStyle', ':')
         
         % add event's focal mechanism
@@ -142,6 +133,27 @@ for ii = 1:length(uniqevent)
         ax1s.XAxis.Visible = 'off';
         ax1s.YAxis.Visible = 'off';
         ax1s.TickDir = 'both';
+        
+        %% list metadata for plotting traces
+        % filter out the data from other events
+        stationid = metadata.STNM(whevent);
+        CCmax = CCmaxs(whevent);
+        t_shift = t_shifts(whevent);
+        fcs = fcorners(whevent, :);
+        gcarc = metadata.GCARC(whevent);
+        azim = metadata.AZ(whevent);
+        dlnt = metadata.DLNT(whevent);
+        
+        % sort everything by epicentral distance
+        [gcarc, i_gcarc] = sort(gcarc);
+        stationid = stationid(i_gcarc);
+        CCmax = CCmax(i_gcarc);
+        t_shift = t_shift(i_gcarc);
+        fcs = fcs(i_gcarc, :);
+        azim = azim(i_gcarc);
+        dlnt = dlnt(i_gcarc);
+        
+        % sort everything by CCmax to plot 
         
         ax2 = subplot('Position', [0.08 0.08 0.84 0.56]);
         cla
@@ -221,13 +233,13 @@ for ii = 1:length(uniqevent)
                 tims_o(1) + t_shift(jj), ax2, '', [], color_syn, ...
                 'LineWidth', 1);
         end
-        xlabel('time since pick arrival (s)');
+        xlabel('time since first picked arrival (s)');
         ylabel('epicentral distance (degrees)');
         
         % adjust y-axis for description labels
-        ymin = (min(gcarc) - 2) + (max(gcarc) - min(gcarc) + 2) / 44;
+        ymin = (min(gcarc) - 2) + (max(gcarc) - min(gcarc) + 2) * 2/93;
         ymax = max(max(gcarc) + 2, ...
-            (min(gcarc) - 2) + (max(gcarc) - min(gcarc) + 2) * 49/44);
+            (min(gcarc) - 2) + (max(gcarc) - min(gcarc) + 2) * 98/93);
         ax2.Title.String = '';
         set(ax2, 'Box', 'off', 'TickDir', 'out', 'XLim', window_plot, ...
             'YLim', [ymin ymax], 'FontSize', 12, 'Color', 'none');
@@ -282,22 +294,44 @@ for ii = 1:length(uniqevent)
                 color_txt = [0.5 0.5 0.5];
             end
             text(0.01, 0.4, sprintf(['$$ \\textnormal{P%04d,} X(%.2f\\ \\textnormal{s}) = ' ...
-                '%.2f, f_c = %.2f-%.2f\\ \\textnormal{Hz} $$'], stationid(jj), t_shift(jj), ...
-                CCmax(jj), fcs(jj,1), fcs(jj,2)), ...
-                'Interpreter', 'latex', 'FontSize', 9.3, 'Color', color_txt);
-%             text(0.02, 0.2, sprintf('$$ f_c = %.2f-%.2f\\ Hz $$', fcs(jj,1), fcs(jj,2)), 'Interpreter', 'latex', 'FontSize', 1);
+                '%.2f, \\Delta \\tau / \\tau = %.2f \\%% $$'], stationid(jj), t_shift(jj), ...
+                CCmax(jj), dlnt(jj) * 100), ...
+                'Interpreter', 'latex', 'FontSize', 10, 'Color', color_txt);
         end
         
         % move the description labels to the front
         ax2.Parent.Children = ax2.Parent.Children([1 3:(end-5) 2 end-3 ...
             end-4 (end-2):end]);
         
-        % figure label
-        title(ax1, ...
-            sprintf('Event ID: %d, Magnitude: %4.2f, Depth: %6.2f km', ...
-            uniqevent(ii), hdr_o.MAG, hdr_o.EVDP));
+        % rearrange the traces by CCmax
+        % traces with higher CCmax are in the front
+        % repmat and [0 -1e-8] is for keeping synthetic traces in front of
+        % their corresponding observed traces.
+        CCmax_ord = reshape(repmat(CCmax,[1 2])', [length(CCmax)*2 1]);
+        CCmax_ord = flip(CCmax_ord) + repmat([0 -1e-8]', [length(gcarc) 1]);
+        [~,i_sort] = sort(CCmax_ord, 'descend');
+        ax2.Children = ax2.Children(i_sort);
         
+        % rearange the labels by CCmax
+        [~, i_sort] = sort(CCmax, 'descend');
+        ax2.Parent.Children(1:length(CCmax)) = ax2.Parent.Children(i_sort);
+        
+        % figure label
+        [~, ~, CMT] = getfocalmech('PublicID', string(uniqevent(ii)));
+        if isempty(CMT)
+            title(ax1, ...
+                sprintf('Event ID: %d, Magnitude: %4.2f, Depth: %6.2f km', ...
+                uniqevent(ii), hdr_o.MAG, hdr_o.EVDP));
+        else
+            title(ax1, ...
+                sprintf('%s, Event ID: %d, Magnitude: %4.2f, Depth: %6.2f km', ...
+                CMT.EventName, uniqevent(ii), hdr_o.MAG, hdr_o.EVDP));
+        end
+        
+        % save figure
         set(gcf, 'Renderer', 'painters')
+        fname = sprintf('%s_%d', mfilename, uniqevent(ii));
+        figdisp(fname, [], [], 2, [], 'epstopdf');
     end
 end
 end
