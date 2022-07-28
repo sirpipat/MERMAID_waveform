@@ -40,7 +40,7 @@ function outputdirs = runflatsim_routine(obsmasterdir, synmasterdir, i_begin, i_
 % SEE ALSO:
 % RUNFLATSIM, CCTRANSPLOT, COMPAREPRESSURE
 %
-% Last modified by sirawich-at-princeton.edu, 05/11/2022
+% Last modified by sirawich-at-princeton.edu, 07/28/2022
 
 defval('obsmasterdir', '/home/sirawich/research/processed_data/MERMAID_reports_updated/')
 defval('synmasterdir', '/home/sirawich/research/SYNTHETICS/')
@@ -135,17 +135,24 @@ for ii = i_begin:i_end
                     depth = hdr_s.STDP;
                 end
                 
-                outputdir = sprintf('%sAK135_RUNS_BATHYMETRY/%s/', ...
+                outputdir = sprintf('%sAK135_RUNS_BATHYMETRY_MUNK/%s/', ...
                     getenv('REMOTE2D'), example);
                 outputdirs = specfem2d_input_setup_response(example, ...
-                    'custom', tparams, depth, 'homogeneous', ...
+                    'custom', tparams, depth, 'munk', ...
                     'homogeneous', 1, theta, [], outputdir, false, branch, ...
                     gpu_mode);
                 
                 % plot the bathymetry
                 try
-                    plotoutput(outputdir, example)
-                catch
+                    if strcmp(branch, 'master')
+                        for kk = 1:length(outputdirs)
+                            plotoutput(outputdirs{kk}, example);
+                            plotoutput(outputdirs{kk}, example);
+                        end
+                    else
+                        plotoutput(outputdir, example);
+                    end
+                catch ME
                     delete(gcf)
                 end
                 if is_run
