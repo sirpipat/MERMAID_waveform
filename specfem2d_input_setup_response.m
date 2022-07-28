@@ -1,5 +1,5 @@
 function outputdirs = specfem2d_input_setup_response(name, topo, tparams, depth, water, solid, freq, theta, Par_file_base, outputdir, saveimage, branch, gpu_mode)
-% outputdirs = SPECFEM2D_INPUT_SETUP_FLAT(name, topo, tparams, depth, water, solid, freq, theta, Par_file_base, outputdir, saveimage, branch, gpu_mode)
+% outputdirs = SPECFEM2D_INPUT_SETUP_RESPONSE(name, topo, tparams, depth, water, solid, freq, theta, Par_file_base, outputdir, saveimage, branch, gpu_mode)
 % Generates Par_file, source file, and interface file for a fluid-solid
 % simulation.
 %
@@ -52,7 +52,7 @@ function outputdirs = specfem2d_input_setup_response(name, topo, tparams, depth,
 %       outputdirs          both pressures and displacements at OBS and
 %                           hydrophone
 %
-% Last modified by sirawich-at-princeton.edu, 03/15/2022
+% Last modified by sirawich-at-princeton.edu, 07/27/2022
 
 defval('bottom', 4800)
 defval('depth', 1500)
