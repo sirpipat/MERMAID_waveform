@@ -1,7 +1,7 @@
 function plotsynthetics(obsmasterdir, synmasterdir, specmasterdir, ...
-    fcorners, CCmaxs, t_shifts, metadata)
+    fcorners, CCmaxs, t_shifts, metadata, op1, op2)
 % PLOTSYNTHETICS(obsmasterdir, synmasterdir, specmasterdir, fcorners, ...
-%     CCmaxs, t_shifts, metadata)
+%     CCmaxs, t_shifts, metadata, op1, op2)
 %
 % A cross-breed function between PLOTRECORDS and ARRAYCCSHIFTPLOT
 %
@@ -18,11 +18,20 @@ function plotsynthetics(obsmasterdir, synmasterdir, specmasterdir, ...
 % CCmaxs            Maximum correlation coefficient
 % t_shifts          Best time shift where CC is maximum
 % metadata          SAC header variables sorted by variable names
+% op1               options for y-axis
+%                   1  --   distance (degrees)
+%                   2  --   azimuth
+% op2               options for zoom-in verions
+%                   1  --  no zoom in
+%                   2  --  zoom in
 %
 % SEE ALSO:
 % PLOTRECORDS, ARRAYCCSHIFTPLOT
 %
 % Last modified by sirawich-at-princeton.edu, 07/14/2022
+
+defval('op1', 1)
+defval('op2', 1)
 
 %% window lengths
 window_waveform = [-5 5];
@@ -144,16 +153,25 @@ for ii = 1:length(uniqevent)
         azim = metadata.AZ(whevent);
         dlnt = metadata.DLNT(whevent);
         
-        % sort everything by epicentral distance
-        [gcarc, i_gcarc] = sort(gcarc);
-        stationid = stationid(i_gcarc);
-        CCmax = CCmax(i_gcarc);
-        t_shift = t_shift(i_gcarc);
-        fcs = fcs(i_gcarc, :);
-        azim = azim(i_gcarc);
-        dlnt = dlnt(i_gcarc);
-        
-        % sort everything by CCmax to plot 
+        if op1 == 1
+            % sort everything by epicentral distance
+            [gcarc, i_gcarc] = sort(gcarc);
+            stationid = stationid(i_gcarc);
+            CCmax = CCmax(i_gcarc);
+            t_shift = t_shift(i_gcarc);
+            fcs = fcs(i_gcarc, :);
+            azim = azim(i_gcarc);
+            dlnt = dlnt(i_gcarc);
+        else
+            % sort everything by azimuth
+            [azim, i_azim] = sort(azim);
+            gcarc = gcarc(i_azim);
+            stationid = staionid(i_azim);
+            CCmax = CCmax(i_azim);
+            t_shift = t_shift(i_azim);
+            fcs = fcs(i_azim, :);
+            dlnt = dlnt(i_azim);
+        end
         
         ax2 = subplot('Position', [0.08 0.08 0.84 0.56]);
         cla
@@ -202,7 +220,7 @@ for ii = 1:length(uniqevent)
             t_min = window_waveform(1); %max(tims_o(1), tims_o(1) + t_shift(jj));
             t_max = window_waveform(2); %min(tims_o(end), tims_o(end) + t_shift(jj));
 
-            % determine scaling
+            % determine scaling between the observed and synetheic
             ep = 0.01/fs_o;
             pres_o1 = pres_o(and(geq(tims_o, t_min, ep), leq(tims_o, t_max, ep)));
             pres_s1 = pres_s(and(geq(tims_o  + t_shift(jj), t_min, ep), ...
@@ -210,13 +228,24 @@ for ii = 1:length(uniqevent)
 
             s = rms(pres_o1) / rms(pres_s1);
             
-            % normalize the seismogram to 1
+            % determine the y-limit
+            if op1 == 1
+                ymid = (gcarc(end) + gcarc(1)) / 2;
+                ywidth = (gcarc(end) - gcarc(1));
+                ylimit = ymid + 1.12 * ywidth/2 * [-1 1];
+            else
+                ymid = (azim(end) + azim(1)) / 2;
+                ywidth = (azim(end) - azim(1));
+                ylimit = ymid + 1.12 * ywidth/2 * [-1 1];
+            end
+            
+            % normalize the seismogram to 3.5% of the y-limit
             t_min = window_plot(1);
             t_max = window_plot(2);
             pres_o2 = pres_o(and(geq(tims_o, t_min, ep), leq(tims_o, t_max, ep)));
             pres_s2 = pres_s(and(geq(tims_o  + t_shift(jj), t_min, ep), ...
                 leq(tims_o + t_shift(jj), t_max, ep)));
-            s_norm = 1 / max(max(abs(pres_o2)), max(abs(pres_s2 * s)));
+            s_norm = 0.035 * ywidth / max(max(abs(pres_o2)), max(abs(pres_s2 * s)));
             
             % plot together on a plot
             if CCmax(jj) > 0.6
@@ -237,12 +266,9 @@ for ii = 1:length(uniqevent)
         ylabel('epicentral distance (degrees)');
         
         % adjust y-axis for description labels
-        ymin = (min(gcarc) - 2) + (max(gcarc) - min(gcarc) + 2) * 2/93;
-        ymax = max(max(gcarc) + 2, ...
-            (min(gcarc) - 2) + (max(gcarc) - min(gcarc) + 2) * 98/93);
         ax2.Title.String = '';
         set(ax2, 'Box', 'off', 'TickDir', 'out', 'XLim', window_plot, ...
-            'YLim', [ymin ymax], 'FontSize', 12, 'Color', 'none');
+            'YLim', ylimit, 'FontSize', 12, 'Color', 'none');
         
         % add azimuth value to right y-axis
         axa = doubleaxes(ax2);
