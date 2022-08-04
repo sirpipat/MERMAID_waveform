@@ -28,7 +28,7 @@ function plotsynthetics(obsmasterdir, synmasterdir, specmasterdir, ...
 % SEE ALSO:
 % PLOTRECORDS, ARRAYCCSHIFTPLOT
 %
-% Last modified by sirawich-at-princeton.edu, 07/14/2022
+% Last modified by sirawich-at-princeton.edu, 08/04/2022
 
 defval('op1', 1)
 defval('op2', 1)
@@ -83,7 +83,7 @@ for ii = 1:length(uniqevent)
         lonmin = lonmid - 1.2 * halfwidth;
         lonmax = lonmid + 1.2 * halfwidth;
         
-        figure(3)
+        fig = figure(3);
         clf
         set(gcf, 'Units', 'inches', 'Position', [0 2 9 9])
         
@@ -173,8 +173,44 @@ for ii = 1:length(uniqevent)
             dlnt = dlnt(i_azim);
         end
         
+        %% Plot the seimograms comparisons
+        % the second plot consists of layers of axes [from front to back]
+        % - label boxes sorted by CCMaxs from largest to smallest
+        %   [assigned priority value: 2 + CCMaxs]
+        % - seismograms of predicted and observed with ticks for round trip
+        %   [assigned priority value: CCMaxs]
+        % - waveform window highlights
+        %   [assinged priority value: -1]
+        % - epicentral distances y-label
+        %   [assigned priority value: -2]
+        % - azimuth y-label
+        %   [assigned priority value: -3]
+        %   
+        % Then the layers are sorted by priority from largest to smallest
+        
+        % base layer axes
         ax2 = subplot('Position', [0.08 0.08 0.84 0.56]);
-        cla
+        priority_values = -1;
+        axes_collection = ax2;
+        
+        % determine the y-limit
+        if op1 == 1
+            ymid = (gcarc(end) + gcarc(1)) / 2;
+            ywidth = (gcarc(end) - gcarc(1));
+            ylimit = ymid + 1.12 * ywidth/2 * [-1 1];
+        else
+            ymid = (azim(end) + azim(1)) / 2;
+            ywidth = (azim(end) - azim(1));
+            ylimit = ymid + 1.12 * ywidth/2 * [-1 1];
+        end
+        
+        xlabel('time since first picked arrival (s)');
+        ylabel('epicentral distance (degrees)');
+        
+        % adjust y-axis for description labels
+        set(ax2, 'Box', 'off', 'TickDir', 'out', 'XLim', window_plot, ...
+            'YLim', ylimit, 'FontSize', 12, 'Color', 'none');
+        
         for jj = 1:sum(whevent)
             % read the observed seismogram
             obsfile = cindeks(ls2cell(sprintf('%s%d/*.%02d_*.sac', ...
@@ -217,8 +253,8 @@ for ii = 1:length(uniqevent)
             pres_s = pres_s .* shanning(length(pres_s), 0.05, 0);
             
             % determine the start and end of the window
-            t_min = window_waveform(1); %max(tims_o(1), tims_o(1) + t_shift(jj));
-            t_max = window_waveform(2); %min(tims_o(end), tims_o(end) + t_shift(jj));
+            t_min = window_waveform(1);
+            t_max = window_waveform(2);
 
             % determine scaling between the observed and synetheic
             ep = 0.01/fs_o;
@@ -227,17 +263,6 @@ for ii = 1:length(uniqevent)
                 leq(tims_o + t_shift(jj), t_max, ep)));
 
             s = rms(pres_o1) / rms(pres_s1);
-            
-            % determine the y-limit
-            if op1 == 1
-                ymid = (gcarc(end) + gcarc(1)) / 2;
-                ywidth = (gcarc(end) - gcarc(1));
-                ylimit = ymid + 1.12 * ywidth/2 * [-1 1];
-            else
-                ymid = (azim(end) + azim(1)) / 2;
-                ywidth = (azim(end) - azim(1));
-                ylimit = ymid + 1.12 * ywidth/2 * [-1 1];
-            end
             
             % normalize the seismogram to 3.5% of the y-limit
             t_min = window_plot(1);
@@ -250,28 +275,44 @@ for ii = 1:length(uniqevent)
             % plot together on a plot
             if CCmax(jj) > 0.6
                 color_syn = [1 0 0];
-                color_obs = [0 0 0];
+                color_obs = [0 0.2 0.8];
+                color_tick = [0 0 0];
             else
                 color_syn = [1 0.6 0.6];
-                color_obs = [0.6 0.6 0.6];
+                color_obs = [0.6 0.8 1];
+                color_tick = [0.6 0.6 0.6];
             end
+            % axes for plotting seismograms
+            ax2ss = axes('Position', [0.08 0.08 0.84 0.56]);
+            axes_collection = [axes_collection; ax2ss];
+            priority_values = [priority_values; CCmax(jj)];
+            
             signalplot(pres_o * s_norm + gcarc(jj), fs_o, tims_o(1), ...
-                ax2, '', [], color_obs, 'LineWidth', 1);
+                ax2ss, '', [], color_obs, 'LineWidth', 1);
             hold on
             signalplot(pres_s * s_norm * s + gcarc(jj), fs_o, ...
-                tims_o(1) + t_shift(jj), ax2, '', [], color_syn, ...
+                tims_o(1) + t_shift(jj), ax2ss, '', [], color_syn, ...
                 'LineWidth', 1);
+            
+            % add ticks indicating a round trip between surface and bottom
+            roundtrip_time = 2 * (-hdr_o.STEL) / 1500;
+            ticks_x = 0:roundtrip_time:window_plot(2);
+            plot(ax2ss, [ticks_x; ticks_x], repmat(gcarc(jj) + ...
+                0.035 * ywidth * [-1; 1], 1, length(ticks_x)), ...
+                'Color', color_tick, 'LineWidth', 1.2);
+            
+            ax2ss.Title.String = '';
+            ax2ss.XAxis.Visible = 'off';
+            ax2ss.YAxis.Visible = 'off';
+            set(ax2ss, 'Box', 'off', 'TickDir', 'out', ...
+                'XLim', window_plot, 'YLim', ylimit, 'FontSize', 12, ...
+                'Color', 'none', 'XGrid', 'off', 'YGrid', 'off');
         end
-        xlabel('time since first picked arrival (s)');
-        ylabel('epicentral distance (degrees)');
-        
-        % adjust y-axis for description labels
-        ax2.Title.String = '';
-        set(ax2, 'Box', 'off', 'TickDir', 'out', 'XLim', window_plot, ...
-            'YLim', ylimit, 'FontSize', 12, 'Color', 'none');
-        
         % add azimuth value to right y-axis
         axa = doubleaxes(ax2);
+        axes_collection = [axes_collection; axa];
+        priority_values = [priority_values; -2];
+        
         axa.XTickLabel = [];
         axa.YTick = gcarc;
         axa.YTickLabel = num2str(round(azim));
@@ -281,6 +322,9 @@ for ii = 1:length(uniqevent)
         
         % highlight the window for corrleation
         axh = doubleaxes(ax2);
+        axes_collection = [axes_collection; axh];
+        priority_values = [priority_values; -3];
+        
         axes(axh)
         [xbox, ybox] = boxcorner(window_waveform, ax2.YLim);
         pgon = polyshape(xbox, ybox);
@@ -290,7 +334,8 @@ for ii = 1:length(uniqevent)
         axh.XAxis.Visible = 'off';
         axh.YAxis.Visible = 'off';
         set(axh, 'Box', 'on', 'TickDir', 'both', 'XLim', ax2.XLim, ...
-            'YLim', ax2.YLim, 'Position', ax2.Position);
+            'YLim', ax2.YLim, 'Position', ax2.Position, ...
+            'XGrid', 'off', 'YGrid', 'on', 'Color', [1 1 1]);
         axes(ax2)
         
         % add description labels
@@ -313,6 +358,9 @@ for ii = 1:length(uniqevent)
             prev_label_top = y_norm + 0.035;
             
             axb = addbox(ax2, [max(x_norm,0) y_norm+0.01 0.34 0.035]);
+            axes_collection = [axes_collection; axb];
+            priority_values = [priority_values; 2+CCmax(jj)];
+            
             axes(axb)
             if CCmax(jj) > 0.6
                 color_txt = [0 0 0];
@@ -323,24 +371,15 @@ for ii = 1:length(uniqevent)
                 '%.2f, \\Delta \\tau / \\tau = %.2f \\%% $$'], stationid(jj), t_shift(jj), ...
                 CCmax(jj), dlnt(jj) * 100), ...
                 'Interpreter', 'latex', 'FontSize', 10, 'Color', color_txt);
+            axb.XAxis.Visible = 'off';
+            axb.YAxis.Visible = 'off';
         end
         
-        % move the description labels to the front
-        ax2.Parent.Children = ax2.Parent.Children([1 3:(end-5) 2 end-3 ...
-            end-4 (end-2):end]);
-        
-        % rearrange the traces by CCmax
-        % traces with higher CCmax are in the front
-        % repmat and [0 -1e-8] is for keeping synthetic traces in front of
-        % their corresponding observed traces.
-        CCmax_ord = reshape(repmat(CCmax,[1 2])', [length(CCmax)*2 1]);
-        CCmax_ord = flip(CCmax_ord) + repmat([0 -1e-8]', [length(gcarc) 1]);
-        [~,i_sort] = sort(CCmax_ord, 'descend');
-        ax2.Children = ax2.Children(i_sort);
-        
-        % rearange the labels by CCmax
-        [~, i_sort] = sort(CCmax, 'descend');
-        ax2.Parent.Children(1:length(CCmax)) = ax2.Parent.Children(i_sort);
+        % rearrange the figure
+        [~, i_sort] = sort(priority_values, 'ascend');
+        for i_ax = i_sort'
+            axes(axes_collection(i_ax));
+        end
         
         % figure label
         [~, ~, CMT] = getfocalmech('PublicID', string(uniqevent(ii)));
