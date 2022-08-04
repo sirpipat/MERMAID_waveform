@@ -209,7 +209,8 @@ for ii = 1:length(uniqevent)
         
         % adjust y-axis for description labels
         set(ax2, 'Box', 'off', 'TickDir', 'out', 'XLim', window_plot, ...
-            'YLim', ylimit, 'FontSize', 12, 'Color', 'none');
+            'YLim', ylimit, 'FontSize', 12, 'Color', 'none', ...
+            'YGrid', 'on');
         
         for jj = 1:sum(whevent)
             % read the observed seismogram
