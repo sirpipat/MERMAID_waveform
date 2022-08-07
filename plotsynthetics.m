@@ -18,7 +18,7 @@ function plotsynthetics(obsmasterdir, synmasterdir, specmasterdir, ...
 % CCmaxs            Maximum correlation coefficient
 % t_shifts          Best time shift where CC is maximum
 % metadata          SAC header variables sorted by variable names
-% op1               options for y-axis
+% op1               options for y-axis sorting
 %                   1  --   distance (degrees)
 %                   2  --   azimuth
 % op2               options for zoom-in verions
@@ -28,14 +28,18 @@ function plotsynthetics(obsmasterdir, synmasterdir, specmasterdir, ...
 % SEE ALSO:
 % PLOTRECORDS, ARRAYCCSHIFTPLOT
 %
-% Last modified by sirawich-at-princeton.edu, 08/04/2022
+% Last modified by sirawich-at-princeton.edu, 08/07/2022
 
 defval('op1', 1)
 defval('op2', 1)
 
 %% window lengths
 window_waveform = [-5 5];
-window_plot = [-40 60];
+if op2 == 1
+    window_plot = [-40 60];
+else
+    window_plot = [-20 40];
+end
 
 %% compute for extra metadata
 % get station number
@@ -166,7 +170,7 @@ for ii = 1:length(uniqevent)
             % sort everything by azimuth
             [azim, i_azim] = sort(azim);
             gcarc = gcarc(i_azim);
-            stationid = staionid(i_azim);
+            stationid = stationid(i_azim);
             CCmax = CCmax(i_azim);
             t_shift = t_shift(i_azim);
             fcs = fcs(i_azim, :);
@@ -209,8 +213,7 @@ for ii = 1:length(uniqevent)
         
         % adjust y-axis for description labels
         set(ax2, 'Box', 'off', 'TickDir', 'out', 'XLim', window_plot, ...
-            'YLim', ylimit, 'FontSize', 12, 'Color', 'none', ...
-            'YGrid', 'on');
+            'YLim', ylimit, 'FontSize', 12, 'Color', 'none');
         
         for jj = 1:sum(whevent)
             % read the observed seismogram
@@ -288,17 +291,24 @@ for ii = 1:length(uniqevent)
             axes_collection = [axes_collection; ax2ss];
             priority_values = [priority_values; CCmax(jj)];
             
-            signalplot(pres_o * s_norm + gcarc(jj), fs_o, tims_o(1), ...
+            if op1 == 1
+                y_values = gcarc;
+            else
+                y_values = azim;
+            end
+            
+            % plot the seismograms
+            signalplot(pres_o * s_norm + y_values(jj), fs_o, tims_o(1), ...
                 ax2ss, '', [], color_obs, 'LineWidth', 1);
             hold on
-            signalplot(pres_s * s_norm * s + gcarc(jj), fs_o, ...
+            signalplot(pres_s * s_norm * s + y_values(jj), fs_o, ...
                 tims_o(1) + t_shift(jj), ax2ss, '', [], color_syn, ...
                 'LineWidth', 1);
             
             % add ticks indicating a round trip between surface and bottom
             roundtrip_time = 2 * (-hdr_o.STEL) / 1500;
             ticks_x = 0:roundtrip_time:window_plot(2);
-            plot(ax2ss, [ticks_x; ticks_x], repmat(gcarc(jj) + ...
+            plot(ax2ss, [ticks_x; ticks_x], repmat(y_values(jj) + ...
                 0.035 * ywidth * [-1; 1], 1, length(ticks_x)), ...
                 'Color', color_tick, 'LineWidth', 1.2);
             
@@ -314,13 +324,20 @@ for ii = 1:length(uniqevent)
         axes_collection = [axes_collection; axa];
         priority_values = [priority_values; -2];
         
+        if op1 == 1
+            axa.YTick = gcarc;
+            axa.YTickLabel = num2str(round(azim));
+            ax2.YGrid = 'on';
+        else
+            axa.YGrid = 'on';
+            ax2.YTick = azim;
+            ax2.YTickLabel = num2str(round(gcarc));
+        end
         axa.XTickLabel = [];
-        axa.YTick = gcarc;
-        axa.YTickLabel = num2str(round(azim));
         axa.YLabel.String = 'azimuth (degrees)';
         set(axa, 'Box', 'off', 'TickDir', 'out', 'FontSize', 12, ...
             'Color', 'none');
-        
+            
         % highlight the window for corrleation
         axh = doubleaxes(ax2);
         axes_collection = [axes_collection; axh];
@@ -348,17 +365,29 @@ for ii = 1:length(uniqevent)
                 obsmasterdir, uniqevent(ii), stationid(jj)), 1), 1);
             [~, hdr_o] = readsac(obsfile);
             
-            [x_norm, y_norm] = true2normposition(ax2, -39.5, gcarc(jj));
+            if op2 == 1
+                [x_norm, y_norm] = true2normposition(ax2, -39.5, y_values(jj));
+            else
+                [x_norm, y_norm] = true2normposition(ax2, -19.5, y_values(jj));
+            end
             
             if is_label_left && prev_label_top > y_norm
-                [x_norm, y_norm] = true2normposition(ax2, 25.5, gcarc(jj));
+                if op2 == 1
+                    [x_norm, y_norm] = true2normposition(ax2, 25.5, y_values(jj));
+                else
+                    [x_norm, y_norm] = true2normposition(ax2, 27.5, y_values(jj));
+                end
                 is_label_left = false;
             else
                 is_label_left = true;
             end
             prev_label_top = y_norm + 0.035;
             
-            axb = addbox(ax2, [max(x_norm,0) y_norm+0.01 0.34 0.035]);
+            if op2 == 1
+                axb = addbox(ax2, [max(x_norm,0) y_norm+0.01 0.34 0.035]);
+            else
+                axb = addbox(ax2, [max(x_norm,0) y_norm+0.01 0.20 0.035]);
+            end
             axes_collection = [axes_collection; axb];
             priority_values = [priority_values; 2+CCmax(jj)];
             
@@ -368,10 +397,21 @@ for ii = 1:length(uniqevent)
             else
                 color_txt = [0.5 0.5 0.5];
             end
-            text(0.01, 0.4, sprintf(['$$ \\textnormal{P%04d,} X(%.2f\\ \\textnormal{s}) = ' ...
-                '%.2f, \\Delta \\tau / \\tau = %.2f \\%% $$'], stationid(jj), t_shift(jj), ...
-                CCmax(jj), dlnt(jj) * 100), ...
-                'Interpreter', 'latex', 'FontSize', 10, 'Color', color_txt);
+            
+            if op2 == 1
+                label_str = sprintf(['$$ \\textnormal{P%04d,} ' ...
+                    'X(%.2f\\ \\textnormal{s}) = ' ...
+                    '%.2f, \\Delta \\tau / \\tau = %.2f \\%% $$'], ...
+                    stationid(jj), t_shift(jj), ...
+                    CCmax(jj), dlnt(jj) * 100);
+            else
+                label_str = sprintf(['$$ %.2f\\ \\textnormal{s}, ' ... 
+                    '%.2f, %.2f \\%% $$'], t_shift(jj), CCmax(jj), ...
+                    dlnt(jj) * 100);
+            end
+                
+            text(0.01, 0.4, label_str, 'Interpreter', 'latex', ...
+                'FontSize', 10, 'Color', color_txt);
             axb.XAxis.Visible = 'off';
             axb.YAxis.Visible = 'off';
         end
