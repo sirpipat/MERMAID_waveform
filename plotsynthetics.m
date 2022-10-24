@@ -1,7 +1,7 @@
 function plotsynthetics(obsmasterdir, synmasterdir, specmasterdir, ...
-    fcorners, CCmaxs, t_shifts, metadata, op1, op2)
+    fcorners, CCmaxs, t_shifts, metadata, op1, op2, op3)
 % PLOTSYNTHETICS(obsmasterdir, synmasterdir, specmasterdir, fcorners, ...
-%     CCmaxs, t_shifts, metadata, op1, op2)
+%     CCmaxs, t_shifts, metadata, op1, op2, op3)
 %
 % A cross-breed function between PLOTRECORDS and ARRAYCCSHIFTPLOT
 %
@@ -19,23 +19,26 @@ function plotsynthetics(obsmasterdir, synmasterdir, specmasterdir, ...
 % t_shifts          Best time shift where CC is maximum
 % metadata          SAC header variables sorted by variable names
 % op1               options for y-axis sorting
-%                   1  --   distance (degrees)
-%                   2  --   azimuth
-% op2               options for zoom-in verions
-%                   1  --  no zoom in
-%                   2  --  zoom in
+%                   1  --   by distance (degrees)
+%                   2  --   by azimuth
+% op2               options for y-axis scaling and positioning
+%                   1  --   actual value from op1
+%                   2  --   equal spreading for readability
+% op3               options for zoom-in verions
+%                   1  --   no zoom in
+%                   2  --   zoom in
 %
 % SEE ALSO:
 % PLOTRECORDS, ARRAYCCSHIFTPLOT
 %
-% Last modified by sirawich-at-princeton.edu, 08/07/2022
+% Last modified by sirawich-at-princeton.edu, 10/24/2022
 
 defval('op1', 1)
 defval('op2', 1)
 
 %% window lengths
 window_waveform = [-5 5];
-if op2 == 1
+if op3 == 1
     window_plot = [-40 60];
 else
     window_plot = [-20 40];
@@ -198,13 +201,19 @@ for ii = 1:length(uniqevent)
         axes_collection = ax2;
         
         % determine the y-limit
-        if op1 == 1
-            ymid = (gcarc(end) + gcarc(1)) / 2;
-            ywidth = (gcarc(end) - gcarc(1));
-            ylimit = ymid + 1.12 * ywidth/2 * [-1 1];
+        if op2 == 1
+            if op1 == 1
+                ymid = (gcarc(end) + gcarc(1)) / 2;
+                ywidth = (gcarc(end) - gcarc(1));
+                ylimit = ymid + 1.12 * ywidth/2 * [-1 1];
+            else
+                ymid = (azim(end) + azim(1)) / 2;
+                ywidth = (azim(end) - azim(1));
+                ylimit = ymid + 1.12 * ywidth/2 * [-1 1];
+            end
         else
-            ymid = (azim(end) + azim(1)) / 2;
-            ywidth = (azim(end) - azim(1));
+            ymid = (1 + length(gcarc)) / 2;
+            ywidth = (length(gcarc) - 1);
             ylimit = ymid + 1.12 * ywidth/2 * [-1 1];
         end
         
@@ -291,10 +300,14 @@ for ii = 1:length(uniqevent)
             axes_collection = [axes_collection; ax2ss];
             priority_values = [priority_values; CCmax(jj)];
             
-            if op1 == 1
-                y_values = gcarc;
+            if op2 == 1
+                if op1 == 1
+                    y_values = gcarc;
+                else
+                    y_values = azim;
+                end
             else
-                y_values = azim;
+                y_values = 1:length(gcarc);
             end
             
             % plot the seismograms
@@ -324,14 +337,26 @@ for ii = 1:length(uniqevent)
         axes_collection = [axes_collection; axa];
         priority_values = [priority_values; -2];
         
-        if op1 == 1
-            axa.YTick = gcarc;
-            axa.YTickLabel = num2str(round(azim));
-            ax2.YGrid = 'on';
+        if op2 == 1
+            if op1 == 1
+                axa.YTick = gcarc;
+                axa.YTickLabel = num2str(round(azim));
+                ax2.YGrid = 'on';
+            else
+                axa.YGrid = 'on';
+                ax2.YTick = azim;
+                ax2.YTickLabel = num2str(round(gcarc));
+            end
         else
-            axa.YGrid = 'on';
-            ax2.YTick = azim;
+            ax2.YTick = 1:length(gcarc);
             ax2.YTickLabel = num2str(round(gcarc));
+            axa.YTick = 1:length(gcarc);
+            axa.YTickLabel = num2str(round(azim));
+            if op1 == 1
+                ax2.YGrid = 'on';
+            else
+                axa.YGrid = 'on';
+            end
         end
         axa.XTickLabel = [];
         axa.YLabel.String = 'azimuth (degrees)';
@@ -365,14 +390,14 @@ for ii = 1:length(uniqevent)
                 obsmasterdir, uniqevent(ii), stationid(jj)), 1), 1);
             [~, hdr_o] = readsac(obsfile);
             
-            if op2 == 1
+            if op3 == 1
                 [x_norm, y_norm] = true2normposition(ax2, -39.5, y_values(jj));
             else
                 [x_norm, y_norm] = true2normposition(ax2, -19.5, y_values(jj));
             end
             
             if is_label_left && prev_label_top > y_norm
-                if op2 == 1
+                if op3 == 1
                     [x_norm, y_norm] = true2normposition(ax2, 25.5, y_values(jj));
                 else
                     [x_norm, y_norm] = true2normposition(ax2, 27.5, y_values(jj));
@@ -383,7 +408,7 @@ for ii = 1:length(uniqevent)
             end
             prev_label_top = y_norm + 0.035;
             
-            if op2 == 1
+            if op3 == 1
                 axb = addbox(ax2, [max(x_norm,0) y_norm+0.01 0.34 0.035]);
             else
                 axb = addbox(ax2, [max(x_norm,0) y_norm+0.01 0.20 0.035]);
@@ -398,7 +423,7 @@ for ii = 1:length(uniqevent)
                 color_txt = [0.5 0.5 0.5];
             end
             
-            if op2 == 1
+            if op3 == 1
                 label_str = sprintf(['$$ \\textnormal{P%04d,} ' ...
                     'X(%.2f\\ \\textnormal{s}) = ' ...
                     '%.2f, \\Delta \\tau / \\tau = %.2f \\%% $$'], ...
