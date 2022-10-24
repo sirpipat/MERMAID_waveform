@@ -1,5 +1,5 @@
 function [fc, s] = freqselect_routine(sacfiles, plt)
-% [fc, s] = FREQSELECT_ROUTINE(sacfiles)
+% [fc, s] = FREQSELECT_ROUTINE(sacfiles, plt)
 %
 % Figures out the frequency band where the signal stands out the most from
 % the background noise in multiple seismograms.
@@ -12,7 +12,7 @@ function [fc, s] = freqselect_routine(sacfiles, plt)
 % fc            best corner frequency for each seismogram
 % s             best signal-to-noise ratio for each seismogram
 %
-% Last modified by sirawich-at-princeton.edu, 05/26/2022
+% Last modified by sirawich-at-princeton.edu, 10/24/2022
 
 badval = -12345;
 
