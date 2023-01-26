@@ -1,7 +1,7 @@
-function [t_shifts, CCmaxs, fcorners, depthstats, slopestats, peakstats, n, metadata] = ...
+function [t_shifts, CCmaxs, fcorners, snr, depthstats, slopestats, peakstats, n, metadata] = ...
     bathymatter(obsmasterdir, synmasterdir, flatmasterdir, ...
     bathmasterdir, opt, plt)
-% [t_shifts, CCmaxs, fcorners, depthstats, slopestats, peakstats, n, metadata] = ...
+% [t_shifts, CCmaxs, fcorners, snr, depthstats, slopestats, peakstats, n, metadata] = ...
 %     BATHYMATTER(obsmasterdir, synmasterdir, flatmasterdir, ...
 %                 bathmasterdir, opt, plt)
 %
@@ -30,6 +30,7 @@ function [t_shifts, CCmaxs, fcorners, depthstats, slopestats, peakstats, n, meta
 % CCmaxs            Maximum correlation coefficient         [flat, bath]
 % fcorners          corner frequencies used for comparing synthetic and
 %                   observed acoustic pressures
+% snr               best signal-to-noise ratio on the observed waveform
 % depthstats        struct contatining the following fields
 %       depth_mid           depth at the middle of the profile right below
 %                           the hydrophone
@@ -60,7 +61,7 @@ function [t_shifts, CCmaxs, fcorners, depthstats, slopestats, peakstats, n, meta
 % SEE ALSO
 % RUNFLATSIM, COMPARERESPONSEFUNCTIONS
 %
-% Last modified by sirawich-at-princeton.edu, 06/28/2022
+% Last modified by sirawich-at-princeton.edu, 01/24/2023
 
 defval('opt', 2)
 defval('true', plt)
@@ -80,6 +81,7 @@ if plt || ~exist(pname, 'file')
     t_shifts_flat = [];
     t_shifts_bath = [];
     fcorners = [];
+    snr = [];
     depth_mid = [];
     depth_avg = [];
     depth_std = [];
@@ -106,7 +108,7 @@ if plt || ~exist(pname, 'file')
         synfile = cindeks(ls2cell(sprintf('%s%s/*_%s_0_*.sac', ...
             synmasterdir, eventid, stationid), 1), 1);
         try
-            [t_shift1, t_shift2, CCmax1, CCmax2, bath1, bath2, fcs] = ...
+            [t_shift1, t_shift2, CCmax1, CCmax2, bath1, bath2, fcs, s] = ...
                 compareresponsefunctions(obsfile, synfile, ...
                 [allflatdirs{ii} '/'], [allbathdirs{ii} '/'], opt, plt);
             bath1(:,2) = bath1(:,2) - 9600;
@@ -114,6 +116,7 @@ if plt || ~exist(pname, 'file')
             t_shifts_flat(n,1) = t_shift1;
             t_shifts_bath(n,1) = t_shift2;
             fcorners(n,:) = fcs;
+            snr(n) = s;
             CCmaxs_flat(n,1) = CCmax1;
             CCmaxs_bath(n,1) = CCmax2;
             

@@ -1,6 +1,6 @@
-function [t_shift1, t_shift2, CCmax1, CCmax2, bath1, bath2, fcorners] = ...
+function [t_shift1, t_shift2, CCmax1, CCmax2, bath1, bath2, fcorners, snr] = ...
     compareresponsefunctions(obsfile, synfile, ddir1, ddir2, opt, plt, la)
-% [t_shift1, t_shift2, CCmax1, CCmax2, bath1, bath2] = ...
+% [t_shift1, t_shift2, CCmax1, CCmax2, bath1, bath2, fcorners, snr] = ...
 %     compareresponsefunctions(obsfile, synfile, ddir1, ddir2, opt, plt, la)
 %
 % Plot two synthetic pressure records obtained by convolving the synthetic
@@ -38,8 +38,11 @@ function [t_shift1, t_shift2, CCmax1, CCmax2, bath1, bath2, fcorners] = ...
 %               fluid-solid simulation
 % fcorners      corner frequencies used for comparing synthetic and
 %               observed acoustic pressures
+% snr           best-signal to noise ratio given fcorners (only available
+%               for fcorners chosen by FREQSELECT; opt==2. Otherwise, snr 
+%               is set to NaN)
 %
-% Last modified by sirawich-at-princeton.edu, 07/28/2022
+% Last modified by sirawich-at-princeton.edu, 01/26/2023
 
 defval('fopt', 2)
 defval('plt', true)
@@ -63,12 +66,14 @@ pres_o = real(pres_o);
 % determine corner frequency
 if length(opt) == 1 && opt == 1
     fcorners = [1 2];
+    snr = nan;
 elseif length(opt) == 1 && opt == 2
-    fcorners = freqselect(t_relative, pres_o, fs_o, false);
+    [fcorners, snr] = freqselect(t_relative, pres_o, fs_o, false);
     fcorners(1) = max(fcorners(1), 0.05);
     fcorners(2) = min(fcorners(2), 2);
 elseif length(opt) == 2
     fcorners = opt;
+    snr = nan;
 else
     fprintf('ERROR: invalid corner frequency option\n');
     return
