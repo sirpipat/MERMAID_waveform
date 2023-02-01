@@ -31,7 +31,7 @@ function plotsynthetics(obsmasterdir, synmasterdir, specmasterdir, ...
 % SEE ALSO:
 % PLOTRECORDS, ARRAYCCSHIFTPLOT
 %
-% Last modified by sirawich-at-princeton.edu, 10/24/2022
+% Last modified by sirawich-at-princeton.edu, 02/01/2023
 
 defval('op1', 1)
 defval('op2', 1)
@@ -310,21 +310,21 @@ for ii = 1:length(uniqevent)
                 y_values = 1:length(gcarc);
             end
             
-            % plot the seismograms
-            signalplot(pres_o * s_norm + y_values(jj), fs_o, tims_o(1), ...
-                ax2ss, '', [], color_obs, 'LineWidth', 1);
-            hold on
-            signalplot(pres_s * s_norm * s + y_values(jj), fs_o, ...
-                tims_o(1) + t_shift(jj), ax2ss, '', [], color_syn, ...
-                'LineWidth', 1);
-            
             % add ticks indicating a round trip between surface and bottom
             roundtrip_time = 2 * (-hdr_o.STEL) / 1500;
             ticks_x = 0:roundtrip_time:window_plot(2);
             plot(ax2ss, [ticks_x; ticks_x], repmat(y_values(jj) + ...
                 0.035 * ywidth * [-1; 1], 1, length(ticks_x)), ...
                 'Color', color_tick, 'LineWidth', 1.2);
+            hold on
             
+            % plot the seismograms
+            signalplot(pres_o * s_norm + y_values(jj), fs_o, tims_o(1), ...
+                ax2ss, '', [], color_obs, 'LineWidth', 1);
+            signalplot(pres_s * s_norm * s + y_values(jj), fs_o, ...
+                tims_o(1) + t_shift(jj), ax2ss, '', [], color_syn, ...
+                'LineWidth', 1);
+
             ax2ss.Title.String = '';
             ax2ss.XAxis.Visible = 'off';
             ax2ss.YAxis.Visible = 'off';
