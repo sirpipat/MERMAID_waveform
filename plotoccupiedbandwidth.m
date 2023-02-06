@@ -23,8 +23,8 @@ fc_bin_upper = fc_bin_lower + 0.05;
 fc_bin_mid = (fc_bin_lower + fc_bin_upper) / 2;
 
 % construct the containers for occupied bandwidth info
-OB_snr = zeros(size(obs_struct.fcorners,1), size(fc_bin_mid,2));
-OB_cc  = zeros(size(obs_struct.fcorners,1), size(fc_bin_mid,2));
+OB_snr = nan(size(obs_struct.fcorners,1), size(fc_bin_mid,2));
+OB_cc  = nan(size(obs_struct.fcorners,1), size(fc_bin_mid,2));
 
 for ii = 1:size(obs_struct.fcorners,1)
     wh = and(fc_bin_lower - obs_struct.fcorners(ii, 1) >= -epsilon, ...
@@ -42,40 +42,60 @@ end
 % 6. event depth
 % 7. multiple sorting criteria
 
-plotter(OB_snr, OB_cc, fc_bin_mid, (1:size(obs_struct.fcorners,1))', ...
-    'event id and station id', 'nosort');
+bandwidth = obs_struct.fcorners(:,2) - obs_struct.fcorners(:,1);
+lowcorner = obs_struct.fcorners(:,1);
+midband = (obs_struct.fcorners(:,2) + obs_struct.fcorners(:,1)) / 2;
+highcorner = obs_struct.fcorners(:,2);
+[~,~,BAZ_bin] = histcounts(obs_struct.metadata.BAZ, 'BinWidth', 45);
+[~,~,MAG_bin] = histcounts(obs_struct.metadata.MAG, 'BinWidth', 1);
+
+sorting_criteria = [bandwidth, lowcorner, midband, highcorner, ...
+    BAZ_bin, MAG_bin];
+
+[~,I] = sortrows(sorting_criteria, [1 4]);
+plotter(OB_snr, OB_cc, fc_bin_mid, I, ...
+        'occupied bandwidth', 'occupied_bandwidth');
 
 [~,I] = sort(obs_struct.snr);
 plotter(OB_snr, OB_cc, fc_bin_mid, I, ...
     'signal-to-noise ratio', 'snr');
+    
+if false
+    plotter(OB_snr, OB_cc, fc_bin_mid, (1:size(obs_struct.fcorners,1))', ...
+        'event id and station id', 'nosort');
 
-[~,I] = sort(obs_struct.CCmaxs(:,2));
-plotter(OB_snr, OB_cc, fc_bin_mid, I, ...
-    'maximum correlation coefficient', 'cc');
+    [~,I] = sort(obs_struct.snr);
+    plotter(OB_snr, OB_cc, fc_bin_mid, I, ...
+        'signal-to-noise ratio', 'snr');
 
-[~,I] = sort(obs_struct.metadata.MAG);
-plotter(OB_snr, OB_cc, fc_bin_mid, I, ...
-    'event magnitude', 'mag');
+    [~,I] = sort(obs_struct.CCmaxs(:,2));
+    plotter(OB_snr, OB_cc, fc_bin_mid, I, ...
+        'maximum correlation coefficient', 'cc');
 
-[~,I] = sort(obs_struct.metadata.GCARC);
-plotter(OB_snr, OB_cc, fc_bin_mid, I, ...
-    'epicentral distance', 'gcarc');
+    [~,I] = sort(obs_struct.metadata.MAG);
+    plotter(OB_snr, OB_cc, fc_bin_mid, I, ...
+        'event magnitude', 'mag');
 
-[~,I] = sort(obs_struct.metadata.EVDP);
-plotter(OB_snr, OB_cc, fc_bin_mid, I, ...
-    'event depth', 'evdp');
+    [~,I] = sort(obs_struct.metadata.GCARC);
+    plotter(OB_snr, OB_cc, fc_bin_mid, I, ...
+        'epicentral distance', 'gcarc');
 
-[~,I] = sort(obs_struct.metadata.MAG / (obs_struct.metadata.GCARC .^ 2));
-plotter(OB_snr, OB_cc, fc_bin_mid, I, ...
-    'event magnitude / distance^2', 'mag_by_gcarc_squared');
+    [~,I] = sort(obs_struct.metadata.EVDP);
+    plotter(OB_snr, OB_cc, fc_bin_mid, I, ...
+        'event depth', 'evdp');
 
-[~,I] = sort(obs_struct.metadata.USER9);
-plotter(OB_snr, OB_cc, fc_bin_mid, I, ...
-    'ray parameter', 'rayparam');
+    [~,I] = sort(obs_struct.metadata.MAG / (obs_struct.metadata.GCARC .^ 2));
+    plotter(OB_snr, OB_cc, fc_bin_mid, I, ...
+        'event magnitude / distance^2', 'mag_by_gcarc_squared');
 
-[~,I] = sort(-obs_struct.metadata.STEL);
-plotter(OB_snr, OB_cc, fc_bin_mid, I, ...
-    'seafloor depth (shallow to deep)', 'stel');
+    [~,I] = sort(obs_struct.metadata.USER9);
+    plotter(OB_snr, OB_cc, fc_bin_mid, I, ...
+        'ray parameter', 'rayparam');
+
+    [~,I] = sort(-obs_struct.metadata.STEL);
+    plotter(OB_snr, OB_cc, fc_bin_mid, I, ...
+        'seafloor depth (shallow to deep)', 'stel');
+end
 
 end
 
