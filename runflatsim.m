@@ -37,7 +37,7 @@ function outputdirs = runflatsim(sacfile, ddir, specfembin, is_run, keepproc, br
 % SEE ALSO:
 % SPECFEM2D_INPUT_SETUP, RUNTHISEXAMPLE, UPDATEHEADER, UPDATESYNTHETICS
 %
-% Last modified by sirawich-at-princeton.edu, 03/21/2022
+% Last modified by sirawich-at-princeton.edu, 02/08/2023
 
 % specify where you want to keep the simulations input/output files
 defval('ddir', getenv('REMOTE2D'))
@@ -57,7 +57,7 @@ fs = 1 / HdrData.DELTA;
 
 %% compute the incident angle
 if HdrData.USER9 ~= badval
-    theta = atan(HdrData.USER9 * 3.4 / (6371-8.88)) * 180 / pi;
+    theta = asin(HdrData.USER9 * 3.4 / (6371-8.88)) * 180 / pi;
 else
     % compute theoretical travel times at the ocean bottom below MERMAID.
     % [lat lon] of the receiver is slightly shifted if incident angle is not
@@ -94,7 +94,7 @@ else
     [~, is] = sort(tp);
     tt = tt(is);
     
-    theta = atan(tt(1).rayParam * 3.4 / (6371-8.88)) * 180 / pi;
+    theta = asin(tt(1).rayParam * 3.4 / (6371-8.88)) * 180 / pi;
 end
 
 % create a name for the output directories

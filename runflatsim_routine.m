@@ -40,7 +40,7 @@ function outputdirs = runflatsim_routine(obsmasterdir, synmasterdir, i_begin, i_
 % SEE ALSO:
 % RUNFLATSIM, CCTRANSPLOT, COMPAREPRESSURE
 %
-% Last modified by sirawich-at-princeton.edu, 07/28/2022
+% Last modified by sirawich-at-princeton.edu, 02/08/2023
 
 defval('obsmasterdir', '/home/sirawich/research/processed_data/MERMAID_reports_updated/')
 defval('synmasterdir', '/home/sirawich/research/SYNTHETICS/')
@@ -89,7 +89,7 @@ for ii = i_begin:i_end
                 
                 % compute the incident angle
                 if hdr_s.USER9 ~= badval
-                    theta = atan(hdr_s.USER9 * 3.4 / (6371-8.88)) * 180 / pi;
+                    theta = asin(hdr_s.USER9 * 3.4 / (6371-8.88)) * 180 / pi;
                 else
                     % compute theoretical travel times at the ocean bottom below MERMAID.
                     % [lat lon] of the receiver is slightly shifted if incident angle is not
@@ -126,7 +126,7 @@ for ii = i_begin:i_end
                     [~, is] = sort(tp);
                     tt = tt(is);
 
-                    theta = atan(tt(1).rayParam * 3.4 / (6371-8.88)) * 180 / pi;
+                    theta = asin(tt(1).rayParam * 3.4 / (6371-8.88)) * 180 / pi;
                 end
                 
                 if hdr_s.STDP == badval
