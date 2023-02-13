@@ -13,7 +13,7 @@ function loadbackup(n)
 % SEE ALSO:
 % BACKUP
 % 
-% Last modified by sirawich-at-princeton.edu, 05/31/2022
+% Last modified by sirawich-at-princeton.edu, 02/13/2023
 
 defval('n', 1)
 fname = sprintf('%sbackup/backup_%02d.mat', getenv('MFILES'), n);
@@ -30,5 +30,6 @@ function showloadedvars(fname)
     fprintf('Loading %s\n\n', fname);
     fprintf('List of loaded variables\n')
     load(fname);
+    clear fname       % do not show variable fname on the list
     whos
 end
