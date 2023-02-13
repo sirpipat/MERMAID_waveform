@@ -49,8 +49,29 @@ highcorner = obs_struct.fcorners(:,2);
 [~,~,BAZ_bin] = histcounts(obs_struct.metadata.BAZ, 'BinWidth', 45);
 [~,~,MAG_bin] = histcounts(obs_struct.metadata.MAG, 'BinWidth', 1);
 
+polarity = nan(size(obs_struct.snr));
+for ii = 1:length(obs_struct.snr)
+    try
+        cmtp = cmtpolarity([obs_struct.cmt.Mrr(ii), ...
+            obs_struct.cmt.Mtt(ii), obs_struct.cmt.Mpp(ii), ...
+            obs_struct.cmt.Mrt(ii), obs_struct.cmt.Mrp(ii), ...
+            obs_struct.cmt.Mtp(ii)], obs_struct.cmt.Dep(ii), ...
+            obs_struct.metadata.AZ(ii), obs_struct.metadata.USER9(ii), ...
+            'ak135', strcmp('P', indeks(obs_struct.metadata.KT0{ii})));
+        if abs(imag(cmtp)) < 1e-8
+            polarity(ii) = cmtp;
+        else
+            polarity(ii) = nan;
+        end
+    catch
+        polarity(ii) = nan;
+        continue
+    end
+end
+[~,~,POL_bin] = histcounts(polarity, [-1.0 -0.6 -0.2 0.2 0.6 1.0]);
+
 sorting_criteria = [bandwidth, lowcorner, midband, highcorner, ...
-    BAZ_bin, MAG_bin];
+    BAZ_bin, MAG_bin, POL_bin];
 
 [~,I] = sortrows(sorting_criteria, [1 4]);
 plotter(OB_snr, OB_cc, fc_bin_mid, I, ...
@@ -59,6 +80,14 @@ plotter(OB_snr, OB_cc, fc_bin_mid, I, ...
 [~,I] = sort(obs_struct.snr);
 plotter(OB_snr, OB_cc, fc_bin_mid, I, ...
     'signal-to-noise ratio', 'snr');
+
+[~,I] = sortrows(sorting_criteria, 5);
+plotter(OB_snr, OB_cc, fc_bin_mid, I, ...
+        'back azimuth', 'back_azimuth');
+
+[~,I] = sortrows(sorting_criteria, 7);
+plotter(OB_snr, OB_cc, fc_bin_mid, I, ...
+        'polarity', 'polarity');
     
 if false
     plotter(OB_snr, OB_cc, fc_bin_mid, (1:size(obs_struct.fcorners,1))', ...
@@ -141,9 +170,9 @@ function plotter(OB_snr, OB_cc, fc_bin_mid, sortindex, sortedby, savename)
     axt.XAxis.Visible = 'off';
 
     % save the figure
-    set(gcf, 'Renderer', 'opengl')
-    filename = sprintf('%s_%s_opengl.eps', mfilename, savename);
-    figdisp(filename, [], '-r1200', 2, [], 'epstopdf');
+%     set(gcf, 'Renderer', 'opengl')
+%     filename = sprintf('%s_%s_opengl.eps', mfilename, savename);
+%     figdisp(filename, [], '-r1200', 2, [], 'epstopdf');
     
     set(gcf, 'Renderer', 'painters')
     filename = sprintf('%s_%s.eps', mfilename, savename);
