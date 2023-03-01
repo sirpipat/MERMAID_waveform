@@ -4,6 +4,8 @@ function plotpolaritymap(evla, evlo, evdp, model, M, savename, options)
 % Plots the polarity of P, SV, and SH waves on the map of a given moment
 % tensor.
 %
+% see Dahlen and Tromp, Theoretical Global Seismology, 1998 page 529
+%
 % INPUT:
 % evla      event latitude
 % evlo      event longitude
@@ -148,11 +150,13 @@ if ~exist(pname, 'file')
                 v = [ cos(theta_rad); -sin(theta_rad) * cos(azim_rad); ...
                     sin(theta_rad) * sin(azim_rad)];
             end
+            % polarization unit vectors
             np = v;
             nsh = cross(v, [1 0 0]') / norm(cross(v, [1 0 0]'), 2);
             nsv = cross(nsh, np);
 
             % compute radiation pattern
+            % Dahlen and Tromp, Theoretical Global Seismology, 1998 page 529 Eq. 12.262
             M0 = sqrt(sum(sum(MM .* MM)) / 2);
             fp(ii,jj) = v' * (MM / M0) * np;
             fsv(ii,jj) = 1/2 * (v' * (MM / M0) * nsv + nsv' * (MM / M0) * v);

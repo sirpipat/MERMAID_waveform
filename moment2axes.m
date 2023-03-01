@@ -3,6 +3,9 @@ function [t, p, b, M0] = moment2axes(M)
 %
 % Computes the principal axes of the moment tensor.
 %
+% see Jost and Herrmann, A Student's Guide to and Review of Moment Tensors
+% (1989) Equation 21
+%
 % INPUT:
 % M             moment tensor (3x3 matrix)
 %
@@ -15,7 +18,7 @@ function [t, p, b, M0] = moment2axes(M)
 % SEE ALSO:
 % MOMENT2SLIP
 %
-% Last modified by sirawich-at-princeton.edu: 02/22/2023
+% Last modified by sirawich-at-princeton.edu: 03/01/2023
 
 %% Part I : determine the scalar magnitude and then normalize
 M0 = sqrt(sum(M.^2, 'all') / 2);
