@@ -1,4 +1,4 @@
-function fig = pp2023figure5
+function varargout = pp2023figure5
 % fig = PP2023FIGURE5
 %
 % Makes figure 5 of Pipatprathanporn+2023 containing the source-receiver
@@ -7,7 +7,7 @@ function fig = pp2023figure5
 % OUTPUT:
 % fig       figure handle to the plots
 %
-% Last modified by sirawich-at-princeton.edu: 03/20/2023
+% Last modified by sirawich-at-princeton.edu: 03/23/2023
 
 %% Load data
 obsfiles = allfile(sprintf('%sDATA/Figure5/observed/10996154/', ...
@@ -146,14 +146,16 @@ text(ax1b12, 0.17, 0.47, '12');
 %% bathymetry of all trajectory
 ax2 = subplot('Position', [0.54 0.51 0.38 0.47]);
 hold on
-y_elev = nan(n, 1);
+y_elev_left = nan(n, 1);
+y_elev_right = nan(n, 1);
 for ii = 1:n
     [x, z] = bathymetryprofile(20000, 401, [stlo(ii) stla(ii)], ...
         mod(metadata_o.BAZ(ii) + 180, 360));
     x = (x - 10000) / 1000;
     z = z - metadata_o.STEL(ii);
     z = z / 2000;
-    y_elev(ii) = interp1(x, z, -9) + n + 1 - ii;
+    y_elev_left(ii) = interp1(x, z, -9) + n + 1 - ii;
+    y_elev_right(ii) = interp1(x, z, 9) + n + 1 - ii;
     if ii == i_example
         plot(x, z + n + 1 - ii, 'LineWidth', 2, 'Color', 'k');
     else
@@ -163,10 +165,12 @@ end
 grid on
 ax2.YTick = 1:n;
 % add label
-x_label = ones(n,1) * (-9.25);
-y_label = y_elev + 0.2;
-scatter(ax2, x_label, y_label, 60, (1:n)', 'filled', 'Marker', 'v', ...
-    'MarkerEdgeColor', 'k');
+x_label_left = ones(n,1) * (-9.25);
+y_label_left = y_elev_left + 0.2;
+x_label_right = ones(n,1) * 9.25;
+y_label_right = y_elev_right + 0.2;
+scatter(ax2, x_label_right, y_label_right, 60, (1:n)', 'filled', ...
+    'Marker', 'v', 'MarkerEdgeColor', 'k');
 colormap(ax2, cmap);
 
 % depth label
@@ -175,7 +179,7 @@ text(ax2, ones(n,1) * (-1.5), n + 1 - (1:n)' - 0.2, ...
     string(-metadata_o.STEL) + ' m');
 
 % distance label
-text(ax2, x_label - 0.4, y_label - 0.35, ...
+text(ax2, x_label_left - 0.4, y_label_left - 0.35, ...
     '\Delta = ' + string(round(metadata_o.GCARC, 2)) + '^{\circ}');
 
 % elevation scale
@@ -214,43 +218,44 @@ b_relfect = 5000;
 d = metadata_o.STDP(i_example);
 theta_f = asin(metadata_s.USER9(i_example) * 1.5 / (6371 - b_relfect/1000));
 theta_s = asin(metadata_s.USER9(i_example) * 3.4 / (6371 - b_relfect/1000));
+[x, z] = bathymetryprofile(20000, 401, [stlo(i_example) stla(i_example)], ...
+        mod(metadata_o.BAZ(i_example) + 180, 360));
 
 % plot paths in the ocean layer
 xu = [0 d+(-b_relfect)*(1:11)] * tan(theta_f) + 10000;
-zu = 9600 - [d 0.5*b_relfect*(1-(-1).^(1:11))];
+bu_profile = interp1(x, -z, xu(2:end));
+zu = 9600 - [d 0.5*bu_profile.*(1-(-1).^(1:11))];
 plot(ax3, xu, zu, 'LineWidth', 2, 'Color', csscolor('lightgreen'));
 xd = [0, -d-b_relfect*(0:11)] * tan(theta_f) + 10000;
-zd = 9600 - [d 0.5*b_relfect*(1+(-1).^(1:12))];
+bd_profile = interp1(x, -z, xd(2:end));
+zd = 9600 - [d 0.5*bd_profile.*(1+(-1).^(1:12))];
 plot(ax3, xd, zd, 'LineWidth', 2, 'Color', csscolor('salmon'));
 
 % plot paths in the solid earth
 xub = xu(2:2:end);
-xu0 = xub - 2 * (9600 - b_relfect) * tan(theta_s);
+xu0 = xub - 2 * zu(2:2:end) * tan(theta_s);
 xus = [xub; xu0; nan(size(xub))];
 xus = reshape(xus, [1 numel(xus)]);
 zus = [zu(2:2:end); zeros(size(zu(2:2:end))); nan(size(zu(2:2:end)))];
 zus = reshape(zus, [1 numel(zus)]);
 plot(ax3, xus, zus, 'LineWidth', 2, 'Color', csscolor('lightgreen'));
 xdb = xd(3:2:end);
-xd0 = xdb - 2 * (9600 - b_relfect) * tan(theta_s);
+xd0 = xdb - 2 * zd(3:2:end) * tan(theta_s);
 xds = [xdb; xd0; nan(size(xub))];
 xds = reshape(xds, [1 numel(xds)]);
-zds = zus;
+zds = [zd(3:2:end); zeros(size(zd(3:2:end))); nan(size(zd(3:2:end)))];
+zds = reshape(zds, [1 numel(zds)]);
 plot(ax3, xds, zds, 'LineWidth', 2, 'Color', csscolor('salmon'));
 
 % plot mermaid icon
-mermaid_pole_shade = plot(ax3, [10000 10000], [10120 9080] - d, ...
-    'LineWidth', 4.5, 'Color', 'k');
-mermaid_pole = plot(ax3, [10000 10000], [10100 9100] - d, ...
-    'LineWidth', 3.5, 'Color', csscolor('orange'));
-mermaid_ball = scatter(ax3, 10000, 9600 - d, 160, ...
-    csscolor('orange'), 'filled', 'Marker', 'o', ...
+mermaid = scatter(ax3, 10000, 9600 - d, 160, ...
+    cmap(i_example), 'filled', 'Marker', 'v', ...
     'MarkerEdgeColor', 'k');
 
 % OBS icon
 obs = scatter(ax3, 10000, 9600 - b, 160, x11color('salmon2'), 'filled', ...
-    'Marker', '^', 'LineWidth', 1, 'MarkerFaceColor', [0.75 0.2 0.9], ...
-    'MarkerEdgeColor', [0.9 0.9 0.1]);
+    'Marker', '^', 'LineWidth', 1, 'MarkerFaceColor', 'w', ...
+    'MarkerEdgeColor', 'k');
 
 ax3.XTickLabel = -10:2:10;
 ax3.XLabel.String = 'distance along profile (km)';
@@ -261,7 +266,7 @@ ax3.YLabel.String = 'depth (km)';
 set(gcf, 'Renderer', 'painters')
 
 if nargout > 0
-    fig = gcf;
+    varargout{1} = gcf;
 end
 
 %% Save
