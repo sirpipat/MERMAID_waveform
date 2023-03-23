@@ -18,8 +18,6 @@ synfiles = allfile(sprintf('%sDATA/Figure5/synthetic/10996154/', ...
 metadata_o = getheaderarray(obsfiles);
 metadata_s = getheaderarray(synfiles);
 
-% ddir = '/Users/sirawich/research/remote_specfem2d/flat_11104502_P0024/';
-% name = 'flat_11104502_P0024';
 ddir = '/Users/sirawich/research/remote_specfem2d/flat_10996154_P0009/';
 name = 'flat_10996154_P0009';
 
@@ -39,7 +37,7 @@ set(gcf, 'Units', 'inches', 'Position', [0 1 8 8])
 clf
 
 % source-receivers map
-ax1 = subplot('Position', [0.04 0.47 0.42 0.51]);
+ax1 = subplot('Position', [0.04 0.53 0.42 0.45]);
 
 stlo = mod(metadata_o.STLO, 360);
 stla = metadata_o.STLA;
@@ -117,7 +115,8 @@ set(ax1, 'Box', 'on', 'TickDir', 'out', 'FontSize', 12)
 
 ax1s.XLim = ax1.XLim;
 ax1s.YLim = ax1.YLim;
-ax1s.Position = [0.04 0.5915 0.42 0.381];
+ax1s.DataAspectRatio = [1 1 1];
+ax1s.Position = ax1.Position;
 ax1s.XAxis.Visible = 'off';
 ax1s.YAxis.Visible = 'off';
 set(ax1s, 'Box', 'on', 'TickDir', 'out', 'FontSize', 12, 'Color', 'none')
@@ -130,21 +129,22 @@ addfocalmech(ax1b, [evlo evla], 'PublicID', ...
 ax1b.XAxis.Visible = 'off';
 ax1b.YAxis.Visible = 'off';
 ax1b.Color = 'none';
+ax1b.DataAspectRatio = [1 1 1];
 
 % text label
 ax1b08 = addbox(ax1s, [0.51 0.4 1/15 1/16]);
 text(ax1b08, 0.17, 0.47, '08');
-ax1b09 = addbox(ax1s, [0.59 0.56 1/15 1/16]);
+ax1b09 = addbox(ax1s, [0.57 0.56 1/15 1/16]);
 text(ax1b09, 0.17, 0.47, '09');
-ax1b10 = addbox(ax1s, [0.68 0.38 1/15 1/16]);
+ax1b10 = addbox(ax1s, [0.64 0.38 1/15 1/16]);
 text(ax1b10, 0.17, 0.47, '10');
-ax1b11 = addbox(ax1s, [0.78 0.49 1/15 1/16]);
+ax1b11 = addbox(ax1s, [0.72 0.49 1/15 1/16]);
 text(ax1b11, 0.17, 0.47, '11');
-ax1b12 = addbox(ax1s, [0.88 0.37 1/15 1/16]);
+ax1b12 = addbox(ax1s, [0.81 0.37 1/15 1/16]);
 text(ax1b12, 0.17, 0.47, '12');
 
 %% bathymetry of all trajectory
-ax2 = subplot('Position', [0.54 0.51 0.38 0.47]);
+ax2 = subplot('Position', [0.54 0.57 0.38 0.41]);
 hold on
 y_elev_left = nan(n, 1);
 y_elev_right = nan(n, 1);
@@ -199,15 +199,13 @@ ax2s.YLabel.String = 'azimuth (degrees)';
 set(ax2s, 'Box', 'on', 'TickDir', 'out', 'FontSize', 12, 'Color', 'none')
 
 %% SPECFEM2D setting of the selected path
-ax3 = subplot('Position', [0.08 0.07 0.88 0.36]);
+ax3 = subplot('Position', [0.08 0.07 0.88 0.42]);
 
-% create a figure using drawsetting and then copy to here
-drawsetting(ddir, name, [], [], false);
-fig = gcf;
-copyobj(fig.Children.Children, ax3);
+% draw the seafloor setting
+interfacefile = [ddir 'DATA/interfaces_' name '.dat'];
+ax3 = drawbackground(interfacefile, ax3);
 ax3.Children(end-1).FaceColor = [0.3 0.6 0.8];
 set(ax3, 'XLim', [0 20000], 'YLim', [0 9600]);
-delete(fig);
 
 set(ax3, 'Box', 'on', 'TickDir', 'out', 'FontSize', 12, ...
     'DataAspectRatio', [1 1 1])
