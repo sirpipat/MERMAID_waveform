@@ -7,7 +7,7 @@ function varargout = pp2023figure5
 % OUTPUT:
 % fig       figure handle to the plots
 %
-% Last modified by sirawich-at-princeton.edu: 03/23/2023
+% Last modified by sirawich-at-princeton.edu: 03/29/2023
 
 %% Load data
 obsfiles = allfile(sprintf('%sDATA/Figure5/observed/10996154/', ...
@@ -24,6 +24,11 @@ name = 'flat_10996154_P0009';
 % number of MERMAID floats
 n = length(metadata_o.STLO);
 i_example = 2;
+
+% constants
+vp = 3400;   % P-wave speed in the crust in m/s
+vw = 1500;   % acoustic wave speed in water in m/s
+dt = 0.5; % wave front spacing in seconds
 
 % MERMAID number
 stnm = nan(size(metadata_o.STLO));
@@ -231,19 +236,68 @@ plot(ax3, xd, zd, 'LineWidth', 2, 'Color', csscolor('salmon'));
 
 % plot paths in the solid earth
 xub = xu(2:2:end);
-xu0 = xub - 2 * zu(2:2:end) * tan(theta_s);
+xu0 = xub - zu(2:2:end) * tan(theta_s);
 xus = [xub; xu0; nan(size(xub))];
 xus = reshape(xus, [1 numel(xus)]);
 zus = [zu(2:2:end); zeros(size(zu(2:2:end))); nan(size(zu(2:2:end)))];
 zus = reshape(zus, [1 numel(zus)]);
 plot(ax3, xus, zus, 'LineWidth', 2, 'Color', csscolor('lightgreen'));
 xdb = xd(3:2:end);
-xd0 = xdb - 2 * zd(3:2:end) * tan(theta_s);
-xds = [xdb; xd0; nan(size(xub))];
+xd0 = xdb - zd(3:2:end) * tan(theta_s);
+xds = [xdb; xd0; nan(size(xdb))];
 xds = reshape(xds, [1 numel(xds)]);
 zds = [zd(3:2:end); zeros(size(zd(3:2:end))); nan(size(zd(3:2:end)))];
 zds = reshape(zds, [1 numel(zds)]);
 plot(ax3, xds, zds, 'LineWidth', 2, 'Color', csscolor('salmon'));
+
+% wavefronts in the solid earth
+xw0 = 1000:(vp*dt/sin(theta_s)):((9600+z(end)) / tan(theta_s) + 20000);
+slope = -tan(theta_s);
+xws = [];
+zws = [];
+xwb = [];
+zwb = [];
+for ii = 1:length(xw0)
+    p = pierce(slope, [xw0(ii) 0], [x 9600+z], 'linear', 0.01);
+    if isempty(p)
+        xws = [xws; xw0(ii); 0; nan];
+        zws = [zws; 0; xw0(ii) * tan(theta_s); nan];
+    else
+        xws = [xws; xw0(ii); p(end,1); nan];
+        zws = [zws; 0; p(end,2); nan];
+        xwb = [xwb; p(1,1)];
+        zwb = [zwb; p(1,2)];
+    end
+end
+plot(ax3, xws, zws, 'LineWidth', 1, 'Color', csscolor('white'));
+
+% wavefront in the water
+xw = [];
+zw = [];
+for ii = 1:length(xwb)
+    p = pierce(-tan(theta_f), [xwb(ii) zwb(ii)], [x 9600+z], 'linear', 0.01);
+    if or(size(p, 1) <= 1, p(1, 1) >= xwb(ii))
+        xw = [xw; xwb(ii); 0; nan];
+        zw = [zw; zwb(ii); zwb(ii) + tan(theta_f) * xwb(ii); nan];
+    else
+        % find where the wave interesct the interface to the left
+        [xin, iin] = max(p((p(:,1) < xwb(ii)),1));
+        xw = [xw; xwb(ii); xin; nan];
+        zw = [zw; zwb(ii); p(iin,2); nan];
+    end
+end
+zw_more_left = zw(end-1):(vw*dt/cos(theta_f)):(20000 * tan(theta_f) + 9600);
+zw_more_left = zw_more_left(2:end)';
+xw_more_left = zeros(size(zw_more_left));
+zw_more_right = zw_more_left - 20000 * tan(theta_f);
+xw_more_right = ones(size(zw_more_right)) * 20000;
+zw_more = [zw_more_left zw_more_right nan(size(zw_more_left))];
+zw_more = reshape(zw_more', [numel(zw_more) 1]);
+xw_more = [xw_more_left xw_more_right nan(size(xw_more_left))];
+xw_more = reshape(xw_more', [numel(xw_more) 1]);
+xw = [xw; xw_more];
+zw = [zw; zw_more];
+plot(ax3, xw, zw, 'LineWidth', 1, 'Color', csscolor('white'));
 
 % plot mermaid icon
 mermaid = scatter(ax3, 10000, 9600 - d, 160, ...
