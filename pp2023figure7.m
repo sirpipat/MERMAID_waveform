@@ -10,17 +10,17 @@ function varargout = pp2023figure7
 %% load data
 
 % SPECFEM-vertical displacement
-file_s = '/Users/sirawich/research/remote_specfem2d/flat_10996154_P0009/OUTPUT_FILES/AB.S0001.BXZ.semd';
+ddir = sprintf('%sDATA/Figure7/bathymetry/', getenv('MERMAID2'));
+file_s = [ddir 'OUTPUT_FILES/AB.S0001.BXZ.semd'];
 [t_s, x_s] = read_seismogram(file_s);
 % SPECFEM-pressure
-file_p = '/Users/sirawich/research/remote_specfem2d/flat_10996154_P0009/OUTPUT_FILES/AA.S0001.PRE.semp';
+file_p = [ddir 'OUTPUT_FILES/AA.S0001.PRE.semp'];
 [t_p, x_p] = read_seismogram(file_p);
 
 %% calculations
 fs = 1 / (t_s(2) - t_s(1));
 
 % response function
-ddir = '/Users/sirawich/research/remote_specfem2d/flat_10996154_P0009/';
 [t_cc, cc, t_rf, rf, d] = cctransplot(ddir, ddir, 'flat_10996154_P0009', ...
     {'bottom', 'displacement'}, {'hydrophone', 'pressure'}, [], fs, false);
 
