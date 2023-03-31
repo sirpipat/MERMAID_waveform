@@ -118,6 +118,8 @@ xlabel('longitude (degrees)')
 ylabel('latitude (degrees)')
 set(ax1, 'Box', 'on', 'TickDir', 'out', 'FontSize', 12)
 
+boxedlabel(ax1, 'northwest', 0.3, [], 'a', 'FontSize', 14);
+
 ax1s.XLim = ax1.XLim;
 ax1s.YLim = ax1.YLim;
 ax1s.DataAspectRatio = [1 1 1];
@@ -187,9 +189,12 @@ text(ax2, ones(n,1) * (-1.5), n + 1 - (1:n)' - 0.2, ...
 text(ax2, x_label_left - 0.4, y_label_left - 0.35, ...
     '\Delta = ' + string(round(metadata_o.GCARC, 2)) + '^{\circ}');
 
-% elevation scale
-plot(ax2, [5 5], [2 2.5], 'k', 'LineWidth', 2)
-text(ax2, 5.5, 2.3, '2000 m')
+% elevation scale bar
+pgon1 = polyshape([4.8 5.2 5.2 4.8], [2.7 2.7 2.45 2.45]);
+plot(ax2, pgon1, 'FaceColor', 'k', 'FaceAlpha', 1);
+pgon2 = polyshape([4.8 5.2 5.2 4.8], [2.45 2.45 2.2 2.2]);
+plot(ax2, pgon2, 'FaceColor', 'w', 'FaceAlpha', 1);
+text(ax2, 5.5, 2.5, '2000 m')
 
 ax2.YLim = [0.5 n+0.5];
 ax2.YTickLabel = flip(stnm);
@@ -202,6 +207,8 @@ ax2s.XAxis.Visible = 'off';
 ax2s.YTickLabel = round(flip(mod(metadata_o.BAZ + 180, 360)), 0);
 ax2s.YLabel.String = 'azimuth (degrees)';
 set(ax2s, 'Box', 'on', 'TickDir', 'out', 'FontSize', 12, 'Color', 'none')
+
+boxedlabel(ax2, 'northwest', 0.3, [], 'b', 'FontSize', 14);
 
 %% SPECFEM2D setting of the selected path
 ax3 = subplot('Position', [0.08 0.07 0.88 0.42]);
@@ -315,13 +322,24 @@ ax3.YTick = [0 1600:2000:9600];
 ax3.YTickLabel = {'9.6', '8.0', '6.0', '4.0', '2.0', '0.0'}';
 ax3.YLabel.String = 'depth (km)';
 
+
+% wavespeed label
+axcp = addbox(ax3, [0.8 0.04 0.17 0.1]);
+text(axcp, 0.05, 0.5, 'c_p = 3400 m/s', 'FontSize', 12);
+axcw = addbox(ax3, [0.8 0.86 0.17 0.1]);
+text(axcw, 0.05, 0.5, 'c_w = 1500 m/s', 'FontSize', 12);
+
+boxedlabel(ax3, 'northwest', 0.3, [], 'c', 'FontSize', 14);
+
+axes(axcp)
+axes(axcw)
+
 set(gcf, 'Renderer', 'painters')
+%% Save
+figname = sprintf('%s.eps', mfilename);
+figdisp(figname, [], [], 2, [], 'epstopdf');
 
 if nargout > 0
     varargout{1} = gcf;
 end
-
-%% Save
-figname = sprintf('%s.eps', mfilename);
-figdisp(figname, [], [], 2, [], 'epstopdf');
 end
