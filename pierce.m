@@ -9,13 +9,13 @@ function p = pierce(m, x0, x, method, precision)
 % m             slope of the straight line
 % [x0 y0]       xy-coordinate of a point on a line
 % [xi yi]       xy-coordinate of points on an interface
-% method        interpolation method
-% precision
+% method        interpolation method    [Default: 'linear']
+% precision     precision of the output [Default: 0.01]
 %
 % OUTPUT:
 % p             xy-coordinate of the piercing point(s)
 %
-% Last modified by sirawich-at-princeton.edu: 03/28/2023
+% Last modified by sirawich-at-princeton.edu: 04/04/2023
 
 defval('method', 'linear')
 defval('precision', 0.01)
