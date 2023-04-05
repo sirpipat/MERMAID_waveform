@@ -6,7 +6,7 @@ function varargout = pp2023figure8
 % OUTPUT:
 % fig       figure handle to the plots
 %
-% Last modified by sirawich-at-princeton.edu: 04/04/2023
+% Last modified by sirawich-at-princeton.edu: 04/05/2023
 
 %% load data
 
@@ -79,19 +79,23 @@ plot(ax1, t_relative, pres_o / max(abs(pres_o)), 'LineWidth', 1, 'Color', 'k')
 grid on
 
 % label traces
-text(ax1, -9, 4.6, 'synthetic displacement (s)', 'FontSize', 14)
-text(ax1, -9, 2.6, 'synthetic pressure (p* = s*r)', 'FontSize', 14)
-text(ax1, -9, 0.8, 'observed pressure', 'FontSize', 14)
+text(ax1, -9, 4.6, 'synthetic displacement ($$s$$)', ...
+    'FontSize', 16, 'Interpreter', 'latex')
+text(ax1, -9, 2.6, 'synthetic pressure ($$\hat{p} = s*r$$)', ...
+    'FontSize', 16, 'Interpreter', 'latex')
+text(ax1, -9, 0.8, 'observed pressure', ...
+    'FontSize', 16, 'Interpreter', 'latex')
 
 % label scale
-scalelabel = sprintf('( x %.2g} m )', max(abs(seis_s_interp)));
+scalelabel = sprintf('( $$\\tims %.2g}$$ m )', max(abs(seis_s_interp)));
 scalelabel = replace(scalelabel, 'e', '\times 10^{');
+scalelabel = replace(scalelabel, 'tims', 'times');
 scalelabel = replace(scalelabel, '-0', '-');
-text(ax1, 5, 4.6, scalelabel, 'FontSize', 12)
-scalelabel = sprintf('( x %.2g Pa )', max(abs(pres_s)));
-text(ax1, 5, 2.6, scalelabel, 'FontSize', 12)
-scalelabel = sprintf('( x %.2g Pa )', max(abs(pres_o)));
-text(ax1, 5, 0.8, scalelabel, 'FontSize', 12)
+text(ax1, 5, 4.6, scalelabel, 'FontSize', 14, 'Interpreter', 'latex')
+scalelabel = sprintf('( $$\\times %.2g$$ Pa )', max(abs(pres_s)));
+text(ax1, 5, 2.6, scalelabel, 'FontSize', 14, 'Interpreter', 'latex')
+scalelabel = sprintf('( $$\\times %.2g$$ Pa )', max(abs(pres_o)));
+text(ax1, 5, 0.8, scalelabel, 'FontSize', 14, 'Interpreter', 'latex')
 
 xlim([-10 25])
 ylim([-1.5 5.5])

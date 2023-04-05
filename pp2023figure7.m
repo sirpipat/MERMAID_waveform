@@ -6,7 +6,7 @@ function varargout = pp2023figure7
 % OUTPUT:
 % fig       figure handle to the plots
 %
-% Last modified by sirawich-at-princeton.edu: 04/04/2023
+% Last modified by sirawich-at-princeton.edu: 04/05/2023
 %% load data
 
 % SPECFEM-vertical displacement (template)
@@ -45,17 +45,22 @@ xlabel('time (s)')
 yticks([])
 
 % label graph
-text(ax1, 20, 0.4, 's: displacement at ocean bottom', 'FontSize', 12)
-text(ax1, 20, -1.1, 'p: pressure at hydrophone', 'FontSize', 12)
-text(ax1, 15, -2.9, 'p* = s*r: estimated pressure at hydrophone', 'FontSize', 12, 'Color', 'r')
+text(ax1, 17, 0.4, 'displacement at ocean bottom ($$s$$)', ...
+    'FontSize', 14, 'Interpreter', 'latex')
+text(ax1, 19.5, -1.1, 'pressure at hydrophone ($$p$$)', ...
+    'FontSize', 14, 'Interpreter', 'latex')
+text(ax1, 13, -3.0, 'estimated pressure at hydrophone ($$\hat{p} = s*r$$)', ...
+    'FontSize', 14, 'Color', 'r', 'Interpreter', 'latex')
 
 % label scale
-scalelabel = sprintf('( x %.2g} )', max(abs(x_s)));
+scalelabel = sprintf('( $$x %.2g}$$ )', max(abs(x_s)));
 scalelabel = replace(scalelabel, 'e', '\times 10^{');
-text(ax1, 3, 0.4, scalelabel, 'FontSize', 12)
-scalelabel = sprintf('( x %.2g} )', max(abs(x_p)));
+scalelabel = replace(scalelabel, 'x', '\times');
+text(ax1, 3, 0.4, scalelabel, 'FontSize', 14, 'Interpreter', 'latex')
+scalelabel = sprintf('( $$x %.2g}$$ )', max(abs(x_p)));
 scalelabel = replace(scalelabel, 'e', '\times 10^{');
-text(ax1, 3, -3.2, scalelabel, 'FontSize', 12)
+scalelabel = replace(scalelabel, 'x', '\times');
+text(ax1, 3, -3.2, scalelabel, 'FontSize', 14, 'Interpreter', 'latex')
 
 set(ax1, 'Box', 'on', 'FontSize', 12, 'TickDir', 'out')
 
@@ -70,15 +75,17 @@ xlabel('time (s)')
 yticks([])
 
 % label graph
-text(ax2, 20, 0.7, 'r = s/p: response function', 'FontSize', 12)
+text(ax2, 19.3, 0.7, 'response function ($$r = s/p$$)', ...
+    'FontSize', 14, 'Interpreter', 'latex')
 
 % label scale
-scalelabel = sprintf('( x %.2g} )', max(abs(rf)));
+scalelabel = sprintf('( $$x %.2g}$$ )', max(abs(rf)));
 scalelabel = replace(scalelabel, 'e', '\times 10^{');
 scalelabel = replace(scalelabel, '+0', '');
-text(ax2, 3, 0.8, scalelabel, 'FontSize', 12)
+scalelabel = replace(scalelabel, 'x', '\times');
+text(ax2, 3, 0.8, scalelabel, 'FontSize', 14, 'Interpreter', 'latex')
 
-set(ax2, 'Box', 'on', 'FontSize', 12, 'TickDir', 'out')
+set(ax2, 'Box', 'on', 'FontSize', 14, 'TickDir', 'out')
 
 boxedlabel(ax2, 'northwest', 0.28, [], 'b', 'FontSize', 14);
 
