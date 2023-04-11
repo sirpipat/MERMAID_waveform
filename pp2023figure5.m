@@ -7,7 +7,7 @@ function varargout = pp2023figure5
 % OUTPUT:
 % fig       figure handle to the plots
 %
-% Last modified by sirawich-at-princeton.edu: 03/29/2023
+% Last modified by sirawich-at-princeton.edu: 04/11/2023
 
 %% Load data
 obsfiles = allfile(sprintf('%sDATA/Figure5/observed/10996154/', ...
@@ -276,7 +276,7 @@ for ii = 1:length(xw0)
         zwb = [zwb; p(1,2)];
     end
 end
-plot(ax3, xws, zws, 'LineWidth', 1, 'Color', csscolor('white'));
+plot(ax3, xws, zws, 'LineWidth', 0.5, 'Color', csscolor('white'));
 
 % wavefront in the water
 xw = [];
@@ -304,7 +304,7 @@ xw_more = [xw_more_left xw_more_right nan(size(xw_more_left))];
 xw_more = reshape(xw_more', [numel(xw_more) 1]);
 xw = [xw; xw_more];
 zw = [zw; zw_more];
-plot(ax3, xw, zw, 'LineWidth', 1, 'Color', csscolor('white'));
+plot(ax3, xw, zw, 'LineWidth', 0.5, 'Color', csscolor('white'));
 
 % plot mermaid icon
 mermaid = scatter(ax3, 10000, 9600 - d, 160, ...
