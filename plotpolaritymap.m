@@ -36,7 +36,7 @@ function plotpolaritymap(evla, evlo, evdp, model, M, savename, options)
 % SEE ALSO:
 % FOCALMECH, CMTPOLARITY
 %
-% Last modified by sirawich-at-princeton.edu: 03/01/2023
+% Last modified by sirawich-at-princeton.edu: 04/14/2023
 
 if and(nargin == 1, strcmp(evla, 'demo'))
     evla = -7.4260;
@@ -92,89 +92,64 @@ end
 % convert longitude to [0 360]
 evlo = mod(evlo, 360);
 
+if strcmpi(options.resolution, 'fine')
+    resolution = 1;
+elseif strcmpi(options.resolution, 'medium')
+    resolution = 2;
+else
+    resolution = 5;
+end
+% station lon/lat grid
+stlo = (0:resolution:360)';
+stla = (-90:resolution:90)';
+[stlo, stla] = meshgrid(stlo, stla);
+
 sname = sprintf('%s_%s.mat', mfilename, ...
-    hash([evla evlo evdp double(char(model)) ...
-    reshape(MM, [1, numel(MM)]) double(char(savename)) ...
-    double(char(options.resolution)) ...
-    double(char(options.shading)) ...
-    double(char(options.shadecolor)) options.numcolors ...
-    double(char(options.beachballcolor))], 'SHA-1'));
+    hash([resolution evla evlo evdp double(char(model))], 'SHA-1'));
 pname = fullfile(getenv('IFILES'), 'HASHES', sname);
 
 if ~exist(pname, 'file')
-    if strcmpi(options.resolution, 'fine')
-        resolution = 1;
-    elseif strcmpi(options.resolution, 'medium')
-        resolution = 2;
-    else
-        resolution = 5;
-    end
-    % station lon/lat grid
-    stlo = (0:resolution:360)';
-    stla = (-90:resolution:90)';
-    [stlo, stla] = meshgrid(stlo, stla);
-
-    % compute the azimuth and epicentral distance
-    azim = nan(size(stlo));
-    dist = nan(size(stlo));
-    theta = nan(size(stlo));
-    is_down = false(size(stlo));
-    phase = cell(size(stlo));
-    for ii = 1:size(stlo, 1)
-        for jj = 1:size(stlo, 2)
-            [azim(ii,jj), ~, dist(ii,jj)] = azimdist([evlo evla], ...
-                [stlo(ii,jj) stla(ii,jj)]);
-
-            tt = indeks(taupTime(model, evdp, ...
-                'p,P,Pdiff,PKIKP', 'evt', [evla evlo], ...
-                'sta', [stla(ii,jj) stlo(ii,jj)]), 1);
-            theta(ii,jj) = tt.incidentDeg;
-            is_down(ii,jj) = strcmp(tt.phaseName(1), 'P');
-            phase{ii,jj} = tt.phaseName;
-        end
-    end
-
-    % determine the take-off vector and the polarization vectors
-    fp = nan(size(stlo));
-    fsv = nan(size(stlo));
-    fsh = nan(size(stlo));
-    for ii = 1:size(stlo, 1)
-        for jj = 1:size(stlo, 2)
-            % determine "take-off" unit vector
-            azim_rad = azim(ii,jj) * pi / 180;
-            theta_rad = theta(ii,jj) * pi / 180;
-            if is_down
-                v = [-cos(theta_rad); -sin(theta_rad) * cos(azim_rad); ...
-                    sin(theta_rad) * sin(azim_rad)];
-            else
-                v = [ cos(theta_rad); -sin(theta_rad) * cos(azim_rad); ...
-                    sin(theta_rad) * sin(azim_rad)];
-            end
-            % polarization unit vectors
-            np = v;
-            nsh = cross(v, [1 0 0]') / norm(cross(v, [1 0 0]'), 2);
-            nsv = cross(nsh, np);
-
-            % compute radiation pattern
-            % Dahlen and Tromp, Theoretical Global Seismology, 1998 page 529 Eq. 12.262
-            M0 = sqrt(sum(sum(MM .* MM)) / 2);
-            fp(ii,jj) = v' * (MM / M0) * np;
-            fsv(ii,jj) = 1/2 * (v' * (MM / M0) * nsv + nsv' * (MM / M0) * v);
-            fsh(ii,jj) = 1/2 * (v' * (MM / M0) * nsh + nsh' * (MM / M0) * v);
-        end
-    end
+    [azim, dist, theta, is_down, phase] = ...
+        expensivefunction(resolution, evla, evlo, evdp, model);
+    
     % save
     fprintf('save the output to a file to %s ...\n', pname);
-    save(pname, 'MM', 'azim', 'dist', 'evdp', 'evla', 'evlo', 'fp',  ...
-        'fsh', 'fsv', 'is_down', 'model', 'options', 'phase', 'stla', ...
-        'stlo', 'theta', 'savename');
+    save(pname, 'azim', 'dist', 'theta', 'is_down', 'phase');
 else
     % load
     fprintf('found the save in a file in %s\n', pname);
     fprintf('load the variables ...\n');
-    load(pname, 'MM', 'azim', 'dist', 'evdp', 'evla', 'evlo', 'fp',  ...
-        'fsh', 'fsv', 'is_down', 'model', 'options', 'phase', 'stla', ...
-        'stlo', 'theta', 'savename');
+    load(pname, 'azim', 'dist', 'theta', 'is_down', 'phase');
+end
+
+% determine the take-off vector and the polarization vectors
+fp = nan(size(stlo));
+fsv = nan(size(stlo));
+fsh = nan(size(stlo));
+for ii = 1:size(stlo, 1)
+    for jj = 1:size(stlo, 2)
+        % determine "take-off" unit vector
+        azim_rad = azim(ii,jj) * pi / 180;
+        theta_rad = theta(ii,jj) * pi / 180;
+        if is_down
+            v = [-cos(theta_rad); -sin(theta_rad) * cos(azim_rad); ...
+                sin(theta_rad) * sin(azim_rad)];
+        else
+            v = [ cos(theta_rad); -sin(theta_rad) * cos(azim_rad); ...
+                sin(theta_rad) * sin(azim_rad)];
+        end
+        % polarization unit vectors
+        np = v;
+        nsh = cross(v, [1 0 0]') / norm(cross(v, [1 0 0]'), 2);
+        nsv = cross(nsh, np);
+
+        % compute radiation pattern
+        % Dahlen and Tromp, Theoretical Global Seismology, 1998 page 529 Eq. 12.262
+        M0 = sqrt(sum(sum(MM .* MM)) / 2);
+        fp(ii,jj) = v' * (MM / M0) * np;
+        fsv(ii,jj) = 1/2 * (v' * (MM / M0) * nsv + nsv' * (MM / M0) * v);
+        fsh(ii,jj) = 1/2 * (v' * (MM / M0) * nsh + nsh' * (MM / M0) * v);
+    end
 end
 
 % plot
@@ -287,4 +262,41 @@ title(ax3, 'SH-radiation pattern')
 set(gcf, 'Renderer', 'painters')
 savefile = sprintf('%s_%s.eps', mfilename, savename);
 figdisp(savefile, [], [], 2, [], 'epstopdf')
+end
+
+
+function [azim, dist, theta, is_down, phase] = expensivefunction(resolution, evla, evlo, evdp, model)
+% CONSTANTS
+R_EARTH = 6371; % km
+
+% stlo, and stla are also generated outside this functions
+% fairly quickly. Therefore, they are not saved.
+stlo = (0:resolution:360)';
+stla = (-90:resolution:90)';
+[stlo, stla] = meshgrid(stlo, stla);
+
+% compute the azimuth and epicentral distance
+azim = nan(size(stlo));
+dist = nan(size(stlo));
+theta = nan(size(stlo));
+is_down = false(size(stlo));
+phase = cell(size(stlo));
+for ii = 1:size(stlo, 1)
+    for jj = 1:size(stlo, 2)
+        [azim(ii,jj), ~, dist(ii,jj)] = azimdist([evlo evla], ...
+            [stlo(ii,jj) stla(ii,jj)]);
+
+        % See Astiz et al. (1996) Figure 4 for choices of phases
+        tt = indeks(tauptime('mod', model, 'depth', evdp, ...
+            'phases', 'p,P,Pdiff,PKIKP', 'evt', [evla evlo], ...
+            'sta', [stla(ii,jj) stlo(ii,jj)]), 1);
+        rayparameter = tt.rayparameter * 180 / pi;
+        is_down(ii,jj) = strcmp(tt.phase(1), 'P');
+        phase{ii,jj} = tt.phase;
+        vp = ak135('depths', evdp, 'dcbelow', is_down(ii, jj)).vp;
+        % prevent unphysical values
+        sintheta = max(min(rayparameter * vp / (R_EARTH - evdp), 1), -1);
+        theta(ii,jj) = asin(sintheta) * 180 / pi;
+    end
+end
 end
