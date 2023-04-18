@@ -36,7 +36,7 @@ function plotpolaritymap(evla, evlo, evdp, model, M, savename, options)
 % SEE ALSO:
 % FOCALMECH, CMTPOLARITY
 %
-% Last modified by sirawich-at-princeton.edu: 04/14/2023
+% Last modified by sirawich-at-princeton.edu: 04/18/2023
 
 if and(nargin == 1, strcmp(evla, 'demo'))
     evla = -7.4260;
@@ -104,53 +104,7 @@ stlo = (0:resolution:360)';
 stla = (-90:resolution:90)';
 [stlo, stla] = meshgrid(stlo, stla);
 
-sname = sprintf('%s_%s.mat', mfilename, ...
-    hash([resolution evla evlo evdp double(char(model))], 'SHA-1'));
-pname = fullfile(getenv('IFILES'), 'HASHES', sname);
-
-if ~exist(pname, 'file')
-    [azim, dist, theta, is_down, phase] = ...
-        expensivefunction(resolution, evla, evlo, evdp, model);
-    
-    % save
-    fprintf('save the output to a file to %s ...\n', pname);
-    save(pname, 'azim', 'dist', 'theta', 'is_down', 'phase');
-else
-    % load
-    fprintf('found the save in a file in %s\n', pname);
-    fprintf('load the variables ...\n');
-    load(pname, 'azim', 'dist', 'theta', 'is_down', 'phase');
-end
-
-% determine the take-off vector and the polarization vectors
-fp = nan(size(stlo));
-fsv = nan(size(stlo));
-fsh = nan(size(stlo));
-for ii = 1:size(stlo, 1)
-    for jj = 1:size(stlo, 2)
-        % determine "take-off" unit vector
-        azim_rad = azim(ii,jj) * pi / 180;
-        theta_rad = theta(ii,jj) * pi / 180;
-        if is_down
-            v = [-cos(theta_rad); -sin(theta_rad) * cos(azim_rad); ...
-                sin(theta_rad) * sin(azim_rad)];
-        else
-            v = [ cos(theta_rad); -sin(theta_rad) * cos(azim_rad); ...
-                sin(theta_rad) * sin(azim_rad)];
-        end
-        % polarization unit vectors
-        np = v;
-        nsh = cross(v, [1 0 0]') / norm(cross(v, [1 0 0]'), 2);
-        nsv = cross(nsh, np);
-
-        % compute radiation pattern
-        % Dahlen and Tromp, Theoretical Global Seismology, 1998 page 529 Eq. 12.262
-        M0 = sqrt(sum(sum(MM .* MM)) / 2);
-        fp(ii,jj) = v' * (MM / M0) * np;
-        fsv(ii,jj) = 1/2 * (v' * (MM / M0) * nsv + nsv' * (MM / M0) * v);
-        fsh(ii,jj) = 1/2 * (v' * (MM / M0) * nsh + nsh' * (MM / M0) * v);
-    end
-end
+[fp, fsv, fsh] = cmtpolarity(M, evla, evlo, evdp, stla, stlo, model);
 
 % plot
 figure
