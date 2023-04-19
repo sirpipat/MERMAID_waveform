@@ -31,7 +31,7 @@ function plotsynthetics(obsmasterdir, synmasterdir, specmasterdir, ...
 % SEE ALSO:
 % PLOTRECORDS, ARRAYCCSHIFTPLOT
 %
-% Last modified by sirawich-at-princeton.edu, 02/06/2023
+% Last modified by sirawich-at-princeton.edu, 04/18/2023
 
 defval('op1', 1)
 defval('op2', 1)
@@ -68,6 +68,7 @@ for ii = 1:length(uniqevent)
         stla = metadata.STLA(whevent);
         evlo = indeks(unique(mod(metadata.EVLO(whevent), 360)), 1);
         evla = indeks(unique(metadata.EVLA(whevent)), 1);
+        evdp = indeks(unique(metadata.EVDP(whevent)), 1);
         
         % MERMAID number
         n = length(stlo);
@@ -138,7 +139,47 @@ for ii = 1:length(uniqevent)
         set(gca, 'TickDir', 'out', 'FontSize', 12, 'GridAlpha', 0.5, ...
             'GridLineStyle', ':')
         
-        % add event's focal mechanism
+        %% add P-wave polarity
+        % plot lon/lat grid
+        resolution_multiplier = 5;
+        nptx = 14 * resolution_multiplier + 1;
+        npty = 4 * resolution_multiplier + 1;
+        pllo = linspace(ax1.XLim(1), ax1.XLim(2), nptx)';
+        plla = linspace(ax1.YLim(1), ax1.YLim(2), npty);
+        [pllo, plla] = meshgrid(pllo, plla);
+        
+        % focal mechanism
+        [~, ~, CMT] = getfocalmech('PublicID', string(uniqevent(ii)));
+        if ~isempty(CMT)
+            M = CMT.M;
+        
+            % polarity
+            fp = cmtpolarity(M, evla, evlo, evdp, plla, pllo, 'ak135');
+
+            % colormap for polarity plot
+            c0 = [1 1 1];
+            cn = [1 0.83 0.88];
+            icmap = (0:2)' / 2;
+            cmap_polarity = icmap * cn + (1 - icmap) * c0;
+
+            ax1p = doubleaxes(ax1);
+            axes(ax1p)
+            imagesc(ax1p,[floor(ax1.XLim(1)) ceil(ax1.XLim(2))], ...
+                [floor(ax1.YLim(1)) ceil(ax1.YLim(2))],fp);
+            axis xy
+            grid on
+            set(ax1p, 'CLim', [-1 1], 'TickDir', 'out', 'Box', 'on', ...
+                'FontSize', 11)
+            colormap(ax1p, cmap_polarity)
+            ax1p.XAxis.Visible = 'off';
+            ax1p.YAxis.Visible = 'off';
+            set(ax1p, 'XLim', ax1.XLim, 'YLim', ax1.YLim, ...
+                'Position', ax1.Position, 'DataAspectRatio', [1 1 1])
+            axes(ax1)
+            set(ax1, 'Color', 'None')
+        end
+        
+        %% add event's focal mechanism
         ax1s = doubleaxes(ax1);
         axes(ax1s);
         ax1s.XAxisLocation = 'bottom';
@@ -496,7 +537,6 @@ for ii = 1:length(uniqevent)
         end
         
         % figure label
-        [~, ~, CMT] = getfocalmech('PublicID', string(uniqevent(ii)));
         if isempty(CMT)
             title(ax1, ...
                 sprintf('Event ID: %d, Magnitude: %4.2f, Depth: %6.2f km', ...
