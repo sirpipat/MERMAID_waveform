@@ -36,7 +36,7 @@ function plotpolaritymap(evla, evlo, evdp, model, M, savename, options)
 % SEE ALSO:
 % FOCALMECH, CMTPOLARITY
 %
-% Last modified by sirawich-at-princeton.edu: 04/18/2023
+% Last modified by sirawich-at-princeton.edu: 04/24/2023
 
 if and(nargin == 1, strcmp(evla, 'demo'))
     evla = -7.4260;
@@ -78,7 +78,7 @@ else
         options.numcolors = 3;
     end
     if ~isfield(options, 'beachballcolor')
-        options.beachballcolors = [0 0 0];
+        options.beachballcolor = [0 0 0];
     end
 end
 
