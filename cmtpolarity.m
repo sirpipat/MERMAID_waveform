@@ -31,7 +31,7 @@ function [fp,fsv,fsh,v] = cmtpolarity(M, evla, evlo, evdp, stla, stlo, model)
 % Known issues: when the wave departs vertically, SV is not defined since
 % all S-wave motions are horizontal. For that case, fsv = fsh = NaN.
 %
-% Last modified by sirawich-at-princeton.edu: 04/18/2023
+% Last modified by sirawich-at-princeton.edu: 04/24/2023
 
 defval('mod', 'ak135')
 
@@ -88,7 +88,7 @@ for ii = 1:size(stlo, 1)
         % determine "take-off" unit vector
         azim_rad = azim(ii,jj) * pi / 180;
         theta_rad = theta(ii,jj) * pi / 180;
-        if is_down
+        if is_down(ii,jj)
             k = [-cos(theta_rad); -sin(theta_rad) * cos(azim_rad); ...
                 sin(theta_rad) * sin(azim_rad)];
         else
