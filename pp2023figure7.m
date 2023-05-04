@@ -6,7 +6,7 @@ function varargout = pp2023figure7
 % OUTPUT:
 % fig       figure handle to the plots
 %
-% Last modified by sirawich-at-princeton.edu: 04/05/2023
+% Last modified by sirawich-at-princeton.edu: 05/04/2023
 %% load data
 
 % SPECFEM-vertical displacement (template)
@@ -33,14 +33,13 @@ figure(7)
 set(gcf, 'Units', 'inches', 'Position', [0 1 8 4])
 clf
 
-ax1 = subplot('Position', [0.08 0.74 0.88 0.24]);
+ax1 = subplot('Position', [0.09 0.74 0.88 0.24]);
 plot(ax1, t_p, x_p_conv / max(abs(x_p)), 'r', 'LineWidth', 1.3)
 hold on
 plot(ax1, t_p, x_p / max(abs(x_p)), 'k', 'LineWidth', 1)
 grid on
 xlim([0, 30])
 ylim([-1.5, 1.5])
-yticks([])
 nolabels(ax1, 1)
 
 % label graph
@@ -50,21 +49,20 @@ text(ax1, 13, -1.0, 'estimated pressure at hydrophone ($$\hat{p} = s*r$$)', ...
     'FontSize', 14, 'Color', 'r', 'Interpreter', 'latex')
 
 % label scale
-scalelabel = sprintf('( $$x %.2g}$$ )', max(abs(x_p)));
-scalelabel = replace(scalelabel, 'e', '\times 10^{');
+scalelabel = sprintf('%.2g}', max(abs(x_p)));
+scalelabel = replace(scalelabel, 'e', '\times10^{');
 scalelabel = replace(scalelabel, 'x', '\times');
-text(ax1, 3, -1.2, scalelabel, 'FontSize', 14, 'Interpreter', 'latex')
+yticklabels({['-' scalelabel], 0 ,scalelabel})
 
 set(ax1, 'Box', 'on', 'FontSize', 12, 'TickDir', 'out')
 
 boxedlabel(ax1, 'northwest', 0.28, [], 'a', 'FontSize', 14);
 
-ax2 = subplot('Position', [0.08 0.44 0.88 0.24]);
+ax2 = subplot('Position', [0.09 0.44 0.88 0.24]);
 plot(ax2, t_s, x_s / max(abs(x_s)), 'k', 'LineWidth', 1)
 grid on
 xlim([0, 30])
 ylim([-1.2, 1.2])
-yticks([])
 nolabels(ax2, 1)
 
 % label graph
@@ -72,33 +70,32 @@ text(ax2, 17, 0.4, 'displacement at ocean bottom ($$s$$)', ...
     'FontSize', 14, 'Interpreter', 'latex')
 
 % label scale
-scalelabel = sprintf('( $$x %.2g}$$ )', max(abs(x_s)));
-scalelabel = replace(scalelabel, 'e', '\times 10^{');
+scalelabel = sprintf('%.2g}', max(abs(x_s)));
+scalelabel = replace(scalelabel, 'e', '\times10^{');
 scalelabel = replace(scalelabel, 'x', '\times');
-text(ax2, 3, 0.4, scalelabel, 'FontSize', 14, 'Interpreter', 'latex')
+yticklabels({['-' scalelabel], 0 ,scalelabel})
 
 set(ax2, 'Box', 'on', 'FontSize', 12, 'TickDir', 'out')
 
 boxedlabel(ax2, 'northwest', 0.28, [], 'b', 'FontSize', 14);
 
-ax3 = subplot('Position', [0.08 0.14 0.88 0.24]);
+ax3 = subplot('Position', [0.09 0.14 0.88 0.24]);
 plot(ax3, t_rf, rf / max(abs(rf)), 'k', 'LineWidth', 1)
 grid on
 xlim([0, 30])
 ylim([-1.5, 1.5])
 xlabel('time (s)')
-yticks([])
 
 % label graph
 text(ax3, 19.3, 0.7, 'response function ($$r = s/p$$)', ...
     'FontSize', 14, 'Interpreter', 'latex')
 
 % label scale
-scalelabel = sprintf('( $$x %.2g}$$ )', max(abs(rf)));
-scalelabel = replace(scalelabel, 'e', '\times 10^{');
+scalelabel = sprintf('%.2g}', max(abs(rf)));
+scalelabel = replace(scalelabel, 'e', '\times10^{');
 scalelabel = replace(scalelabel, '+0', '');
 scalelabel = replace(scalelabel, 'x', '\times');
-text(ax3, 3, 0.8, scalelabel, 'FontSize', 14, 'Interpreter', 'latex')
+yticklabels({['-' scalelabel], 0 ,scalelabel})
 
 set(ax3, 'Box', 'on', 'FontSize', 12, 'TickDir', 'out')
 
