@@ -29,7 +29,9 @@ function plotinstaseis(obsmasterdir, synmasterdir, fcorners, CCmaxs, ...
 % SEE ALSO:
 % PLOTSYNTHETICS, PLOTRECORDS, ARRAYCCSHIFTPLOT
 %
-% Last modified by sirawich-at-princeton.edu, 04/24/2023
+% Last modified by sirawich-at-princeton.edu, 05/05/2023
+
+% TODO: Added Joel's pick arrival as a dot (?) on the trace
 
 defval('op1', 2)
 defval('op2', 2)
@@ -273,9 +275,9 @@ for ii = 1:length(uniqevent)
             [~, dt_begin_s, ~, fs_s] = gethdrinfo(hdr_s);
             tims_s = tims_s - hdr_s.T0;
             
-%             seis_s = bandpass(seis_s, fs_s, fcs(jj, 1), fcs(jj, 2), ...
-%                 4, 2, 'butter', 'linear');
-%             seis_s = seis_s .* shanning(length(seis_s), 0.05, 0);
+             seis_s = bandpass(seis_s, fs_s, fcs(jj, 1), fcs(jj, 2), ...
+                 4, 2, 'butter', 'linear');
+             seis_s = seis_s .* shanning(length(seis_s), 0.05, 0);
             
             % normalize the seismogram to 3.5% of the y-limit
             ep = 0.01/fs_s;
