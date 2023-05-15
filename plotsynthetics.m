@@ -29,7 +29,7 @@ function plotsynthetics(obsmasterdir, synmasterdir, specmasterdir, ...
 %                   2  --   zoom in
 %
 % SEE ALSO:
-% PLOTRECORDS, ARRAYCCSHIFTPLOT
+% PLOTMEMAID, PLOTINSTASEIS, PLOTRECORDS, ARRAYCCSHIFTPLOT
 %
 % Last modified by sirawich-at-princeton.edu, 05/15/2023
 
