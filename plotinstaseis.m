@@ -32,7 +32,7 @@ function plotinstaseis(obsmasterdir, synmasterdir, fcorners, CCmaxs, ...
 % SEE ALSO:
 % PLOTSYNTHETICS, PLOTRECORDS, ARRAYCCSHIFTPLOT
 %
-% Last modified by sirawich-at-princeton.edu, 05/09/2023
+% Last modified by sirawich-at-princeton.edu, 05/15/2023
 
 defval('op1', 2)
 defval('op2', 2)
@@ -327,7 +327,7 @@ for ii = 1:length(uniqevent)
             ticks_x = 0:roundtrip_time:window_plot(2);
             plot(ax2ss, [ticks_x; ticks_x], repmat(y_values(jj) + ...
                 0.035 * ywidth * [-1; 1], 1, length(ticks_x)), ...
-                'Color', color_tick, 'LineWidth', 1.2);
+                'Color', color_tick, 'LineWidth', 0.75);
             hold on
             
             % plot the seismograms
@@ -423,15 +423,19 @@ for ii = 1:length(uniqevent)
                 label_str = sprintf(['$$ X(%.2f\\ \\textnormal{s}) = ' ...
                     '%.2f, \\Delta \\tau / \\tau = %.2f \\%% $$'], ...
                     t_shift(jj), CCmax(jj), dlnt(jj) * 100);
-                number_str = sprintf('$$ \\textnormal{P%04d} $$', ...
-                    stationid(jj));
             else
                 label_str = sprintf(['$$ %.2f\\ \\textnormal{s}, ' ... 
                     '%.2f, %.2f \\%% $$'], t_shift(jj), CCmax(jj), ...
                     dlnt(jj) * 100);
+            end
+            if op4 == 1
                 number_str = sprintf('$$ \\textnormal{P%04d} $$', ...
                     stationid(jj));
+            else
+                number_str = sprintf('$$ \\textnormal{P%04d}, %4.2f-%4.2f\\textnormal{~Hz}$$', ...
+                    stationid(jj), fcs(jj,1), fcs(jj,2));
             end
+            
             % adjust positions
             if is_label_left
                 alignment = 'left';
@@ -447,13 +451,17 @@ for ii = 1:length(uniqevent)
                 top_text_xposition = 0.99;
                 bottom_text_xposition = 0.99;
                 if op3 == 1
-                    icon_xposition = 0.76;
+                    if op4 == 1
+                        icon_xposition = 0.76;
+                    else
+                        icon_xposition = 0.14;
+                    end
                 else
-                    icon_xposition = 0.68;
-                end
-                if op4 == 2
-                    icon_xposition = icon_xposition - 0.65;
-                    bottom_text_xposition = bottom_text_xposition - 0.65;
+                    if op4 == 1
+                        icon_xposition = 0.68;
+                    else
+                        icon_xposition = 0.06;
+                    end
                 end
             end
             text(top_text_xposition, 0.35, label_str, 'Interpreter', ...
@@ -476,22 +484,6 @@ for ii = 1:length(uniqevent)
             end
             scatter(icon_xposition, 0.60, 60, color_icon, 'v', ...
                 'filled', 'MarkerEdgeColor', color_txt)
-            % include filter corner frequencies
-            if op4 == 2
-                fcorner_str = sprintf(', [%.2f, %.2f] Hz', fcs(jj,1), ...
-                    fcs(jj,2));
-                if strcmpi(alignment, 'left')
-                    text(bottom_text_xposition + 0.27, 0.35, ...
-                        fcorner_str, 'Interpreter', 'latex', ...
-                        'FontSize', 10, 'Color', color_txt, ...
-                        'HorizontalAlignment', alignment);
-                else
-                    text(bottom_text_xposition + 0.65, 0.35, ...
-                        fcorner_str, 'Interpreter', 'latex', ...
-                        'FontSize', 10, 'Color', color_txt, ...
-                        'HorizontalAlignment', alignment);
-                end
-            end
             xlim([0,1])
             ylim([0,1])
             axb2.XAxis.Visible = 'off';

@@ -18,23 +18,24 @@ function plotsynthetics(obsmasterdir, synmasterdir, specmasterdir, ...
 % CCmaxs            Maximum correlation coefficient
 % t_shifts          Best time shift where CC is maximum
 % metadata          SAC header variables sorted by variable names
-% op1               options for y-axis sorting
+% op1               options for y-axis sorting [Default: 2]
 %                   1  --   by distance (degrees)
 %                   2  --   by azimuth
-% op2               options for y-axis scaling and positioning
+% op2               options for y-axis scaling and positioning [Default: 2]
 %                   1  --   actual value from op1
 %                   2  --   equal spreading for readability
-% op3               options for zoom-in verions
+% op3               options for zoom-in verions [Default: 2]
 %                   1  --   no zoom in
 %                   2  --   zoom in
 %
 % SEE ALSO:
 % PLOTRECORDS, ARRAYCCSHIFTPLOT
 %
-% Last modified by sirawich-at-princeton.edu, 04/18/2023
+% Last modified by sirawich-at-princeton.edu, 05/15/2023
 
-defval('op1', 1)
-defval('op2', 1)
+defval('op1', 2)
+defval('op2', 2)
+defval('op3', 2)
 
 %% window lengths
 window_waveform = [-5 5];
@@ -272,6 +273,7 @@ for ii = 1:length(uniqevent)
                 obsmasterdir, uniqevent(ii), stationid(jj)), 1), 1);
             [seis_o, hdr_o, ~, ~, tims_o] = readsac(obsfile);
             [dt_ref_o, dt_begin_o, ~, fs_o] = gethdrinfo(hdr_o);
+            dt_pick = dt_ref_o + seconds(hdr_o.T0);
             tims_o = tims_o - hdr_o.T0;
             pres_o = counts2pa(seis_o, fs_o, [0.05 0.1 10 20], [], 'sacpz', false);
             pres_o = real(pres_o);
@@ -285,7 +287,7 @@ for ii = 1:length(uniqevent)
             synfile = cindeks(ls2cell(sprintf('%s%d/*_%02d_0_*.sac', ...
                 synmasterdir, uniqevent(ii), stationid(jj)), 1), 1);
             [seis_s, hdr_s, ~, ~, tims_s] = readsac(synfile);
-            [~, dt_begin_s, ~, fs_s] = gethdrinfo(hdr_s);
+            [dt_ref_s, dt_begin_s, ~, fs_s] = gethdrinfo(hdr_s);
             tims_s = tims_s + seconds(dt_begin_s - dt_begin_o) - hdr_o.T0;
             
             % obtain the response function
@@ -357,7 +359,7 @@ for ii = 1:length(uniqevent)
             ticks_x = 0:roundtrip_time:window_plot(2);
             plot(ax2ss, [ticks_x; ticks_x], repmat(y_values(jj) + ...
                 0.035 * ywidth * [-1; 1], 1, length(ticks_x)), ...
-                'Color', color_tick, 'LineWidth', 1.2);
+                'Color', color_tick, 'LineWidth', 0.75);
             hold on
             
             % plot the seismograms
@@ -475,14 +477,14 @@ for ii = 1:length(uniqevent)
                 label_str = sprintf(['$$ X(%.2f\\ \\textnormal{s}) = ' ...
                     '%.2f, \\Delta \\tau / \\tau = %.2f \\%% $$'], ...
                     t_shift(jj), CCmax(jj), dlnt(jj) * 100);
-                number_str = sprintf('$$ \\textnormal{P%04d} $$', ...
+                number_str = sprintf('$$ \\textnormal{P%04d}, %4.2f-%4.2f\\textnormal{~Hz}$$', ...
                     stationid(jj));
             else
                 label_str = sprintf(['$$ %.2f\\ \\textnormal{s}, ' ... 
                     '%.2f, %.2f \\%% $$'], t_shift(jj), CCmax(jj), ...
                     dlnt(jj) * 100);
-                number_str = sprintf('$$ \\textnormal{P%04d} $$', ...
-                    stationid(jj));
+                number_str = sprintf('$$ \\textnormal{P%04d}, %4.2f-%4.2f\\textnormal{~Hz}$$', ...
+                    stationid(jj), fcs(jj,1), fcs(jj,2));
             end
             % adjust positions
             if is_label_left
@@ -499,9 +501,9 @@ for ii = 1:length(uniqevent)
                 top_text_xposition = 0.99;
                 bottom_text_xposition = 0.99;
                 if op3 == 1
-                    icon_xposition = 0.76;
+                    icon_xposition = 0.14;
                 else
-                    icon_xposition = 0.68;
+                    icon_xposition = 0.06;
                 end
             end
             text(top_text_xposition, 0.35, label_str, 'Interpreter', ...
@@ -524,6 +526,7 @@ for ii = 1:length(uniqevent)
             end
             scatter(icon_xposition, 0.60, 60, color_icon, 'v', ...
                 'filled', 'MarkerEdgeColor', color_txt)
+            
             xlim([0,1])
             ylim([0,1])
             axb2.XAxis.Visible = 'off';
@@ -546,6 +549,10 @@ for ii = 1:length(uniqevent)
                 sprintf('%s, Event ID: %d, Magnitude: %4.2f, Depth: %6.2f km', ...
                 CMT.EventName, uniqevent(ii), hdr_o.MAG, hdr_o.EVDP));
         end
+        
+        % move the title up a little bit
+        [ax1.Title.Position(1), ax1.Title.Position(2)] = ...
+            norm2trueposition(ax1, 0.5, 1.06);
         
         % save figure
         set(gcf, 'Renderer', 'painters')
