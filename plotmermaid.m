@@ -1,7 +1,7 @@
 function plotmermaid(obsmasterdir, synmasterdir, fcorners, CCmaxs, ...
-    t_shifts, metadata, op1, op2, op3, op4)
+    t_shifts, metadata, op1, op2, op3, op4, op5)
 % PLOTMERMAID(obsmasterdir, synmasterdir, fcorners, CCmaxs, ...
-%     t_shifts, metadata, op1, op2, op3, op4)
+%     t_shifts, metadata, op1, op2, op3, op4, op5)
 %
 % Plots a source-receiver map with the focal mechanism and the radiation
 % pattern as well as the pressure records from MERMAIDs
@@ -28,16 +28,20 @@ function plotmermaid(obsmasterdir, synmasterdir, fcorners, CCmaxs, ...
 % op4               options for filter [Default: 2]
 %                   1  --   no filter
 %                   2  --   filter with chosen corner frequencies
+% op5               options for graying out traces if CCmaxs <= 0.6
+%                   1  --   no graying out
+%                   2  --   graying out
 %
 % SEE ALSO:
 % PLOTINSTASEIS, PLOTSYNTHETICS, PLOTRECORDS, ARRAYCCSHIFTPLOT
 %
-% Last modified by sirawich-at-princeton.edu, 05/15/2023
+% Last modified by sirawich-at-princeton.edu, 05/16/2023
 
 defval('op1', 2)
 defval('op2', 2)
 defval('op3', 2)
 defval('op4', 2)
+defval('op5', 2)
 
 tsmul = 0;
 
@@ -307,12 +311,12 @@ for ii = 1:length(uniqevent)
             amp(jj) = max(abs(pres_o2));
             
             % plot together on a plot
-            if CCmax(jj) > 0.6
-                color_obs = [0 0.2 0.8];
-                color_tick = [0 0 0];
-            else
+            if op5 == 2 && CCmax(jj) <= 0.6
                 color_obs = [0.6 0.8 1];
                 color_tick = [0.6 0.6 0.6];
+            else
+                color_obs = [0 0.2 0.8];
+                color_tick = [0 0 0];
             end
             % axes for plotting seismograms
             ax2ss = axes('Position', [0.08 0.08 0.84 0.56]);
@@ -418,10 +422,10 @@ for ii = 1:length(uniqevent)
                 2-1e-12+CCmax(jj)];
             
             axes(axb1)
-            if CCmax(jj) > 0.6
-                color_txt = [0 0 0];
-            else
+            if op5 == 2 && CCmax(jj) <= 0.6
                 color_txt = [0.5 0.5 0.5];
+            else
+                color_txt = [0 0 0];
             end
             
             label_str = sprintf('$$ %.2f\\textnormal{~Pa} $$', ...
@@ -475,7 +479,7 @@ for ii = 1:length(uniqevent)
             hold on
             % get color icon
             color_icon = cmap(stationid(jj) == metadata.STNM(whevent),:);
-            if CCmax(jj) <= 0.6
+            if op5 == 2 && CCmax(jj) <= 0.6
                 % grey out if the CC is low
                 color_icon = 0.5 * color_icon + 0.5;
             end
