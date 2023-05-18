@@ -16,7 +16,7 @@ function [fc, s] = freqselect(t, x, fs, plt, titlename, savename)
 % fc            best corner frequency
 % s             best signal-to-noise ratio
 %
-% Last modified by sirawich-at-princeton.edu, 10/24/2022
+% Last modified by sirawich-at-princeton.edu, 05/16/2023
 
 % Nyquist frequency
 fNq = fs/2;
@@ -87,263 +87,6 @@ if plt
     % locate the best pixel on the plot
     [xx, yy] = boxcorner(fc(1) + 0.025 * [-1 1], fc(2) + 0.025 * [-1 1]);
     
-%     figure(1)
-%     clf
-%     set(gcf, 'Units', 'inches', 'Position', [16 12 8 12])
-%     
-%     % title
-%     ax0 = subplot('Position', [0.08 0.97 0.88 0.01]);
-%     title(titlename)
-%     set(ax0, 'FontSize', 12, 'Color', 'none')
-%     ax0.XAxis.Visible = 'off';
-%     ax0.YAxis.Visible = 'off';
-%     
-%     % bandpass SNR
-%     ax1 = subplot('Position', [0.08 0.77 0.37 0.19]);
-%     im1 = imagesc(fcs, fcs, log10(A));
-%     axis xy
-%     xlabel('lower corner frequency (Hz)')
-%     ylabel('upper corner frequency (Hz)')
-%     title('pass')
-%     setimagenan(ax1, im1, [1 1 1]);
-%     c1 = colorbar(ax1, 'EastOutside');
-%     [~,v1] = vline(ax1, ax1.XTick, 'LineWidth', 1, 'LineStyle', ':', ...
-%         'Color', [0.4 0.4 0.4]);
-%     [~,h1] = hline(ax1, ax1.YTick, 'LineWidth', 1, 'LineStyle', ':', ...
-%         'Color', [0.4 0.4 0.4]);
-%     plot(ax1, xx, yy, '-r', 'LineWidth', 1)
-%     c1.Label.String = 'log_{10} SNR';
-%     set(ax1, 'FontSize', 12, 'TickDir', 'out')
-%     set(c1, 'FontSize', 12, 'TickDir', 'out')
-%     
-%     ax2 = subplot('Position', [0.58 0.77 0.37 0.19]);
-%     im2 = imagesc(fcs, fcs, log10(B));
-%     axis xy
-%     xlabel('lower corner frequency (Hz)')
-%     ylabel('upper corner frequency (Hz)')
-%     title('stop')
-%     setimagenan(ax2, im2, [1 1 1]);
-%     c2 = colorbar(ax2, 'EastOutside');
-%     [~,v2] = vline(ax2, ax2.XTick, 'LineWidth', 1, 'LineStyle', ':', ...
-%         'Color', [0.4 0.4 0.4]);
-%     [~,h2] = hline(ax2, ax2.YTick, 'LineWidth', 1, 'LineStyle', ':', ...
-%         'Color', [0.4 0.4 0.4]);
-%     plot(ax2, xx, yy, '-r', 'LineWidth', 1)
-%     c2.Label.String = 'log_{10} SNR';
-%     set(ax2, 'FontSize', 12, 'TickDir', 'out')
-%     set(c2, 'FontSize', 12, 'TickDir', 'out')
-%     
-%     ax3 = subplot('Position', [0.08 0.52 0.37 0.19]);
-%     im3 = imagesc(fcs, fcs, log10(A./B));
-%     axis xy
-%     xlabel('lower corner frequency (Hz)')
-%     ylabel('upper corner frequency (Hz)')
-%     title('ratio')
-%     setimagenan(ax3, im3, [1 1 1]);
-%     c3 = colorbar(ax3, 'EastOutside');
-%     [~,v3] = vline(ax3, ax3.XTick, 'LineWidth', 1, 'LineStyle', ':', ...
-%         'Color', [0.4 0.4 0.4]);
-%     [~,h3] = hline(ax3, ax3.YTick, 'LineWidth', 1, 'LineStyle', ':', ...
-%         'Color', [0.4 0.4 0.4]);
-%     plot(ax3, xx, yy, '-r', 'LineWidth', 1)
-%     c3.Label.String = 'log_{10} SNR';
-%     set(ax3, 'FontSize', 12, 'TickDir', 'out')
-%     set(c3, 'FontSize', 12, 'TickDir', 'out')
-%     
-%     ax4 = subplot('Position', [0.58 0.52 0.37 0.19]);
-%     im4 = imagesc(fcs, fcs, T);
-%     axis xy
-%     xlabel('lower corner frequency (Hz)')
-%     ylabel('upper corner frequency (Hz)')
-%     title('optimal time for pass')
-%     c4 = colorbar(ax4, 'EastOutside');
-%     colormap(ax4, kelicol)
-%     clim = [-1 1] * max(max(abs(T)));
-%     ax4.CLim = clim;
-%     setimagenan(ax4, im4, [1 1 1], clim(1), clim(2));
-%     [~,v4] = vline(ax4, ax4.XTick, 'LineWidth', 1, 'LineStyle', ':', ...
-%         'Color', [0.4 0.4 0.4]);
-%     [~,h4] = hline(ax4, ax4.YTick, 'LineWidth', 1, 'LineStyle', ':', ...
-%         'Color', [0.4 0.4 0.4]);
-%     plot(ax4, xx, yy, '-r', 'LineWidth', 1)
-%     c4.Label.String = 'time (s)';
-%     set(ax4, 'FontSize', 12, 'TickDir', 'out')
-%     set(c4, 'FontSize', 12, 'TickDir', 'out')
-%     
-%     % power spectral density
-%     ax5 = subplot('Position', [0.08 0.35 0.88 0.09]);
-%     if true
-%         % fix the upper corner frequency for hipass case
-%         if fc(2) == fcs(end)
-%             fc(2) = fNq;
-%         end
-%         p = specdensplot(x, round(fs * 40), fs, round(fs * 40), 70, 10, 's');
-%         p(1).Color = [0 0 0.5];
-%         p(1).LineWidth = 1;
-%         delete(p(2))
-%         delete(p(3))
-%         delete(p(4))
-%         hold on
-%         grid on
-%         % plot cosine filter when removing instrument response
-%         ff = (0:0.001:(fs/2))';
-%         fac = zeros(size(ff));
-%         fl = [0.01 0.02 10 20];
-%         for ii = 1:length(ff)
-%             freq = ff(ii);
-%             if freq < fl(1)
-%                 fac(ii) = 0.0;
-%             elseif freq >= fl(1) && freq <= fl(2)
-%                 fac(ii) = 0.5 * (1 - cos(pi*(freq - fl(1)) / (fl(2) - fl(1))));
-%             elseif freq >= fl(3) && freq <= fl(4)
-%                 fac(ii) = 0.5 * (1 + cos(pi*(freq - fl(3)) / (fl(4) - fl(3))));
-%             elseif freq > fl(4)
-%                 fac(ii) = 0.0;
-%             else
-%                 fac(ii) = 1.0;
-%             end
-%         end
-%         fac = ax5.YLim(1) + fac * 0.5 * (ax5.YLim(2) - ax5.YLim(1));
-%         semilogx(ax5, ff, fac, 'LineWidth', 1, 'Color', 'k');
-%         xlim([fs/round(fs * 40) fs/2])
-%         ylabel('spectral density (Pa^2/Hz)')
-%         [~, v5] = vline(ax5, fc, 'LineWidth', 1, 'Color', [0 0.6 1]);
-%         set(ax5, 'FontSize', 12, 'TickDir', 'out', 'Color', 'none')
-%         % add x-tick label at the axis limits
-%         if ax5.XTick(1) / ax5.XLim(1) >= 2
-%             ax5.XTick = [ax5.XLim(1) ax5.XTick];
-%         end
-%         if ax5.XLim(2) / ax5.XTick(end) >= 2
-%             ax5.XTick = [ax5.XTick ax5.XLim(2)];
-%         end
-%         % add period axis
-%         ax5s = doubleaxes(ax5);
-%         inverseaxis(ax5s.XAxis, 'period (s)');
-%         % highlight the window
-%         ax5h = doubleaxes(ax5);
-%         [xbox, ybox] = boxcorner(fc, ax5.YLim);
-%         pgon = polyshape(xbox, ybox);
-%         bx = plot(ax5h, pgon, 'FaceColor', [1 0.9 0.4], 'FaceAlpha', 0.4, ...
-%             'EdgeAlpha', 0);
-%         ax5h.XAxis.Visible = 'off';
-%         ax5h.YAxis.Visible = 'off';
-%         ax5h.XScale = 'log';
-%         set(ax5h, 'Box', 'on', 'TickDir', 'both', 'XLim', ax5.XLim, 'YLim', ...
-%             ax5.YLim, 'Position', ax5.Position);
-%     else
-%         plot(ax5, t, x, 'Color', 'k', 'LineWidth', 1)
-%         grid on
-%         set(ax5, 'FontSize', 12, 'TickDir', 'out')
-%         %xlim(ax6.XLim)
-%         ylim([-1 1] * abs(max(x)))
-%         [~, v5] = vline(ax5, T(I(J), J), 'LineWidth', 1, 'Color', [0 0.6 1]);
-%         xlabel('time since picked first arrival (s)')
-%         ylabel('pressure (pa)')
-%         title('original: highpass 0.4 Hz')
-%         axb51 = addbox(ax5, [0 0 0.25 0.2]);
-%         text(0.15, 0.45, sprintf('0.4--%.2f Hz', fNq), 'FontSize', 12);
-%         axes(axb51)
-%     end
-%     
-%     % filtered seismogram
-%     ax6 = subplot('Position', [0.08 0.2 0.88 0.09]);
-%     if fc(1) > 0 && fc(2) < fNq
-%         xf = bandpass(x, fs, fc(1), fc(2), 2, 2, 'butter', 'linear');
-%     elseif fc(1) == 0 && fc(2) < fNq
-%         xf = lowpass(x, fs, fc(2), 2, 2, 'butter', 'linear');
-%     elseif fc(1) > 0 && fc(2) == fNq
-%         xf = hipass(x, fs, fc(1), 2, 2, 'butter', 'linear');
-%     else
-%         keyboard;
-%     end
-%     plot(ax6, t, xf, 'Color', [0.4 0.4 0.4], 'LineWidth', 1)
-%     hold on
-%     grid on
-%     
-%     % highlight noise window
-%     t0 = T(I(J), J);
-%     fmid = max(fc(1), 0.05);%(2*fc(1) + fc(2)) / 3;
-%     halfwin = 2 / fmid;
-%     t_start = max(-60, t0 - 1 * halfwin);
-%     t_end = min(80, t0 + 1 * halfwin);
-%     xn = xf(and(t >= t_start, t < t0));
-%     tn = t(and(t >= t_start, t < t0));
-%     plot(ax6, tn, xn, 'Color', rgbcolor('1'), 'LineWidth', 1.5)
-%     
-%     % highlight signal window
-%     xs = xf(and(t >= t0, t < t_end));
-%     ts = t(and(t >= t0, t < t_end));
-%     plot(ax6, ts, xs, 'Color', rgbcolor('2'), 'LineWidth', 1.5)
-%     
-%     % fix y-limits
-%     ylimits = ax6.YLim;
-%     ylimits = [-1 1] * abs(max(ylimits));
-%     ylim(ylimits)
-%     
-%     % fix x_limits
-%     xlimits = [max(10 * round(-20 / 10 * 1/fc(1)), min(t)), ...
-%         min(10 * round(20 / 10 * 1/fc(1)), max(t))];
-%     xlim(xlimits)
-%     
-%     [~, v6] = vline(ax6, T(I(J), J), 'LineWidth', 1, 'Color', [0 0.6 1]);
-%     xlabel('time since picked first arrival (s)')
-%     ylabel('pressure (pa)')
-%     axb61 = addbox(ax6, [0 0 0.25 0.2]);
-%     text(0.15, 0.45, sprintf('%.2f--%.2f Hz', fc(1), fc(2)), 'FontSize', 12);
-%     axb62 = addbox(ax6, [0.75 0 0.25 0.2]);
-%     if A(I(J), J) > 5
-%         text(0.2, 0.45, sprintf('SNR = %d', round(A(I(J),J))), 'FontSize', 12);
-%     else
-%         text(0.2, 0.45, sprintf('SNR = %.2f', A(I(J),J)), 'FontSize', 12);
-%     end
-%     axes(axb61)
-%     set(ax6, 'FontSize', 12, 'TickDir', 'out')
-%     
-%     % bandstop seismogram
-%     xt = x - xf;
-%     ax7 = subplot('Position', [0.08 0.06 0.88 0.09]);
-%     plot(ax7, t, xt, 'Color', [0.4 0.4 0.4], 'LineWidth', 1)
-%     grid on
-%     hold on
-%     set(ax7, 'FontSize', 12, 'TickDir', 'out')
-%     
-%     % highlight noise window
-%     t0 = U(I(J), J);
-%     fmid = fcs(1);
-%     halfwin = 2 / fmid;
-%     t_start = max(-60, t0 - 1 * halfwin);
-%     t_end = min(80, t0 + 1 * halfwin);
-%     xn = xt(and(t >= t_start, t < t0));
-%     tn = t(and(t >= t_start, t < t0));
-%     plot(ax7, tn, xn, 'Color', rgbcolor('1'), 'LineWidth', 1.5)
-%     
-%     % highlight signal window
-%     xs = xt(and(t >= t0, t < t_end));
-%     ts = t(and(t >= t0, t < t_end));
-%     plot(ax7, ts, xs, 'Color', rgbcolor('2'), 'LineWidth', 1.5)
-%     
-%     ax7.XLim = ax6.XLim;
-%     %xlim([-20 20])
-%     ylim([-1 1] * abs(max(x-xf)))
-%     [~, v7] = vline(ax7, U(I(J), J), 'LineWidth', 1, 'Color', [0 0.6 1]);
-%     xlabel('time since picked first arrival (s)')
-%     ylabel('pressure (pa)')
-%     axb71 = addbox(ax7, [0 0 0.25 0.2]);
-%     text(0.40, 0.45, 'stop', 'FontSize', 12);
-%     axb72 = addbox(ax7, [0.75 0 0.25 0.2]);
-%     if B(I(J), J) > 5
-%         text(0.2, 0.45, sprintf('SNR = %d', round(B(I(J),J))), 'FontSize', 12);
-%     else
-%         text(0.2, 0.45, sprintf('SNR = %.2f', B(I(J),J)), 'FontSize', 12);
-%     end
-%     axes(axb71)
-%     
-%     ax5.XLim = ax6.XLim;
-%     
-%     set(gcf, 'Renderer', 'painters')
-%     figdisp(sprintf('%s_%s', mfilename, savename), [], [], 2, [], ...
-%         'epstopdf');
-    
     fig = figure(2);
     clf;
     set(fig, 'Units', 'inches', 'Position', [0 1 10 6]);
@@ -357,8 +100,10 @@ if plt
     [~,~,~,~,F] = timspecplot_ns(x, 400, fs, 400,0.7, t(1), 's', 'log');
     hold on
     % grid
-    [~,vvv] = vline(sp1, sp1.XTick, 'Color', [0.25 0.25 0.25], 'LineWidth', 1.5, 'LineStyle', ':');
-    [~,hhh] = hline(sp1, sp1.YTick, 'Color', [0.25 0.25 0.25], 'LineWidth', 1.5, 'LineStyle', ':');
+    [~,vvv] = vline(sp1, sp1.XTick, 'Color', [0.25 0.25 0.25], ...
+        'LineWidth', 1.5, 'LineStyle', ':');
+    [~,hhh] = hline(sp1, sp1.YTick, 'Color', [0.25 0.25 0.25], ...
+        'LineWidth', 1.5, 'LineStyle', ':');
     % mark where the corner frequencies are
     hline(sp1, lin2logpos(fc, F(2), F(end)), 'Color', 'k', 'LineWidth', 1);
     % fix the precision of the time on XAxis label
@@ -442,8 +187,6 @@ if plt
     text(sp3, -19, -1.3, sprintf('%.2f-%.2f Hz (x %.2f)', fc(1), fc(2), ...
         scale_all / scale_used), 'FontSize', 11);
     
-    
-    
     % bandstop signal
     plot(sp3, t, xt / scale_used - 4, ...
         'Color', [0.6 0.6 0.6], 'LineWidth', 1)
@@ -474,7 +217,7 @@ if plt
     sp3.YAxis.TickLabelRotation = 90;
     set(sp3, 'FontSize', 12, 'TickDir', 'out', 'XLim', [-20 20], ...
         'YLim', [-5.2 1.2])
-    
+       
 	sp4 = subplot('Position', [0.67 0.09 0.3 0.36]);
     iim = imagesc(fcs(1:(end-10)), fcs(11:end), log10(A(11:end, 1:(end-10))));
     axis xy
@@ -499,6 +242,16 @@ if plt
     sp2.Position = [0.66 0.50 0.25 0.36];
     sp3.Position = [0.06 0.09 0.48 0.36];
     sp4.Position = [0.66 0.09 0.25 0.36];
+    
+    % added plot labels
+    sp1b = boxedlabel(sp1, 'northwest', 0.27, [], 'a', 'FontSize', 12);
+    axes(sp1b)
+    sp2b = boxedlabel(sp2, 'northeast', 0.27, [], 'b', 'FontSize', 12);
+    axes(sp2b)
+    sp3b = boxedlabel(sp3, 'southwest', 0.27, [], 'c', 'FontSize', 12);
+    axes(sp3b)
+    sp4b = boxedlabel(sp4, 'southeast', 0.27, [], 'd', 'FontSize', 12);
+    axes(sp4b)
     
     figdisp(sprintf('%s_%s', mfilename, savename), [], [], 2, [], ...
         'epstopdf');
