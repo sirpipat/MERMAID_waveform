@@ -32,7 +32,7 @@ function plotinstaseis(obsmasterdir, synmasterdir, fcorners, CCmaxs, ...
 % SEE ALSO:
 % PLOTMEMAID, PLOTSYNTHETICS, PLOTRECORDS, ARRAYCCSHIFTPLOT
 %
-% Last modified by sirawich-at-princeton.edu, 05/15/2023
+% Last modified by sirawich-at-princeton.edu, 05/16/2023
 
 defval('op1', 2)
 defval('op2', 2)
@@ -195,6 +195,12 @@ for ii = 1:length(uniqevent)
         ax1s.YAxis.Visible = 'off';
         ax1s.TickDir = 'both';
         
+        %% added plot label
+        ax1b = boxedlabel(ax1s, 'northwest', 0.03, 'norm', 'a', ...
+            'FontSize', 12);
+        axes(ax1b)
+        ax1b.Position = [0.08 0.941 0.03 0.03];
+        
         %% list metadata for plotting traces
         % filter out the data from other events
         stationid = metadata.STNM(whevent);
@@ -268,6 +274,13 @@ for ii = 1:length(uniqevent)
         % adjust y-axis for description labels
         set(ax2, 'Box', 'on', 'TickDir', 'out', 'XLim', window_plot, ...
             'YLim', ylimit, 'FontSize', 12);
+        
+        %% added plot label
+        ax2b = boxedlabel(ax2, 'northwest', 0.03, 'norm', 'b', ...
+            'FontSize', 12);
+        ax2b.Position = [0.08 0.64 0.03 0.03];
+        priority_values = [priority_values; 4];
+        axes_collection = [axes_collection; ax2b];
         
         for jj = 1:sum(whevent)
             % read the observed seismogram
