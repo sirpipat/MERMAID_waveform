@@ -42,7 +42,7 @@ function [t_shift1, t_shift2, CCmax1, CCmax2, bath1, bath2, fcorners, snr] = ...
 %               for fcorners chosen by FREQSELECT; opt==2. Otherwise, snr 
 %               is set to NaN)
 %
-% Last modified by sirawich-at-princeton.edu, 01/26/2023
+% Last modified by sirawich-at-princeton.edu, 05/19/2023
 
 defval('fopt', 2)
 defval('plt', true)
@@ -155,8 +155,8 @@ if plt
         'jul', 'aug', 'sep', 'oct', 'nov', 'dec'};
     tbeg = datenum(dt_origin - minutes(1));
     tend = datenum(dt_origin + minutes(1));
-    mblo = hdr_o.MAG - 0.5;
-    mbhi = hdr_o.MAG + 0.5;
+    mblo = hdr_o.MAG - 0.51;
+    mbhi = hdr_o.MAG + 0.51;
     depmin = hdr_o.EVDP - 50;
     depmax = hdr_o.EVDP + 50;
 
@@ -223,7 +223,7 @@ if plt
     plot(itfs1{2}.pts(:,1), itfs1{2}.pts(:,2), 'LineStyle', '--', 'LineWidth', 2, 'Color', 'r')
     xlabel('x (m)')
     ylabel('elevation (m)')
-    set(ax1, 'Box', 'on', 'TickDir', 'both')
+    set(ax1, 'FontSize', 8, 'Box', 'on', 'TickDir', 'both')
     
     axb1 = boxedlabel(ax1, 'northwest', 0.18, [], 'a');
 
@@ -238,7 +238,7 @@ if plt
     xlabel('time (s)')
     ylabel('response')
     title('response function', 'Interpreter', 'latex', 'FontSize', 11)
-    set(ax2, 'Box', 'on', 'TickDir', 'both')
+    set(ax2, 'FontSize', 8, 'Box', 'on', 'TickDir', 'both')
     axb2 = boxedlabel(ax2, 'northwest', 0.18, [], 'b');
 
     %% synthetic vertical displacement at the ocean bottom
@@ -250,9 +250,9 @@ if plt
     xlim([-10 25])
 %     vline(ax3, 0, 'LineWidth', 2, 'LineStyle', '--', 'Color', [0.1 0.8 0.1]);
     ylabel('u_z (m)')
+    set(ax3, 'FontSize', 8, 'Box', 'on', 'TickDir', 'both', 'XTickLabel', {})
     title(sprintf('synthetic vertical displacement: bp%.1f-%.1f', fcorners(1), ...
         fcorners(2)), 'Interpreter', 'latex', 'FontSize', 11)
-    set(ax3, 'Box', 'on', 'TickDir', 'both', 'XTickLabel', {})
     axb3 = boxedlabel(ax3, 'northwest', 0.18, [], 'c');
 
     %% pressure recorded by the hydrophone
@@ -284,7 +284,7 @@ if plt
         'Location', 'southoutside', 'Interpreter', 'latex')
     xlabel('time since first picked arrival (s)')
     ylabel('P (Pa)')
-    set(ax4, 'Box', 'on', 'TickDir', 'both', 'Color', 'none', ...
+    set(ax4, 'FontSize', 8, 'Box', 'on', 'TickDir', 'both', 'Color', 'none', ...
         'Position', [0.1300 0.3080 0.7750 0.0525])
     
     % high light the waveform window
@@ -313,9 +313,10 @@ if plt
     grid on
     ylim([-1 1])
     ylabel('X^W')
+    set(ax5, 'FontSize', 8, 'Box', 'on', 'TickDir', 'both', 'XTickLabel', {})
     title(sprintf('correlation coefficients (red - %s, blue - %s)', ...
         la{1}, la{2}), 'Interpreter', 'latex', 'FontSize', 11)
-    set(ax5, 'Box', 'on', 'TickDir', 'both', 'XTickLabel', {})
+
     
     % cross correlation between the observed and second synthetic
     ax6 = subplot('Position', [0.1300 0.0500 0.7750 0.0525]);
@@ -324,7 +325,7 @@ if plt
     ylim([-1 1])
     xlabel('time shift (s)')
     ylabel('X^W')
-    set(ax6, 'Box', 'on', 'TickDir', 'both')
+    set(ax6, 'FontSize', 8, 'Box', 'on', 'TickDir', 'both')
     
     % align the two cross correlation plots
     extend = [min(ax5.XLim(1), ax6.XLim(1)) max(ax5.XLim(2), ax6.XLim(2))];
