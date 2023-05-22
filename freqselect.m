@@ -16,7 +16,7 @@ function [fc, s] = freqselect(t, x, fs, plt, titlename, savename)
 % fc            best corner frequency
 % s             best signal-to-noise ratio
 %
-% Last modified by sirawich-at-princeton.edu, 05/16/2023
+% Last modified by sirawich-at-princeton.edu, 05/18/2023
 
 % Nyquist frequency
 fNq = fs/2;
@@ -36,25 +36,25 @@ U = NaN(length(fcs), length(fcs));
 x = detrend(x .* shanning(length(x), 0.05, 0), 1);
 
 % remove frequency content below the lowest lower corner frequency
-x = hipass(x, fs, fcs(1), 2, 2, 'butter', 'linear');
+x = hipass(x, fs, fcs(1), 4, 2, 'butter', 'linear');
 
 for ii = 1:length(fcs)
     for jj = (ii+1):length(fcs)
         % for zero lower corner frequency: lowpass
         if fcs(ii) == 0 && jj < length(fcs)
-            xf = lowpass(x, fs, fcs(jj), 2, 2, 'butter', 'linear');
+            xf = lowpass(x, fs, fcs(jj), 4, 2, 'butter', 'linear');
         % for the highest upper corner frequency: high pass
         elseif fcs(ii) > 0 && jj == length(fcs)
             continue
-            xf = hipass(x, fs, fcs(ii), 2, 2, 'butter', 'linear');
+            xf = hipass(x, fs, fcs(ii), 4, 2, 'butter', 'linear');
         % bandpass
         elseif fcs(ii) > 0 && fcs(jj) - fcs(ii) >= 0.4995
-            xf = bandpass(x, fs, fcs(ii), fcs(jj), 2, 2, 'butter', 'linear');
+            xf = bandpass(x, fs, fcs(ii), fcs(jj), 4, 2, 'butter', 'linear');
         % skip if the window is too narrow or [0 Inf]
         else
             continue
         end
-        xs = bandstop(x, fs, fcs(ii), fcs(jj), 2, 2, 'butter', 'linear');
+        xs = bandstop(x, fs, fcs(ii), fcs(jj), 4, 2, 'butter', 'linear');
         if jj < length(fcs)
             fmid = max(fcs(ii), 0.05); %(2 * fcs(ii) + fcs(jj)) / 3;
         else
@@ -150,18 +150,18 @@ if plt
     text(sp3, -19, 0.7, 'all', 'FontSize', 11);
     
     if fc(1) > 0 && fc(2) < fNq
-        xf = bandpass(x, fs, fc(1), fc(2), 2, 2, 'butter', 'linear');
+        xf = bandpass(x, fs, fc(1), fc(2), 4, 2, 'butter', 'linear');
     elseif fc(1) == 0 && fc(2) < fNq
-        xf = lowpass(x, fs, fc(2), 2, 2, 'butter', 'linear');
+        xf = lowpass(x, fs, fc(2), 4, 2, 'butter', 'linear');
     elseif fc(1) > 0 && fc(2) == fNq
-        xf = hipass(x, fs, fc(1), 2, 2, 'butter', 'linear');
+        xf = hipass(x, fs, fc(1), 4, 2, 'butter', 'linear');
     else
         keyboard;
     end
     scale_pass = max(abs(xf(and(t >= -20, t < 20))));
     
     % bandstop signal
-    xt = bandstop(x, fs, fc(1), fc(2), 2, 2, 'butter', 'linear');
+    xt = bandstop(x, fs, fc(1), fc(2), 4, 2, 'butter', 'linear');
     scale_stop = max(abs(xt(and(t >= -20, t < 20))));
     
     % determine which scale to use
