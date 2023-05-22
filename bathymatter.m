@@ -61,7 +61,7 @@ function [t_shifts, CCmaxs, fcorners, snr, depthstats, slopestats, peakstats, n,
 % SEE ALSO
 % RUNFLATSIM, COMPARERESPONSEFUNCTIONS
 %
-% Last modified by sirawich-at-princeton.edu, 01/24/2023
+% Last modified by sirawich-at-princeton.edu, 05/22/2023
 
 defval('opt', 2)
 defval('true', plt)
@@ -71,7 +71,7 @@ defval('true', plt)
 
 defval('sname', sprintf('%s_%s.mat', mfilename, ...
     hash([obsmasterdir synmasterdir flatmasterdir bathmasterdir ...
-    double(plt) fndex bndex sum(opt)], 'SHA-1')))
+    double(plt) fndex bndex sum(opt) nargin nargout], 'SHA-1')))
 
 pname = fullfile(getenv('IFILES'), 'HASHES', sname);
 
@@ -191,13 +191,13 @@ if plt || ~exist(pname, 'file')
     
     % save
     fprintf('save the output to a file to %s ...\n', pname);
-    save(pname, 't_shifts', 'CCmaxs', 'depthstats', 'slopestats', ...
-        'peakstats', 'n', 'metadata');
+    save(pname, 't_shifts', 'CCmaxs', 'fcorners', 'snr', 'depthstats', ...
+        'slopestats', 'peakstats', 'n', 'metadata');
 else
     % load
     fprintf('found the save in a file in %s\n', pname);
     fprintf('load the variables ...\n');
-    load(pname, 't_shifts', 'CCmaxs', 'depthstats', 'slopestats', ...
-        'peakstats', 'n', 'metadata');
+    load(pname, 't_shifts', 'CCmaxs', 'fcorners', 'snr', 'depthstats', ...
+        'slopestats', 'peakstats', 'n', 'metadata');
 end
 end
