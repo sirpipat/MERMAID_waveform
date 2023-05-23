@@ -1,5 +1,5 @@
-function [fc, s] = freqselect(t, x, fs, plt, titlename, savename)
-% [fc, s] = FREQSELECT(t, x, fs, plt, titlename, savename)
+function [fc, s, tmax] = freqselect(t, x, fs, plt, titlename, savename)
+% [fc, s, tmax] = FREQSELECT(t, x, fs, plt, titlename, savename)
 %
 % Figures out the frequency band where the signal stands out the most from
 % the background noise.
