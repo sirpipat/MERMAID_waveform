@@ -5,7 +5,7 @@ function [fc, s] = freqselect(t, x, fs, plt, titlename, savename)
 % the background noise.
 % 
 % INPUT:
-% t             time
+% t             time [for an example, go between -100 and 100]
 % x             time-series data
 % fs            sampling rate
 % plt           whether to plot or not
