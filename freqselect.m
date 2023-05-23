@@ -15,6 +15,7 @@ function [fc, s] = freqselect(t, x, fs, plt, titlename, savename)
 % OUTPUT:
 % fc            best corner frequency
 % s             best signal-to-noise ratio
+% tmax          best signal-to-noise ratio
 %
 % Last modified by sirawich-at-princeton.edu, 05/18/2023
 
@@ -35,13 +36,9 @@ fspread = 0.4995;
 npoles = 4;
 npasss = 2;
 
-% pass SNR and optimal time
-A = NaN(length(fcs), length(fcs));
-T = NaN(length(fcs), length(fcs));
-
+% pass SNR and optimal time then
 % stop SNR and optimal time
-B = NaN(length(fcs), length(fcs));
-U = NaN(length(fcs), length(fcs));
+[A,T,B,U] = deal(NaN(length(fcs), length(fcs)));
 
 % detrend the original signal
 x = detrend(x .* shanning(length(x), 0.05, 0), 1);
@@ -92,8 +89,9 @@ end
 [MM, J] = max(M);
 fc = [fcs(J) fcs(I(J))];
 
-% best SNR
+% best SNR and corresponding time
 s = A(I(J), J);
+tmax = T(I(J), J);
 
 %% visualize the result
 if plt
@@ -288,7 +286,7 @@ end
 %
 % OUTPUT:
 % s             signal-to-noise ratio
-% t_max         time that give the maximum signal-to-noise ratio
+% t_max         time that gives the maximum signal-to-noise ratio
 function [s, t_max] = snrvar(t, x, win_select, t_begin, t_end, t_length)
 tt = t(and(t >= win_select(1), t <= win_select(2)));
 ss = zeros(size(tt));
