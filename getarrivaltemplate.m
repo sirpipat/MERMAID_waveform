@@ -1,5 +1,5 @@
-function [tims, seisdata] = getarrivaltemplate(ddir, example, station)
-% [tims, seisdata] = GETARRIVALTEMPLATE(ddir, example, station)
+function [tims, seisdata] = getarrivaltemplate(ddir, station, r)
+% [tims, seisdata] = GETARRIVALTEMPLATE(ddir, station, r)
 %
 % Returns the waveform of the first phase arrival assuming the most direct
 % path from the source array to the receiver. This function only works with
@@ -10,8 +10,8 @@ function [tims, seisdata] = getarrivaltemplate(ddir, example, station)
 %
 % INPUT:
 % ddir          simulation directory
-% example       name for the model
 % station       either 'bottom' [default] or 'hydrophone'
+% r             the fraction of the window that is tapered [default: 0.1]
 %
 % OUTPUT:
 % tims          times of the signal
@@ -23,6 +23,7 @@ function [tims, seisdata] = getarrivaltemplate(ddir, example, station)
 % Last modified by sirawich-at-princeton.edu, 05/24/2023
 
 defval('station', 'bottom')
+defval('r', 0.1)
 
 % read source-time function file
 fid = fopen(sprintf('%sOUTPUT_FILES/plot_source_time_function.txt', ddir), 'r');
@@ -84,5 +85,5 @@ wh = (tims > t0 + t_end + t_travel);
 seisdata(wh) = 0;
 
 % smooth the end of the first arrival
-seisdata(~wh) = seisdata(~wh) .* shanning(length(seisdata(~wh)), 0.1);
+seisdata(~wh) = seisdata(~wh) .* shanning(length(seisdata(~wh)), r);
 end

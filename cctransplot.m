@@ -43,7 +43,7 @@ function [t_cc, cc, t_rf, rf, d] = cctransplot(ddir1, ddir2, example, channel1, 
 % SPECFEM2D_INPUT_SETUP_FLAT, SPECFEM2D_INPUT_SETUP_RESPONSE, RUNFLATSIM,
 % SPECTRALDIVISION
 % 
-% Last modified by sirawich-at-princeton.edu, 03/21/2022
+% Last modified by sirawich-at-princeton.edu, 05/24/2023
 
 defval('channel1', {'bottom' 'displacement'})
 defval('channel2', {'hydrophone' 'pressure'})
@@ -51,9 +51,9 @@ defval('plt', true)
 
 % read the first arrival of the input signal
 if strcmpi(channel1{2}, 'displacement')
-    [tims_i, seisdata_i] = getarrivaltemplate(ddir2, example, channel1{1});
+    [tims_i, seisdata_i] = getarrivaltemplate(ddir2, channel1{1});
 else
-    [tims_i, seisdata_i] = getarrivaltemplate(ddir1, example, channel1{1});
+    [tims_i, seisdata_i] = getarrivaltemplate(ddir1, channel1{1});
 end
 
 % read the output signal

@@ -6,12 +6,12 @@ function varargout = pp2023figure7
 % OUTPUT:
 % fig       figure handle to the plots
 %
-% Last modified by sirawich-at-princeton.edu: 05/04/2023
+% Last modified by sirawich-at-princeton.edu: 05/24/2023
 %% load data
 
 % SPECFEM-vertical displacement (template)
 ddir = sprintf('%sDATA/Figure7/bathymetry/', getenv('MERMAID2'));
-[t_s, x_s] = getarrivaltemplate(ddir, 'flat_10996154_P0009', 'bottom');
+[t_s, x_s] = getarrivaltemplate(ddir, 'bottom');
 
 % SPECFEM-pressure
 file_p = [ddir 'OUTPUT_FILES/AA.S0001.PRE.semp'];
