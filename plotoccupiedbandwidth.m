@@ -12,7 +12,7 @@ function plotoccupiedbandwidth(obs_struct)
 %                       [flat bath] cases
 %   - metadata          SAC Headers associated to the obsfile
 %
-% Last modified by sirawich-at-princeton.edu: 02/01/2023
+% Last modified by sirawich-at-princeton.edu: 05/24/2023
 
 % largest acceptable error for value comparisons
 epsilon = 1e-6;
@@ -89,7 +89,7 @@ plotter(OB_snr, OB_cc, fc_bin_mid, I, ...
 plotter(OB_snr, OB_cc, fc_bin_mid, I, ...
         'polarity', 'polarity');
     
-if false
+if true
     plotter(OB_snr, OB_cc, fc_bin_mid, (1:size(obs_struct.fcorners,1))', ...
         'event id and station id', 'nosort');
 
@@ -165,9 +165,12 @@ function plotter(OB_snr, OB_cc, fc_bin_mid, sortindex, sortedby, savename)
     ax1.Parent.Children(1).Label.String = 'maximum correlation coefficient';
 
     % throwaway title axes
-    axt = subplot('Position', [0 0.96 1 0.00]);
+    axt = subplot('Position', [0 0.96 1 0.01]);
     title(sprintf('Sorted by %s', sortedby), 'FontSize', 12)
+    [axt.Title.Position(1), axt.Title.Position(2)] = ...
+            norm2trueposition(axt, 0.5, 1.06);
     axt.XAxis.Visible = 'off';
+    axt.Color = 'none';
 
     % save the figure
 %     set(gcf, 'Renderer', 'opengl')
