@@ -15,7 +15,7 @@ function fig = plotsac2(SeisData, HdrData, varargin)
 % SEE ALSO:
 % ARRIVAL2SAC, READSAC, PLOTSAC
 %
-% Last modified by Sirawich Pipatprathanporn, 11/01/2021
+% Last modified by Sirawich Pipatprathanporn, 05/23/2023
 
 % gets the information from SAC header
 [dt_ref, dt_B, dt_E, fs, npts, dts, tims] = gethdrinfo(HdrData);
@@ -31,7 +31,7 @@ end
 fig = figure(5);
 clf
 set(fig, 'Units', 'inches', 'Position', [0 12 6 4])
-ax1 = subplot('Position', [0.07 0.6 0.89 0.33], 'Box', 'on', 'TickDir', 'both');
+ax1 = subplot('Position', [0.07 0.6 0.89 0.33], 'Box', 'on', 'TickDir', 'out');
 
 % plot sesimogram
 ax1 = signalplot(x, fs, 0, ax1, 'title', [], 'k', varargin{:});
@@ -106,7 +106,7 @@ ax1.XLabel.String = 'time (s)';
 
 %% plot seismogram arround first P-wave arrival
 wh = and(t - arrivals(1) >= -15, t - arrivals(1) <= 15);
-ax2 = subplot('Position', [0.07 0.11 0.39 0.33], 'Box', 'on', 'TickDir', 'both');
+ax2 = subplot('Position', [0.07 0.11 0.39 0.33], 'Box', 'on', 'TickDir', 'out');
 ax2 = signalplot(x(wh), fs, indeks(t(wh), 1) - arrivals(1), ax2, ...
     phases{1}, [], 'k', varargin{:});
 ax2.XLim = [-15 15];
@@ -144,7 +144,7 @@ if s_index == 10
 end
 
 wh = and(t - arrivals(s_index) >= -15, t - arrivals(s_index) <= 15);
-ax3 = subplot('Position', [0.57 0.11 0.39 0.33], 'Box', 'on', 'TickDir', 'both');
+ax3 = subplot('Position', [0.57 0.11 0.39 0.33], 'Box', 'on', 'TickDir', 'out');
 ax3 = signalplot(x(wh), fs, indeks(t(wh), 1) - arrivals(s_index), ax3, ...
     phases{s_index}, [], 'k', varargin{:});
 ax3.XLim = [-15 15];

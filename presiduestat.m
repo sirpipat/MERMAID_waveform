@@ -14,7 +14,7 @@ function r = presiduestat(sacfiles, plt)
 % OUTPUT:
 % r             residuals
 %
-% Last modified by sirawich-at-princeton.edu, 01/17/2022
+% Last modified by sirawich-at-princeton.edu, 05/23/2023
 
 n = length(sacfiles);
 r = zeros(size(sacfiles));
@@ -78,7 +78,7 @@ for ii = 1:n
     arrival = indeks(t_wh(abs(x_wh) > 2e-2 * max(abs(x_wh))), 1);
     r(ii) = arrival - phaseTime;
     
-    if plt && false
+    if plt
         if HdrData.USER7 == -12345
             HdrData.USER7 = ii;
         end
@@ -90,7 +90,7 @@ for ii = 1:n
         hold on
         vline(ax, r(ii), 'LineWidth', 1, 'LineStyle', '-.', 'Color', [0.1 0.4 0.9]);
         hold off
-        legend(ax.Children(1:2), 'pick', 'ak135', 'Location', 'northwest')
+        legend(ax.Children(1:2), 'InstaSeis', 'TauP', 'Location', 'northeast')
         
         savename = sprintf('%s_seis_%d_%s.eps', mfilename, ...
             HdrData.USER7, replace(HdrData.KSTNM, ' ', ''));
@@ -107,7 +107,7 @@ if plt
     [~,v2] = vline(gca, median(r), 'Color', 'r', 'LineWidth', 1.5, 'LineStyle', '--');
     [~,v3] = vline(gca, median(r) + std(r) * [-1 1], 'Color', [0.1 0.4 0.9], 'LineWidth', 1.5, 'LineStyle', '--');
     grid on
-    set(gca, 'FontSize', 12, 'TickDir', 'both');
+    set(gca, 'FontSize', 12, 'TickDir', 'out');
     xlabel('residual (s)')
     ylabel('counts')
     title(sprintf('n = %d, mean = %.2f, median = %.2f, std = %.2f', n, mean(r), median(r), std(r)));
