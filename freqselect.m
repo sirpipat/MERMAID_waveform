@@ -1,11 +1,11 @@
-function [fc, s] = freqselect(t, x, fs, plt, titlename, savename)
-% [fc, s] = FREQSELECT(t, x, fs, plt, titlename, savename)
+function [fc, s, tmax] = freqselect(t, x, fs, plt, titlename, savename)
+% [fc, s, tmax] = FREQSELECT(t, x, fs, plt, titlename, savename)
 %
 % Figures out the frequency band where the signal stands out the most from
 % the background noise.
 % 
 % INPUT:
-% t             time
+% t             time [for an example, go between -100 and 100]
 % x             time-series data
 % fs            sampling rate
 % plt           whether to plot or not
@@ -15,50 +15,60 @@ function [fc, s] = freqselect(t, x, fs, plt, titlename, savename)
 % OUTPUT:
 % fc            best corner frequency
 % s             best signal-to-noise ratio
+% tmax          best signal-to-noise ratio
 %
 % Last modified by sirawich-at-princeton.edu, 05/18/2023
 
+% Check the sampling rate consistency
+diferm(unique(diff(t)),1/fs)
+    
 % Nyquist frequency
 fNq = fs/2;
 
 % list of corner frequency candidates
-fcs = 0.4:0.05:2.05;
+delf=0.05;
+fcs = 0.4:delf:2.05;
 
-% pass SNR and optimal time
-A = NaN(length(fcs), length(fcs));
-T = NaN(length(fcs), length(fcs));
+% spread i.e. minimum bandwidth
+fspread = 0.4995;
 
+% number of poles and passes
+npoles = 4;
+npasss = 2;
+
+% pass SNR and optimal time then
 % stop SNR and optimal time
-B = NaN(length(fcs), length(fcs));
-U = NaN(length(fcs), length(fcs));
+[A,T,B,U] = deal(NaN(length(fcs), length(fcs)));
 
 % detrend the original signal
 x = detrend(x .* shanning(length(x), 0.05, 0), 1);
 
 % remove frequency content below the lowest lower corner frequency
-x = hipass(x, fs, fcs(1), 4, 2, 'butter', 'linear');
+x = hipass(x, fs, fcs(1), npoles, npasss, 'butter', 'linear');
 
+% try all lower corner frequency candidates
 for ii = 1:length(fcs)
+    % try all upper corner frequency candidates
     for jj = (ii+1):length(fcs)
         % for zero lower corner frequency: lowpass
         if fcs(ii) == 0 && jj < length(fcs)
-            xf = lowpass(x, fs, fcs(jj), 4, 2, 'butter', 'linear');
+            xf = lowpass(x, fs, fcs(jj), npoles, npasss, 'butter', 'linear');
         % for the highest upper corner frequency: high pass
         elseif fcs(ii) > 0 && jj == length(fcs)
             continue
-            xf = hipass(x, fs, fcs(ii), 4, 2, 'butter', 'linear');
+            xf = hipass(x, fs, fcs(ii), npoles, npasss, 'butter', 'linear');
         % bandpass
-        elseif fcs(ii) > 0 && fcs(jj) - fcs(ii) >= 0.4995
-            xf = bandpass(x, fs, fcs(ii), fcs(jj), 4, 2, 'butter', 'linear');
+        elseif fcs(ii) > 0 && fcs(jj) - fcs(ii) >= fspread
+            xf = bandpass(x, fs, fcs(ii), fcs(jj), npoles, npasss, 'butter', 'linear');
         % skip if the window is too narrow or [0 Inf]
         else
             continue
         end
-        xs = bandstop(x, fs, fcs(ii), fcs(jj), 4, 2, 'butter', 'linear');
+        xs = bandstop(x, fs, fcs(ii), fcs(jj), npoles, npasss, 'butter', 'linear');
         if jj < length(fcs)
-            fmid = max(fcs(ii), 0.05); %(2 * fcs(ii) + fcs(jj)) / 3;
+            fmid = max(fcs(ii), delf); %(2 * fcs(ii) + fcs(jj)) / 3;
         else
-            fmid = max(fcs(ii), 0.05); %(2 * fcs(ii) + fNq) / 3;
+            fmid = max(fcs(ii), delf); %(2 * fcs(ii) + fNq) / 3;
         end
         halfwin = 2/ fmid;
         [A(jj, ii), T(jj, ii)] = snrvar(t, xf, [-1 1] * halfwin/2, ...
@@ -79,8 +89,9 @@ end
 [MM, J] = max(M);
 fc = [fcs(J) fcs(I(J))];
 
-% best SNR
+% best SNR and corresponding time
 s = A(I(J), J);
+tmax = T(I(J), J);
 
 %% visualize the result
 if plt
@@ -150,18 +161,18 @@ if plt
     text(sp3, -19, 0.7, 'all', 'FontSize', 11);
     
     if fc(1) > 0 && fc(2) < fNq
-        xf = bandpass(x, fs, fc(1), fc(2), 4, 2, 'butter', 'linear');
+        xf = bandpass(x, fs, fc(1), fc(2), npoles, npasss, 'butter', 'linear');
     elseif fc(1) == 0 && fc(2) < fNq
-        xf = lowpass(x, fs, fc(2), 4, 2, 'butter', 'linear');
+        xf = lowpass(x, fs, fc(2), npoles, npasss, 'butter', 'linear');
     elseif fc(1) > 0 && fc(2) == fNq
-        xf = hipass(x, fs, fc(1), 4, 2, 'butter', 'linear');
+        xf = hipass(x, fs, fc(1), npoles, npasss, 'butter', 'linear');
     else
         keyboard;
     end
     scale_pass = max(abs(xf(and(t >= -20, t < 20))));
     
     % bandstop signal
-    xt = bandstop(x, fs, fc(1), fc(2), 4, 2, 'butter', 'linear');
+    xt = bandstop(x, fs, fc(1), fc(2), npoles, npasss, 'butter', 'linear');
     scale_stop = max(abs(xt(and(t >= -20, t < 20))));
     
     % determine which scale to use
@@ -262,7 +273,8 @@ else
 end
 end
 
-% compute signal-to-noise ratio
+% compute signal-to-noise ratio for same-length fixed-length segments
+% whose breakpoint can vary within a certain time window
 %
 % INPUT:
 % t             time
@@ -274,7 +286,7 @@ end
 %
 % OUTPUT:
 % s             signal-to-noise ratio
-% t_max         time that give the maximum signal-to-noise ratio
+% t_max         time that gives the maximum signal-to-noise ratio
 function [s, t_max] = snrvar(t, x, win_select, t_begin, t_end, t_length)
 tt = t(and(t >= win_select(1), t <= win_select(2)));
 ss = zeros(size(tt));
