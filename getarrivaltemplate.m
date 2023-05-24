@@ -20,7 +20,7 @@ function [tims, seisdata] = getarrivaltemplate(ddir, example, station)
 % SEE ALSO:
 % READ_SEISMOGRAM, SPECFEM2D_INPUT_SETUP_FLAT
 %
-% Last modified by sirawich-at-princeton.edu, 03/17/2022
+% Last modified by sirawich-at-princeton.edu, 05/24/2023
 
 defval('station', 'bottom')
 
@@ -82,4 +82,7 @@ end
 % remove any signal after the end of the first arrival
 wh = (tims > t0 + t_end + t_travel);
 seisdata(wh) = 0;
+
+% smooth the end of the first arrival
+seisdata(~wh) = seisdata(~wh) .* shanning(length(seisdata(~wh)), 0.1);
 end
