@@ -6,13 +6,13 @@ function varargout = pp2023figure9
 % OUTPUT:
 % fig       figure handle to the plots
 %
-% Last modified by sirawich-at-princeton.edu: 06/25/2023
+% Last modified by sirawich-at-princeton.edu: 06/27/2023
 
 %% load data
 
 % load INSTASEIS displacement seismogram at the ocean bottom
 [seis_s, hdr_s] = readsac(sprintf(...
-    '%sDATA/Figure9/20190115T180634_09_0_SYNTHETIC.sac', ...
+    '%sDATA/Figure9/20180817T153501_09_0_SYNTHETIC.sac', ...
     getenv('MERMAID2')));
 [dt_ref_s, dt_begin_s, ~, fs_s, ~, dts_s] = gethdrinfo(hdr_s);
 
@@ -23,7 +23,7 @@ file_s = [ddir 'OUTPUT_FILES/AB.S0001.BXZ.semd'];
 
 % read the observed pressure record
 [seis_o, hdr_o] = readsac(sprintf(...
-    '%sDATA/Figure9/20190115T181021.09_5C3E73D6.MER.DET.WLT5.sac', ...
+    '%sDATA/Figure9/20180817T154351.09_5B77394A.MER.DET.WLT5.sac', ...
     getenv('MERMAID2')));
 [dt_ref_o, dt_begin_o, ~, fs_o, ~, dts_o] = gethdrinfo(hdr_o);
 
@@ -48,11 +48,11 @@ pres_o = real(pres_o);
 %[fcorners, ~] = freqselect(t_relative, pres_o, fs_o, false);
 
 % filter
-fcorners = [0.50 1.30];
+fcorners = [0.80 1.50];
 pres_o = bandpass(pres_o, fs_o, fcorners(1), fcorners(2), 4, 2, 'butter', 'linear');
 
 % timeshift
-timeshift = -0.6998;
+timeshift = 4.0486;
 
 % resample to MERMAID datetimes
 seis_s_interp = shannon(dts_s, seis_s, dts_o);
@@ -75,7 +75,7 @@ set(gcf, 'Units', 'inches', 'Position', [0 1 8 4])
 clf
 
 ax1 = subplot('Position', [0.09 0.74 0.88 0.24]);
-plot(ax1, t_relative, pres_o / max(abs(pres_s)), 'LineWidth', 1.4, 'Color', 'b')
+plot(ax1, t_relative, pres_o / max(abs(pres_o)), 'LineWidth', 1, 'Color', 'b')
 hold on
 plot(ax1, t_relative + timeshift, pres_s / max(abs(pres_s)), 'LineWidth', 1, 'Color', 'r')
 grid on
@@ -84,14 +84,22 @@ ylim([-1.5, 1.5])
 nolabels(ax1, 1)
 
 % label graph
-text(ax1, -7.5, -0.9, 'synthetic pressure ($$\hat{p} = s*r$$)', ...
-    'FontSize', 14, 'Color', 'r', 'Interpreter', 'latex')
-text(ax1, -7.5, 1.0, 'observed pressure ($$p$$)', ...
-    'FontSize', 14, 'Color', 'b', 'Interpreter', 'latex')
+text(ax1, 33, -0.9, 'synthetic pressure ($$\hat{p} = s*r$$)', ...
+    'FontSize', 14, 'HorizontalAlignment', 'right', 'Color', 'r', ...
+    'Interpreter', 'latex')
+text(ax1, 33, 1.0, 'observed pressure ($$p$$)', ...
+    'FontSize', 14, 'HorizontalAlignment', 'right', 'Color', 'b', ...
+    'Interpreter', 'latex')
 
 % label scale
-scalelabel = sprintf('%.2g', max(abs(pres_s)));
+scalelabel = sprintf('%.2g', max(abs(pres_o)));
 if contains(scalelabel, 'e')
+    if str2double(scalelabel(end-1:end)) > 0
+        scalelabel = replace(scalelabel, '+', '');
+    end
+    if abs(str2double(scalelabel(end-1:end))) < 10
+        scalelabel(end-1) = '';
+    end
     scalelabel = [scalelabel '}'];
     scalelabel = replace(scalelabel, 'e', '\times10^{');
     scalelabel = replace(scalelabel, 'x', '\times');
@@ -109,12 +117,19 @@ ylim([-1.5, 1.5])
 nolabels(ax2, 1)
 
 % label graph
-text(ax2, -7.5, 1.0, 'synthetic displacement ($$s$$)', ...
-    'FontSize', 14, 'Color', [0 0.4 0], 'Interpreter', 'latex')
+text(ax2, 33, 1.0, 'synthetic displacement ($$s$$)', 'FontSize', 14, ...
+    'HorizontalAlignment', 'right', 'Color', [0 0.4 0], ...
+    'Interpreter', 'latex')
 
 % label scale
 scalelabel = sprintf('%.2g', max(abs(seis_s_interp)));
 if contains(scalelabel, 'e')
+    if str2double(scalelabel(end-1:end)) > 0
+        scalelabel = replace(scalelabel, '+', '');
+    end
+    if abs(str2double(scalelabel(end-1:end))) < 10
+        scalelabel(end-1) = '';
+    end
     scalelabel = [scalelabel '}'];
     scalelabel = replace(scalelabel, 'e', '\times10^{');
     scalelabel = replace(scalelabel, 'x', '\times');
@@ -133,12 +148,18 @@ ylim([-1.5, 1.5])
 xlabel('time (s)')
 
 % label graph
-text(ax3, -7.5, 1.05, 'response function ($$r$$)', ...
-    'FontSize', 14, 'Interpreter', 'latex')
+text(ax3, 33, 1.05, 'response function ($$r$$)', 'FontSize', 14, ...
+    'HorizontalAlignment', 'right', 'Interpreter', 'latex')
 
 % label scale
 scalelabel = sprintf('%.2g', max(abs(seis_r)));
 if contains(scalelabel, 'e')
+    if str2double(scalelabel(end-1:end)) > 0
+        scalelabel = replace(scalelabel, '+', '');
+    end
+    if abs(str2double(scalelabel(end-1:end))) < 10
+        scalelabel(end-1) = '';
+    end
     scalelabel = [scalelabel '}'];
     scalelabel = replace(scalelabel, 'e', '\times10^{');
     scalelabel = replace(scalelabel, 'x', '\times');
