@@ -11,6 +11,8 @@ function fluid_solid_analysis(ddir_fluid, ddir_solid)
 % ddir_fluid        directory to a simulation with hydrophones output
 % ddir_solid        directory to the same simulation but with burried
 %                   seismometers output
+%
+% Last modified by sirawich-at-princeton.edu: 06/27/2023
 
 if true
     % make videos from simulation snapshots
@@ -18,8 +20,8 @@ if true
     for ii = 1:2
         ddir = ddirs{ii};
         [allfiles, fndex] = allfile(ddir);
-        first_filename = strcat(ddir, 'forward_image0000005.jpg');
-        last_filename = strcat(ddir, 'forward_image0050000.jpg');
+        first_filename = strcat(ddir, 'forward_image000000005.jpg');
+        last_filename = strcat(ddir, 'forward_image000065000.jpg');
 
         % determine the begin and end indices of the snapshots
         first_index = strcmp(allfiles, first_filename) * (1:fndex)';
