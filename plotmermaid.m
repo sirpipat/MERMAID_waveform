@@ -291,6 +291,10 @@ for ii = 1:length(uniqevent)
         priority_values = [priority_values; 4];
         axes_collection = [axes_collection; ax2b];
         
+        % positional parameters description labels
+        is_label_left = true;
+        prev_label_top = 0;
+        
         for jj = 1:sum(whevent)
             % read the observed seismogram
             obsfile = cindeks(ls2cell(sprintf('%s%d/*.%02d_*.sac', ...
@@ -359,14 +363,98 @@ for ii = 1:length(uniqevent)
             % plot the seismograms
             signalplot(pres_o * o_norm + y_values(jj), fs_o, tims_o(1), ...
                 ax2ss, '', [], color_obs, 'LineWidth', 1);
-
+            
             ax2ss.Title.String = '';
             ax2ss.XAxis.Visible = 'off';
             ax2ss.YAxis.Visible = 'off';
             set(ax2ss, 'Box', 'off', 'TickDir', 'out', ...
                 'XLim', window_plot, 'YLim', ylimit, 'FontSize', 12, ...
                 'Color', 'none', 'XGrid', 'off', 'YGrid', 'off');
+            
+            % location of the labels
+            if op3 == 1
+                [x_norm, y_norm] = true2normposition(ax2ss, -39.5, ...
+                    y_values(jj));
+            else
+                [x_norm, y_norm] = true2normposition(ax2ss, -19.5, ...
+                    y_values(jj));
+            end
+            
+            if is_label_left && prev_label_top > y_norm
+                if op3 == 1
+                    [x_norm, y_norm] = true2normposition(ax2ss, 44.5, ...
+                        y_values(jj));
+                else
+                    [x_norm, y_norm] = true2normposition(ax2ss, 39.5, ...
+                        y_values(jj));
+                end
+                is_label_left = false;
+            else
+                is_label_left = true;
+            end
+            prev_label_top = y_norm + 0.075;
+            
+            % add pressure text
+            label_str = sprintf('$$ %.2f\\textnormal{~Pa} $$', ...
+                amp(jj));
+            
+            if is_label_left
+                [x_text, y_text] = norm2trueposition(ax2ss, x_norm, ...
+                    y_norm + 0.025);
+                textbox(ax2ss, x_text, y_text, label_str, ...
+                    {'FontSize', 10, 'Interpreter', 'latex'}, ...
+                    {'EdgeColor', [1 1 1]});
+            else
+                [x_text, y_text] = norm2trueposition(ax2ss, x_norm, ...
+                    y_norm + 0.025);
+                textbox(ax2ss, x_text, y_text, label_str, ...
+                    {'FontSize', 10, 'Interpreter', 'latex', ...
+                     'HorizontalAlignment', 'right'}, ...
+                    {'EdgeColor', [1 1 1]});
+            end
+            
+            % add MERMAID number text (and corner frequencies)
+            if op4 == 1
+                number_str = sprintf('$$ \\textnormal{P%04d} $$', ...
+                    stationid(jj));
+            else
+                number_str = sprintf('$$ \\textnormal{P%04d}, %4.2f-%4.2f\\textnormal{~Hz}$$', ...
+                    stationid(jj), fcs(jj,1), fcs(jj,2));
+            end
+            
+            if is_label_left
+                [x_text, y_text] = norm2trueposition(ax2ss, x_norm, ...
+                    y_norm - 0.025);
+                [~, than] = textbox(ax2ss, x_text + 1.5, y_text, number_str, ...
+                    {'FontSize', 10, 'Interpreter', 'latex'}, ...
+                    {'EdgeColor', [1 1 1]});
+            else
+                [x_text, y_text] = norm2trueposition(ax2ss, x_norm, ...
+                    y_norm - 0.025);
+                [~, than] = textbox(ax2ss, x_text, y_text, number_str, ...
+                    {'FontSize', 10, 'Interpreter', 'latex', ...
+                     'HorizontalAlignment', 'right'}, ...
+                    {'EdgeColor', [1 1 1]});
+            end
+            
+            % add MERMAID icon
+            % get color icon
+            color_icon = cmap(stationid(jj) == metadata.STNM(whevent),:);
+            color_txt = [0 0 0];
+            if op5 == 2 && CCmax(jj) <= 0.6
+                % grey out if the CC is low
+                color_icon = 0.5 * color_icon + 0.5;
+                color_txt = [0.5 0.5 0.5];
+            end
+            % determine the icon's position
+            icon_xposition = than.Extent(1) - 1;
+            [~, icon_yposition] = norm2trueposition(ax2ss, x_norm, ...
+                    y_norm - 0.018);
+                
+            scatter(icon_xposition, icon_yposition, 60, color_icon, 'v', ...
+                'filled', 'MarkerEdgeColor', color_txt)
         end
+        
         % add azimuth value to right y-axis
         axa = doubleaxes(ax2);
         axes_collection = [axes_collection; axa];
@@ -397,114 +485,6 @@ for ii = 1:length(uniqevent)
         axa.YLabel.String = 'azimuth (degrees)';
         set(axa, 'Box', 'off', 'TickDir', 'out', 'FontSize', 12, ...
             'Color', 'none');
-        
-        % add description labels
-        is_label_left = true;
-        prev_label_top = 0;
-        for jj = 1:sum(whevent)
-            % read the observed seismogram
-            obsfile = cindeks(ls2cell(sprintf('%s%d/*.%02d_*.sac', ...
-                obsmasterdir, uniqevent(ii), stationid(jj)), 1), 1);
-            [~, hdr_o] = readsac(obsfile);
-            
-            if op3 == 1
-                [x_norm, y_norm] = true2normposition(ax2, -39.5, y_values(jj));
-            else
-                [x_norm, y_norm] = true2normposition(ax2, -19.5, y_values(jj));
-            end
-            
-            if is_label_left && prev_label_top > y_norm
-                if op3 == 1
-                    [x_norm, y_norm] = true2normposition(ax2, 32.5, y_values(jj));
-                else
-                    [x_norm, y_norm] = true2normposition(ax2, 27.5, y_values(jj));
-                end
-                is_label_left = false;
-            else
-                is_label_left = true;
-            end
-            prev_label_top = y_norm + 0.075;
-            
-            if op3 == 1
-                axb1 = addbox(ax2, [max(x_norm,0) y_norm+0.01 0.27 0.03]);
-                axb2 = addbox(ax2, [max(x_norm,0) y_norm-0.04 0.27 0.03]);
-            else
-                axb1 = addbox(ax2, [max(x_norm,0) y_norm+0.01 0.20 0.03]);
-                axb2 = addbox(ax2, [max(x_norm,0) y_norm-0.04 0.20 0.03]);
-            end
-            axes_collection = [axes_collection; axb1; axb2];
-            priority_values = [priority_values; 2+CCmax(jj); ...
-                2-1e-12+CCmax(jj)];
-            
-            axes(axb1)
-            if op5 == 2 && CCmax(jj) <= 0.6
-                color_txt = [0.5 0.5 0.5];
-            else
-                color_txt = [0 0 0];
-            end
-            
-            label_str = sprintf('$$ %.2f\\textnormal{~Pa} $$', ...
-                amp(jj));
-            if op4 == 1
-                number_str = sprintf('$$ \\textnormal{P%04d} $$', ...
-                    stationid(jj));
-            else
-                number_str = sprintf('$$ \\textnormal{P%04d}, %4.2f-%4.2f\\textnormal{~Hz}$$', ...
-                    stationid(jj), fcs(jj,1), fcs(jj,2));
-            end
-            % adjust positions
-            if is_label_left
-                alignment = 'left';
-                top_text_xposition = 0.01;
-                if op3 == 1
-                    bottom_text_xposition = 0.08;
-                else
-                    bottom_text_xposition = 0.10;
-                end
-                icon_xposition = 0.04;
-            else
-                alignment = 'right';
-                top_text_xposition = 0.99;
-                bottom_text_xposition = 0.99;
-                if op3 == 1
-                    if op4 == 1
-                        icon_xposition = 0.76;
-                    else
-                        icon_xposition = 0.14;
-                    end
-                else
-                    if op4 == 1
-                        icon_xposition = 0.68;
-                    else
-                        icon_xposition = 0.06;
-                    end
-                end
-            end
-            text(top_text_xposition, 0.35, label_str, 'Interpreter', ...
-                'latex', 'FontSize', 10, 'Color', color_txt, ...
-                'HorizontalAlignment', alignment);
-            axb1.XAxis.Visible = 'off';
-            axb1.YAxis.Visible = 'off';
-            
-            % label MERMAID number with colored icon
-            axes(axb2)
-            text(bottom_text_xposition, 0.35, number_str, 'Interpreter', ...
-                'latex', 'FontSize', 10, 'Color', color_txt, ...
-                'HorizontalAlignment', alignment);
-            hold on
-            % get color icon
-            color_icon = cmap(stationid(jj) == metadata.STNM(whevent),:);
-            if op5 == 2 && CCmax(jj) <= 0.6
-                % grey out if the CC is low
-                color_icon = 0.5 * color_icon + 0.5;
-            end
-            scatter(icon_xposition, 0.60, 60, color_icon, 'v', ...
-                'filled', 'MarkerEdgeColor', color_txt)
-            xlim([0,1])
-            ylim([0,1])
-            axb2.XAxis.Visible = 'off';
-            axb2.YAxis.Visible = 'off';
-        end
         
         % rearrange the figure
         [~, i_sort] = sort(priority_values, 'ascend');
