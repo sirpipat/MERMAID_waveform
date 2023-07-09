@@ -6,7 +6,7 @@ function varargout = pp2023figure9
 % OUTPUT:
 % fig       figure handle to the plots
 %
-% Last modified by sirawich-at-princeton.edu: 06/27/2023
+% Last modified by sirawich-at-princeton.edu: 07/06/2023
 
 %% load data
 
@@ -77,34 +77,38 @@ clf
 ax1 = subplot('Position', [0.09 0.74 0.88 0.24]);
 plot(ax1, t_relative, pres_o / max(abs(pres_o)), 'LineWidth', 1, 'Color', 'b')
 hold on
+plot(ax1, t_relative + 0 * timeshift, pres_s / max(abs(pres_s)), 'LineWidth', 0.5, 'Color', [0.5 0.5 0.5])
 plot(ax1, t_relative + timeshift, pres_s / max(abs(pres_s)), 'LineWidth', 1, 'Color', 'r')
+
 grid on
-xlim([-10 35])
+xlim([-10 20])
 ylim([-1.5, 1.5])
 nolabels(ax1, 1)
+ylabel('press. (Pa)')
 
 % label graph
-text(ax1, 33, -0.9, 'synthetic pressure ($$\hat{p} = s*r$$)', ...
+text(ax1, 19, -0.9, 'synthetic pressure ($$\hat{p} = s*r$$)', ...
     'FontSize', 14, 'HorizontalAlignment', 'right', 'Color', 'r', ...
     'Interpreter', 'latex')
-text(ax1, 33, 1.0, 'observed pressure ($$p$$)', ...
+text(ax1, 19, 1.0, 'observed pressure ($$p$$)', ...
     'FontSize', 14, 'HorizontalAlignment', 'right', 'Color', 'b', ...
     'Interpreter', 'latex')
 
 % label scale
-scalelabel = sprintf('%.2g', max(abs(pres_o)));
-if contains(scalelabel, 'e')
-    if str2double(scalelabel(end-1:end)) > 0
-        scalelabel = replace(scalelabel, '+', '');
-    end
-    if abs(str2double(scalelabel(end-1:end))) < 10
-        scalelabel(end-1) = '';
-    end
-    scalelabel = [scalelabel '}'];
-    scalelabel = replace(scalelabel, 'e', '\times10^{');
-    scalelabel = replace(scalelabel, 'x', '\times');
-end
-yticklabels({['-' scalelabel], 0 ,scalelabel})
+% scalelabel = sprintf('%.2g', max(abs(pres_o)));
+% if contains(scalelabel, 'e')
+%     if str2double(scalelabel(end-1:end)) > 0
+%         scalelabel = replace(scalelabel, '+', '');
+%     end
+%     if abs(str2double(scalelabel(end-1:end))) < 10
+%         scalelabel(end-1) = '';
+%     end
+%     scalelabel = [scalelabel '}'];
+%     scalelabel = replace(scalelabel, 'e', '\times10^{');
+%     scalelabel = replace(scalelabel, 'x', '\times');
+% end
+% yticklabels({['-' scalelabel], 0 ,scalelabel})
+yticklabels({'', '', ''})
 
 set(ax1, 'Box', 'on', 'FontSize', 12, 'TickDir', 'out')
 boxedlabel(ax1, 'northwest', 0.28, [], 'a', 'FontSize', 14);
@@ -112,29 +116,31 @@ boxedlabel(ax1, 'northwest', 0.28, [], 'a', 'FontSize', 14);
 ax2 = subplot('Position', [0.09 0.44 0.88 0.24]);
 plot(ax2, t_relative, seis_s_interp / max(abs(seis_s_interp)), 'LineWidth', 1, 'Color', [0 0.4 0])
 grid on
-xlim([-10 35])
+xlim([-10 20])
 ylim([-1.5, 1.5])
 nolabels(ax2, 1)
+ylabel('disp. (m)')
 
 % label graph
-text(ax2, 33, 1.0, 'synthetic displacement ($$s$$)', 'FontSize', 14, ...
+text(ax2, 19, 1.0, 'synthetic displacement ($$s$$)', 'FontSize', 14, ...
     'HorizontalAlignment', 'right', 'Color', [0 0.4 0], ...
     'Interpreter', 'latex')
 
 % label scale
-scalelabel = sprintf('%.2g', max(abs(seis_s_interp)));
-if contains(scalelabel, 'e')
-    if str2double(scalelabel(end-1:end)) > 0
-        scalelabel = replace(scalelabel, '+', '');
-    end
-    if abs(str2double(scalelabel(end-1:end))) < 10
-        scalelabel(end-1) = '';
-    end
-    scalelabel = [scalelabel '}'];
-    scalelabel = replace(scalelabel, 'e', '\times10^{');
-    scalelabel = replace(scalelabel, 'x', '\times');
-end
-yticklabels({['-' scalelabel], 0 ,scalelabel})
+% scalelabel = sprintf('%.2g', max(abs(seis_s_interp)));
+% if contains(scalelabel, 'e')
+%     if str2double(scalelabel(end-1:end)) > 0
+%         scalelabel = replace(scalelabel, '+', '');
+%     end
+%     if abs(str2double(scalelabel(end-1:end))) < 10
+%         scalelabel(end-1) = '';
+%     end
+%     scalelabel = [scalelabel '}'];
+%     scalelabel = replace(scalelabel, 'e', '\times10^{');
+%     scalelabel = replace(scalelabel, 'x', '\times');
+% end
+% yticklabels({['-' scalelabel], 0 ,scalelabel})
+yticklabels({'', '', ''})
 
 set(ax2, 'Box', 'on', 'FontSize', 12, 'TickDir', 'out')
 boxedlabel(ax2, 'northwest', 0.28, [], 'b', 'FontSize', 14);
@@ -143,28 +149,30 @@ ax3 = subplot('Position', [0.09 0.14 0.88 0.24]);
 plot(ax3, [-10 -5 -1 t_r_interp 33 35], ...
     [0; 0; 0; seis_r / max(abs(seis_r)); 0; 0], 'k', 'LineWidth', 1)
 grid on
-xlim([-10 35])
+xlim([0 30])
 ylim([-1.5, 1.5])
 xlabel('time (s)')
+ylabel('resp. (Pa/m)')
 
 % label graph
-text(ax3, 33, 1.05, 'response function ($$r$$)', 'FontSize', 14, ...
+text(ax3, 29, 1.05, 'response function ($$r$$)', 'FontSize', 14, ...
     'HorizontalAlignment', 'right', 'Interpreter', 'latex')
 
 % label scale
-scalelabel = sprintf('%.2g', max(abs(seis_r)));
-if contains(scalelabel, 'e')
-    if str2double(scalelabel(end-1:end)) > 0
-        scalelabel = replace(scalelabel, '+', '');
-    end
-    if abs(str2double(scalelabel(end-1:end))) < 10
-        scalelabel(end-1) = '';
-    end
-    scalelabel = [scalelabel '}'];
-    scalelabel = replace(scalelabel, 'e', '\times10^{');
-    scalelabel = replace(scalelabel, 'x', '\times');
-end
-yticklabels({['-' scalelabel], 0 ,scalelabel})
+% scalelabel = sprintf('%.2g', max(abs(seis_r)));
+% if contains(scalelabel, 'e')
+%     if str2double(scalelabel(end-1:end)) > 0
+%         scalelabel = replace(scalelabel, '+', '');
+%     end
+%     if abs(str2double(scalelabel(end-1:end))) < 10
+%         scalelabel(end-1) = '';
+%     end
+%     scalelabel = [scalelabel '}'];
+%     scalelabel = replace(scalelabel, 'e', '\times10^{');
+%     scalelabel = replace(scalelabel, 'x', '\times');
+% end
+% yticklabels({['-' scalelabel], 0 ,scalelabel})
+yticklabels({'', '', ''})
 
 set(ax3, 'Box', 'on', 'FontSize', 12, 'TickDir', 'out')
 
