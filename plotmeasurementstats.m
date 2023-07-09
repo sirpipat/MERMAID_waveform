@@ -113,7 +113,7 @@ variable_pairs = [...
 ];
 
 %% make histograms of time shifts, maximum correlation
-for ii = 21:length(variables)
+for ii = 1:length(variables)
     figure(1)
     set(gcf, 'Units', 'inches', 'Position', [0 1 8 5])
     clf
@@ -149,7 +149,7 @@ for ii = 21:length(variables)
 end
 
 %% make scatter plots between "all" continuous, quantitative variables
-for ii = 21:size(variable_pairs, 1)
+for ii = 1:size(variable_pairs, 1)
     var1 = variables(variable_pairs(ii, 1));
     var2 = variables(variable_pairs(ii, 2));
     
@@ -192,6 +192,21 @@ for ii = 21:size(variable_pairs, 1)
 end
 end
 
+% Constructs a struct storing variables for plotting/saving
+% histograms/scatterplots
+%
+% INPUT:
+% name          variable name
+% value         value of the variable
+% label         axes label when plotting this variable
+% axlimit       axes limit when plotting this variable
+% BinWidth      histogram bin width (if given as a scalar) or
+%               histogram bin edges (if given as a vector)
+% incdices      logical array whether to use each element in value or not
+%               (it has to be the same size as value)
+%
+% OUTPUT:
+% variable      a struct
 function variable = variableconstructor(name, value, label, axlimit, BinWidth, indices)
 defval('name', 'unnamed')
 defval('label', 'unnamed')
