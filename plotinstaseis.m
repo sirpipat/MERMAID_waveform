@@ -30,9 +30,9 @@ function plotinstaseis(obsmasterdir, synmasterdir, fcorners, CCmaxs, ...
 %                   2  --   filter with chosen corner frequencies
 %
 % SEE ALSO:
-% PLOTMEMAID, PLOTSYNTHETICS, PLOTRECORDS, ARRAYCCSHIFTPLOT
+% PLOTMERMAID, PLOTSYNTHETICS, PLOTRECORDS, ARRAYCCSHIFTPLOT
 %
-% Last modified by sirawich-at-princeton.edu, 05/16/2023
+% Last modified by sirawich-at-princeton.edu, 07/09/2023
 
 defval('op1', 2)
 defval('op2', 2)
@@ -314,10 +314,10 @@ for ii = 1:length(uniqevent)
             
             % plot together on a plot
             if CCmax(jj) > 0.6
-                color_syn = [1 0 0];
+                color_syn = [0 0.5 0];
                 color_tick = [0 0 0];
             else
-                color_syn = [1 0.6 0.6];
+                color_syn = [0.6 0.8 0.6];
                 color_tick = [0.6 0.6 0.6];
             end
             % axes for plotting seismograms
@@ -477,7 +477,7 @@ for ii = 1:length(uniqevent)
                     end
                 end
             end
-            text(top_text_xposition, 0.35, label_str, 'Interpreter', ...
+            ttop(jj) = text(top_text_xposition, 0.35, label_str, 'Interpreter', ...
                 'latex', 'FontSize', 10, 'Color', color_txt, ...
                 'HorizontalAlignment', alignment);
             axb1.XAxis.Visible = 'off';
@@ -522,6 +522,9 @@ for ii = 1:length(uniqevent)
         % move the title up a little bit
         [ax1.Title.Position(1), ax1.Title.Position(2)] = ...
             norm2trueposition(ax1, 0.5, 1.06);
+        
+        % remove the top text label
+        delete(ttop)
         
         % save figure
         set(gcf, 'Renderer', 'painters')
