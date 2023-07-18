@@ -14,7 +14,7 @@ function plotmeasurementstats(obs_struct)
 %   - presiduals        InstaSeis arrival - TauP prediction for rirst P
 %                       arrival
 %
-% Last modified by sirawich-at-princeton.edu: 05/24/2023
+% Last modified by sirawich-at-princeton.edu: 07/18/2023
 
 %% calculate the derived variables
 % relative travel time from correlation travel time
@@ -58,6 +58,15 @@ i_dlnt_corrected3 = and(dlnt_corrected >= -0.1, dlnt_corrected <= 0.1);
 i_dlnt_joel4 = and(dlnt_joel >= -0.03, dlnt_joel <= 0.03);
 i_dlnt_corrected4 = and(dlnt_corrected >= -0.03, dlnt_corrected <= 0.03);
 
+% limit the gcarc to be greater than 20 degrees
+i_gcarc = (obs_struct.metadata.GCARC > 20);
+i_dlnt_joel2 = and(i_dlnt_joel2, i_gcarc);
+i_dlnt_joel3 = and(i_dlnt_joel3, i_gcarc);
+i_dlnt_joel4 = and(i_dlnt_joel4, i_gcarc);
+i_dlnt_corrected2 = and(i_dlnt_corrected2, i_gcarc);
+i_dlnt_corrected3 = and(i_dlnt_corrected3, i_gcarc);
+i_dlnt_corrected4 = and(i_dlnt_corrected4, i_gcarc);
+
 %% list of things to plot
 variables = [...
     variableconstructor('t_shift', obs_struct.t_shifts(:,2), 'time shift (s)', [], 1, []);
@@ -83,33 +92,55 @@ variables = [...
     variableconstructor('t_rel_correct3', dlnt_corrected * 100, 'adjusted relative correlation travel time residual (%)', [-10 10], 0.5, and(i_ttravel, i_dlnt_corrected3));
     variableconstructor('t_rel_joel4', dlnt_joel * 100, 'relative travel time residual from Simon et al. 2022 (%)', [-3 3], 0.2, and(i_ttravel, i_dlnt_joel4));
     variableconstructor('t_rel_correct4', dlnt_corrected * 100, 'adjusted relative correlation travel time residual (%)', [-3 3], 0.2, and(i_ttravel, i_dlnt_corrected4));
+    variableconstructor('gcarc', obs_struct.metadata.GCARC, 'great-circle epicentral distance (degree)', [0 180], 5, []);
+    variableconstructor('log10gcarc', log10(obs_struct.metadata.GCARC), 'log_{10}great-circle epicentral distance (degree)', [], 0.1, []);
 ];
 
 variable_pairs = [...
-    1 2;
-    3 2;
-    4 2;
-    1 5;
-    3 5;
-    4 5;
-    1 6;
-    3 6;
-    4 6;
-    7 5;
-    7 6;
-    8 9;
-    10 12;
-    10 13;
-    10 14;
-    10 15;
-    11 12;
-    11 13;
-    11 14;
-    11 15;
-    16 17;
-    18 19;
-    20 21;
-    22 23;
+    1 2 nan;
+    3 2 nan;
+    4 2 nan;
+    1 5 nan;
+    3 5 nan;
+    4 5 nan;
+    1 6 nan;
+    3 6 nan;
+    4 6 nan;
+    7 5 nan;
+    7 6 nan;
+    8 9 2;
+    8 9 3;
+    8 9 4;
+    10 12 nan;
+    10 13 nan;
+    10 14 nan;
+    10 15 nan;
+    11 12 nan;
+    11 13 nan;
+    11 14 nan;
+    11 15 nan;
+    16 17 2;
+    18 19 2;
+    20 21 2;
+    22 23 2;
+    16 17 3;
+    18 19 3;
+    20 21 3;
+    22 23 3;
+    16 17 4;
+    18 19 4;
+    20 21 4;
+    22 23 4;
+    16 17 24;
+    18 19 24;
+    20 21 24;
+    22 23 24;
+    16 17 25;
+    18 19 25;
+    20 21 25;
+    22 23 25;
+    24 16 2;
+    24 17 2;
 ];
 
 %% make histograms of time shifts, maximum correlation
@@ -152,11 +183,20 @@ end
 for ii = 1:size(variable_pairs, 1)
     var1 = variables(variable_pairs(ii, 1));
     var2 = variables(variable_pairs(ii, 2));
+    if ~isnan(variable_pairs(ii, 3))
+        var3 = variables(variable_pairs(ii, 3));
+    else
+        var3 = [];
+    end
     
     % check if filtering is needed
     i_var1 = var1.indices;
     i_var2 = var2.indices;
     i_var = and(i_var1, i_var2);
+    if ~isempty(var3)
+        i_var3 = var3.indices;
+        i_var = and(i_var, i_var3);
+    end
     
     if strcmp(var1.name, 't_res_joel') && strcmp(var2.name, 't_res_correct')
         rf = refline(1, 0);
@@ -175,7 +215,12 @@ for ii = 1:size(variable_pairs, 1)
         set(rf, 'LineWidth', 1, 'Color', 'k')
     end
     
-    savename = sprintf('%s-v-%s', var1.name, var2.name);
+    if isempty(var3)
+        savename = sprintf('%s-v-%s', var1.name, var2.name);
+    else
+        savename = sprintf('%s-v-%s-w-%s', var1.name, var2.name, var3.name);
+    end
+    
     if length(var1.BinWidth) == 1
         histx_arg = {'BinWidth', var1.BinWidth};
     else
@@ -186,9 +231,16 @@ for ii = 1:size(variable_pairs, 1)
     else
         histy_arg = {'BinEdges', var2.BinWidth};
     end
-    scathistplot(var1.value(i_var), var2.value(i_var), [], savename, ...
-        var1.label, var2.label, var1.axlimit, var2.axlimit, ...
-        histx_arg, histy_arg, {'SizeData', 9});
+    if isempty(var3)
+        scathistplot(var1.value(i_var), var2.value(i_var), [], savename, ...
+            var1.label, var2.label, [], var1.axlimit, var2.axlimit, [], ...
+            histx_arg, histy_arg, {'SizeData', 9});
+    else
+        scathistplot(var1.value(i_var), var2.value(i_var), ...
+            var3.value(i_var), savename, var1.label, var2.label, ...
+            var3.label, var1.axlimit, var2.axlimit, var3.axlimit, ...
+            histx_arg, histy_arg, {'SizeData', 9});
+    end
 end
 end
 
