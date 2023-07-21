@@ -14,7 +14,7 @@ function plotmeasurementstats(obs_struct)
 %   - presiduals        InstaSeis arrival - TauP prediction for rirst P
 %                       arrival
 %
-% Last modified by sirawich-at-princeton.edu: 07/18/2023
+% Last modified by sirawich-at-princeton.edu: 07/21/2023
 
 %% calculate the derived variables
 % relative travel time from correlation travel time
@@ -22,7 +22,7 @@ dlnt = obs_struct.t_shifts(:,2) ./ ...
     (obs_struct.metadata.T0 - obs_struct.metadata.USER8);
 
 % travel time
-ttravel = obs_struct.metadata.T0 - obs_struct.metadata.USER8;
+ttravel = obs_struct.metadata.USER5;
 
 % corrected time shift
 t_shift_corrected = obs_struct.t_shifts(:,2) + obs_struct.presiduals;
@@ -58,15 +58,6 @@ i_dlnt_corrected3 = and(dlnt_corrected >= -0.1, dlnt_corrected <= 0.1);
 i_dlnt_joel4 = and(dlnt_joel >= -0.03, dlnt_joel <= 0.03);
 i_dlnt_corrected4 = and(dlnt_corrected >= -0.03, dlnt_corrected <= 0.03);
 
-% limit the gcarc to be greater than 20 degrees
-i_gcarc = (obs_struct.metadata.GCARC > 20);
-i_dlnt_joel2 = and(i_dlnt_joel2, i_gcarc);
-i_dlnt_joel3 = and(i_dlnt_joel3, i_gcarc);
-i_dlnt_joel4 = and(i_dlnt_joel4, i_gcarc);
-i_dlnt_corrected2 = and(i_dlnt_corrected2, i_gcarc);
-i_dlnt_corrected3 = and(i_dlnt_corrected3, i_gcarc);
-i_dlnt_corrected4 = and(i_dlnt_corrected4, i_gcarc);
-
 %% list of things to plot
 variables = [...
     variableconstructor('t_shift', obs_struct.t_shifts(:,2), 'time shift (s)', [], 1, []);
@@ -94,6 +85,7 @@ variables = [...
     variableconstructor('t_rel_correct4', dlnt_corrected * 100, 'adjusted relative correlation travel time residual (%)', [-3 3], 0.2, and(i_ttravel, i_dlnt_corrected4));
     variableconstructor('gcarc', obs_struct.metadata.GCARC, 'great-circle epicentral distance (degree)', [0 180], 5, []);
     variableconstructor('log10gcarc', log10(obs_struct.metadata.GCARC), 'log_{10}great-circle epicentral distance (degree)', [], 0.1, []);
+    variableconstructor('baz', obs_struct.metadata.BAZ, 'back azimuth (degree)', [0 360], 0:30:360, []);
 ];
 
 variable_pairs = [...
@@ -141,6 +133,9 @@ variable_pairs = [...
     22 23 25;
     24 16 2;
     24 17 2;
+    24 7 1;
+    24 7 2;
+    24 7 26;
 ];
 
 %% make histograms of time shifts, maximum correlation
@@ -236,10 +231,15 @@ for ii = 1:size(variable_pairs, 1)
             var1.label, var2.label, [], var1.axlimit, var2.axlimit, [], ...
             histx_arg, histy_arg, {'SizeData', 9});
     else
-        scathistplot(var1.value(i_var), var2.value(i_var), ...
-            var3.value(i_var), savename, var1.label, var2.label, ...
-            var3.label, var1.axlimit, var2.axlimit, var3.axlimit, ...
-            histx_arg, histy_arg, {'SizeData', 9});
+        [~, ~, ~, ax_scat] = scathistplot(var1.value(i_var), ...
+            var2.value(i_var), var3.value(i_var), savename, var1.label, ...
+            var2.label, var3.label, var1.axlimit, var2.axlimit, ...
+            var3.axlimit, histx_arg, histy_arg, {'SizeData', 9});
+        if strcmp(var3.name, 'baz')
+            colormap(ax_scat, 'hsv');
+        else
+            colormap(ax_scat, 'parula');
+        end
     end
 end
 end
