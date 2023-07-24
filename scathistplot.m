@@ -68,7 +68,7 @@ function [fig, ax_histx, ax_histy, ax_scat, cb_scat] = ...
 %     {'BinWidth', 0.25}, {'BinWidth', 0.25}, ...
 %     {'SizeData', 16, 'MarkerFaceColor', 'r'});
 %
-% Last modified by sirawich-at-princeton.edu: 07/14/2023
+% Last modified by sirawich-at-princeton.edu: 07/24/2023
 
 defval('c', rgbcolor('1'))
 defval('savename', false)
@@ -131,7 +131,7 @@ hline(ax_histy, y_med, 'Color', 'k', 'LineWidth', 2, ...
     'LineStyle', '-.');
 
 % scatter plot
-ax_scat = subplot('Position', [0.1300 0.1600 0.5050 0.5050]);%nexttile(4,[2 2]);%
+ax_scat = subplot('Position', [0.1300 0.1600 0.5050 0.5050]);
 scatter(ax_scat, x, y, [], c, 'filled', scat_arg{:})
 grid on
 box on
