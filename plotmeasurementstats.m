@@ -14,7 +14,7 @@ function plotmeasurementstats(obs_struct)
 %   - presiduals        InstaSeis arrival - TauP prediction for rirst P
 %                       arrival
 %
-% Last modified by sirawich-at-princeton.edu: 07/21/2023
+% Last modified by sirawich-at-princeton.edu: 07/24/2023
 
 %% calculate the derived variables
 % relative travel time from correlation travel time
@@ -227,12 +227,12 @@ for ii = 1:size(variable_pairs, 1)
         histy_arg = {'BinEdges', var2.BinWidth};
     end
     if isempty(var3)
-        scathistplot(var1.value(i_var), var2.value(i_var), [], savename, ...
+        scathistplot(var1.value(i_var), var2.value(i_var), [], [], ...
             var1.label, var2.label, [], var1.axlimit, var2.axlimit, [], ...
             histx_arg, histy_arg, {'SizeData', 9});
     else
         [~, ~, ~, ax_scat] = scathistplot(var1.value(i_var), ...
-            var2.value(i_var), var3.value(i_var), savename, var1.label, ...
+            var2.value(i_var), var3.value(i_var), [], var1.label, ...
             var2.label, var3.label, var1.axlimit, var2.axlimit, ...
             var3.axlimit, histx_arg, histy_arg, {'SizeData', 9});
         if strcmp(var3.name, 'baz')
@@ -241,6 +241,8 @@ for ii = 1:size(variable_pairs, 1)
             colormap(ax_scat, 'parula');
         end
     end
+    fname = sprintf('%s_%s.eps', 'scathistplot', savename);
+        figdisp(fname, [], [], 2, [], 'epstopdf');
 end
 end
 
