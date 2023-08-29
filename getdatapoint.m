@@ -40,7 +40,7 @@ function getdatapoint(src, ax, data, name)
 %   SelfAssessedHealthStatus: Good
 % ----------------------------------------
 %
-% Last modified by sirawich-at-princeton.edu: 07/24/2023
+% Last modified by sirawich-at-princeton.edu: 08/29/2023
 
 defval('data', [])
 defval('name', 'value')
@@ -80,13 +80,33 @@ else
         if isa(data, 'cell')
             value = data{dndex};
         else
-            value = data(dndex);
+            % assumes the data is a column vector or a matrix
+            if size(data, 1) == 1
+                data = data';
+            end
+            value = data(dndex, :);
         end
         if isa(value, 'double')
             if strcmp(replace(fieldname, ' ', ''), 'USER7')
-                fprintf('%s: %i\n', fieldname, value);
+                if length(value) == 1
+                    fprintf('%s: %i\n', fieldname, value);
+                else
+                    fprintf('%s: [%i', fieldname, value(1));
+                    for ii = 2:length(value)
+                        fprintf(' %i', value(ii));
+                    end
+                    fprintf(']\n');
+                end
             else
-                fprintf('%s: %g\n', fieldname, value);
+                if length(value) == 1
+                    fprintf('%s: %g\n', fieldname, value);
+                else
+                    fprintf('%s: [%g', fieldname, value(1));
+                    for ii = 2:length(value)
+                        fprintf(' %g', value(ii));
+                    end
+                    fprintf(']\n');
+                end
             end
         elseif isa(value, 'char') || isa(value, 'string')
             fprintf('%s: %s\n', fieldname, value);
