@@ -26,9 +26,9 @@ function [fc, s, tmax] = freqselect(t, x, fs, plt, titlename, savename, option, 
 % s             best signal-to-noise ratio
 % tmax          best signal-to-noise ratio
 %
-% Last modified by sirawich-at-princeton.edu, 07/18/2023
+% Last modified by sirawich-at-princeton.edu, 08/29/2023
 
-defval('option', 1)
+defval('option', 4)
 defval('plt_all', false)
 
 % Check the sampling rate consistency
