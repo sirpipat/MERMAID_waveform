@@ -61,7 +61,7 @@ function [t_shifts, CCmaxs, fcorners, snr, depthstats, slopestats, peakstats, n,
 % SEE ALSO
 % RUNFLATSIM, COMPARERESPONSEFUNCTIONS
 %
-% Last modified by sirawich-at-princeton.edu, 05/22/2023
+% Last modified by sirawich-at-princeton.edu, 08/30/2023
 
 defval('opt', 2)
 defval('true', plt)
@@ -115,7 +115,7 @@ if plt || ~exist(pname, 'file')
             else
                 [t_shift1, t_shift2, CCmax1, CCmax2, bath1, bath2, fcs, s] = ...
                     compareresponsefunctions(obsfile, synfile, ...
-                    [allflatdirs{ii} '/'], [allbathdirs{ii} '/'], opt(ii, :), plt);
+                    [allflatdirs{ii} '/'], [allbathdirs{ii} '/'], opt(n, :), plt);
             end
             bath1(:,2) = bath1(:,2) - 9600;
             bath2(:,2) = bath2(:,2) - 9600;
