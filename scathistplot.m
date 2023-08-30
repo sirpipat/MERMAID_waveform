@@ -68,7 +68,7 @@ function [fig, ax_histx, ax_histy, ax_scat, cb_scat] = ...
 %     {'BinWidth', 0.25}, {'BinWidth', 0.25}, ...
 %     {'SizeData', 16, 'MarkerFaceColor', 'r'});
 %
-% Last modified by sirawich-at-princeton.edu: 07/24/2023
+% Last modified by sirawich-at-princeton.edu: 08/29/2023
 
 defval('c', rgbcolor('1'))
 defval('savename', false)
@@ -98,11 +98,8 @@ fig = figure(2);
 clf
 set(fig, 'Units', 'inches', 'Position', [0 1 10 10])
 
-% figure layout
-%tiledlayout(3, 3, 'TileSpacing', 'compact');
-
 % histogram of x
-ax_histx = subplot('Position', [0.1300 0.7000 0.5050 0.2350]);%0.2484nexttile([1 2]);%
+ax_histx = subplot('Position', [0.1300 0.6700 0.5050 0.2350]);
 histogram(ax_histx, x, histx_arg{:})
 grid on
 box on
@@ -117,7 +114,7 @@ vline(ax_histx, x_med, 'Color', 'k', 'LineWidth', 2, ...
     'LineStyle', '-.');
 
 % histogram of y
-ax_histy = subplot('Position', [0.6700 0.1600 0.2350 0.5050]);%0.5317nexttile(6, [2 1]);%
+ax_histy = subplot('Position', [0.6600 0.1400 0.2350 0.5050]);
 histogram(ax_histy, y, 'Orientation', 'horizontal', histy_arg{:})
 grid on
 box on
@@ -131,7 +128,7 @@ hline(ax_histy, y_med, 'Color', 'k', 'LineWidth', 2, ...
     'LineStyle', '-.');
 
 % scatter plot
-ax_scat = subplot('Position', [0.1300 0.1600 0.5050 0.5050]);
+ax_scat = subplot('Position', [0.1300 0.1400 0.5050 0.5050]);
 scatter(ax_scat, x, y, [], c, 'filled', scat_arg{:})
 grid on
 box on
@@ -180,11 +177,14 @@ axes(ax_scatb)
 
 % title
 if all(size(c) == [1 3]) || all(size(c) == [3 1]) 
-    title(ax_histx, sprintf('n = %d, x = %s (median = %.2f), y = %s (median = %.2f)', ...
-        length(x), labelx, x_med, labely, y_med), 'FontSize', 12)
+    title(ax_histx, {sprintf('n = %d, x = %s (median = %.2f)', ...
+        length(x), labelx, x_med), ...
+        sprintf('y = %s (median = %.2f)', labely, y_med)}, 'FontSize', 12)
 else
-    title(ax_histx, sprintf('n = %d, x = %s (median = %.2f), y = %s (median = %.2f), c = %s', ...
-        length(x), labelx, x_med, labely, y_med, labelc), 'FontSize', 12)
+    title(ax_histx, {sprintf('n = %d, x = %s (median = %.2f)', ...
+        length(x), labelx, x_med), ...
+        sprintf('y = %s (median = %.2f)', labely, y_med), ...
+        sprintf('c = %s', labelc)}, 'FontSize', 12)
 end
 [ax_histx.Title.Position(1), ax_histx.Title.Position(2)] = ...
         norm2trueposition(ax_histx, (0.5 - ax_histx.Position(1)) / ...
