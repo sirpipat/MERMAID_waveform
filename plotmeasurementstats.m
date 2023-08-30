@@ -14,7 +14,7 @@ function plotmeasurementstats(obs_struct)
 %   - presiduals        InstaSeis arrival - TauP prediction for rirst P
 %                       arrival
 %
-% Last modified by sirawich-at-princeton.edu: 07/24/2023
+% Last modified by sirawich-at-princeton.edu: 08/29/2023
 
 %% calculate the derived variables
 % relative travel time from correlation travel time
@@ -75,8 +75,8 @@ variables = [...
     variableconstructor('fc_upper', obs_struct.fcorners(:,2), 'upper corner frequency (Hz)', [0.875 2.025], 0.875:0.05:2.025, []);
     variableconstructor('fc_mid', (obs_struct.fcorners(:,1) + obs_struct.fcorners(:,2)) / 2, 'median of frequency band (Hz)', [0.6375 1.7625], 0.6325:0.025:1.7625, []);
     variableconstructor('bandwidth', obs_struct.fcorners(:,2) - obs_struct.fcorners(:,1), 'bandwidth (Hz)', [0.475 1.625], 0.475:0.05:1.625, []);
-    variableconstructor('t_rel_joel', dlnt_joel * 100, 'relative travel time residual from Simon et al. 2022 (%)', [], 10, i_ttravel);
-    variableconstructor('t_rel_correct', dlnt_corrected * 100, 'adjusted relative correlation travel time residual (%)', [-150 150], 10, i_ttravel);
+    variableconstructor('t_rel_joel', dlnt_joel * 100, 'relative travel time residual from Simon et al. 2022 (%)', [-80 80], 10, i_ttravel);
+    variableconstructor('t_rel_correct', dlnt_corrected * 100, 'adjusted relative correlation travel time residual (%)', [-80 80], 10, i_ttravel);
     variableconstructor('t_rel_joel2', dlnt_joel * 100, 'relative travel time residual from Simon et al. 2022 (%)', [-40 40], 1, and(i_ttravel, i_dlnt_joel2));
     variableconstructor('t_rel_correct2', dlnt_corrected * 100, 'adjusted relative correlation travel time residual (%)', [-40 40], 1, and(i_ttravel, i_dlnt_corrected2));
     variableconstructor('t_rel_joel3', dlnt_joel * 100, 'relative travel time residual from Simon et al. 2022 (%)', [-10 10], 0.5, and(i_ttravel, i_dlnt_joel3));
@@ -139,7 +139,7 @@ variable_pairs = [...
 ];
 
 %% make histograms of time shifts, maximum correlation
-for ii = 1:length(variables)
+for ii = 100:length(variables)
     figure(1)
     set(gcf, 'Units', 'inches', 'Position', [0 1 8 5])
     clf
@@ -192,24 +192,7 @@ for ii = 1:size(variable_pairs, 1)
         i_var3 = var3.indices;
         i_var = and(i_var, i_var3);
     end
-    
-    if strcmp(var1.name, 't_res_joel') && strcmp(var2.name, 't_res_correct')
-        rf = refline(1, 0);
-        set(rf, 'LineWidth', 1, 'Color', 'k')
-    elseif strcmp(var1.name, 't_rel_joel') && strcmp(var2.name, 't_rel_correct')
-        rf = refline(1, 0);
-        set(rf, 'LineWidth', 1, 'Color', 'k')
-    elseif strcmp(var1.name, 't_rel_joel2') && strcmp(var2.name, 't_rel_correct2')
-        rf = refline(1, 0);
-        set(rf, 'LineWidth', 1, 'Color', 'k')
-    elseif strcmp(var1.name, 't_rel_joel3') && strcmp(var2.name, 't_rel_correct3')
-        rf = refline(1, 0);
-        set(rf, 'LineWidth', 1, 'Color', 'k')
-    elseif strcmp(var1.name, 't_rel_joel4') && strcmp(var2.name, 't_rel_correct4')
-        rf = refline(1, 0);
-        set(rf, 'LineWidth', 1, 'Color', 'k')
-    end
-    
+        
     if isempty(var3)
         savename = sprintf('%s-v-%s', var1.name, var2.name);
     else
@@ -241,8 +224,31 @@ for ii = 1:size(variable_pairs, 1)
             colormap(ax_scat, 'parula');
         end
     end
+    
+    if strcmp(var1.name, 't_res_joel') && strcmp(var2.name, 't_res_correct')
+        rf = refline(ax_scat, 1, 0);
+        set(rf, 'LineWidth', 1, 'Color', 'k')
+    elseif strcmp(var1.name, 't_rel_joel') && strcmp(var2.name, 't_rel_correct')
+        rf = refline(ax_scat, 1, 0);
+        set(rf, 'LineWidth', 1, 'Color', 'k')
+    elseif strcmp(var1.name, 't_rel_joel2') && strcmp(var2.name, 't_rel_correct2')
+        rf = refline(ax_scat, 1, 0);
+        set(rf, 'LineWidth', 1, 'Color', 'k')
+    elseif strcmp(var1.name, 't_rel_joel3') && strcmp(var2.name, 't_rel_correct3')
+        rf = refline(ax_scat, 1, 0);
+        set(rf, 'LineWidth', 1, 'Color', 'k')
+    elseif strcmp(var1.name, 't_rel_joel4') && strcmp(var2.name, 't_rel_correct4')
+        rf = refline(ax_scat, 1, 0);
+        set(rf, 'LineWidth', 1, 'Color', 'k')
+    end
+    
     fname = sprintf('%s_%s.eps', 'scathistplot', savename);
-        figdisp(fname, [], [], 2, [], 'epstopdf');
+    figdisp(fname, [], [], 2, [], 'epstopdf');
+    
+    % save the figure for later call
+    fname = fullfile(getenv('IFILES'), 'FIGURES', ...
+        sprintf('%s_%s.fig', mfilename, savename));
+    savefig(fname);
 end
 end
 
