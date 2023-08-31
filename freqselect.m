@@ -11,7 +11,7 @@ function [fc, s, tmax] = freqselect(t, x, fs, plt, titlename, savename, option, 
 % plt           whether to plot or not
 % titlename     name to put on the title
 % savename      filename for the saved figure
-% option        how to select the best corner frequency
+% option        how to select the best corner frequency [default: 4]
 %               1 -- highest bandpass SNR
 %               2 -- highest bandpass SNR to bandstop SNR ratio
 %               3 -- widest bandwidth that keep bandpass SNR > 50% of the 
@@ -26,7 +26,7 @@ function [fc, s, tmax] = freqselect(t, x, fs, plt, titlename, savename, option, 
 % s             best signal-to-noise ratio
 % tmax          best signal-to-noise ratio
 %
-% Last modified by sirawich-at-princeton.edu, 08/29/2023
+% Last modified by sirawich-at-princeton.edu, 08/31/2023
 
 defval('option', 4)
 defval('plt_all', false)
@@ -255,7 +255,8 @@ end
     
 %% visualize the result
 if plt
-    freqselect_plot(t, x, fs, fc, npoles, npasss, A, T, B ,U, titlename);
+    freqselect_plot(t, x, fs, fc, npoles, npasss, A, T, B ,U, ...
+        titlename, option);
     
     figdisp(sprintf('%s_%s', mfilename, savename), [], [], 2, [], ...
         'epstopdf');
@@ -267,7 +268,7 @@ if plt
                 if fcs(ii) > 0 && jj < length(fcs) && fcs(jj) - fcs(ii) >= fspread
                     fcp = [fcs(ii) fcs(jj)];
                     freqselect_plot(t, x, fs, fcp, npoles, npasss, A, T, B ,...
-                        U, titlename);
+                        U, titlename, option);
 
                     figname = sprintf('%s_%s_%.2f_%.2f.eps', mfilename, ...
                         savename, fcs(ii), fcs(jj));
@@ -338,7 +339,7 @@ plot(ax, x, y, 'LineWidth', 0.5, 'Color', 'k')
 end
 
 function freqselect_plot(t, x, fs, fc, npoles, npasss, A, T, B, U, ...
-    titlename)
+    titlename, option)
 % determine the indices for A, T, B, U
 % list of corner frequency candidates
 delf=0.05;
@@ -373,7 +374,7 @@ hold on
 % mark where the corner frequencies are
 hline(sp1, lin2logpos(fc, F(2), F(end)), 'Color', 'k', 'LineWidth', 1);
 % fix the precision of the time on XAxis label
-sp1.XAxis.Label.String = sprintf('time since picked arrival (s): %d s window', round(400/fs));
+sp1.XAxis.Label.String = sprintf('time since first picked arrival (s): %d s window', round(400/fs));
 sp1.YAxis.Label.String = 'frequency (Hz)';
 sp1.Title.String = '';
 set(sp1, 'FontSize', 12, 'TickDir', 'out', 'XAxisLocation', 'top')
@@ -465,34 +466,44 @@ t_end = min(80, t0 + 1 * halfwin);
 
 xn = xt(and(t >= t_start, t < t0)) / scale_used;
 tn = t(and(t >= t_start, t < t0));
-%plot(sp3, tn, xn - 4, 'Color', rgbcolor('1'), 'LineWidth', 1.5)
+plot(sp3, tn, xn - 4, 'Color', rgbcolor('1'), 'LineWidth', 1.5)
 % highlight signal window
 xs = xt(and(t >= t0, t < t_end)) / scale_used;
 ts = t(and(t >= t0, t < t_end));
-%plot(sp3, ts, xs - 4, 'Color', rgbcolor('2'), 'LineWidth', 1.5)
-%plot(sp3, [1 1] * t0, [-0.8 0.8] - 4, 'Color', [0 0.6 1], ...
-%    'LineWidth', 1)
+plot(sp3, ts, xs - 4, 'Color', rgbcolor('2'), 'LineWidth', 1.5)
+plot(sp3, [1 1] * t0, [-0.8 0.8] - 4, 'Color', [0 0.6 1], ...
+   'LineWidth', 1)
 text(sp3, -19, -3.3, sprintf('bandstop (x %.2f)', scale_all / scale_used), ...
     'FontSize', 11);
 
 grid on
 sp3.YTick = [-4 -2 0];
 sp3.YTickLabel = [round(B(JJ,II)) round(A(JJ,II)) round(s_raw)];
-sp3.XLabel.String = 'time since picked arrival (s)';
+sp3.XLabel.String = 'time since first picked arrival (s)';
 sp3.YLabel.String = 'SNR';
 sp3.YAxis.TickLabelRotation = 90;
 set(sp3, 'FontSize', 12, 'TickDir', 'out', 'XLim', [-20 20], ...
     'YLim', [-5.2 1.2])
 
 sp4 = subplot('Position', [0.67 0.09 0.3 0.36]);
-iim = imagesc(fcs(1:(end-10)), fcs(11:end), log10(A(11:end, 1:(end-10))));
+if any(option == [1 3 5])
+    iim = imagesc(fcs(1:(end-10)), fcs(11:end), log10(A(11:end, 1:(end-10))));
+else
+    % ratio of the bandpass SNR to the bandstop SNR
+    R = A ./ B;
+    iim = imagesc(fcs(1:(end-10)), fcs(11:end), log10(R(11:end, 1:(end-10))));
+end
 axis xy
 xlabel('lower corner frequency (Hz)')
 ylabel('upper corner frequency (Hz)')
 colormap(sp4, 'gray')
 setimagenan(sp4, iim, [1 1 1]);
 cc4 = colorbar(sp4, 'EastOutSide');
-cc4.Label.String = 'log_{10} SNR';
+if any(option == [1 3 5])
+    cc4.Label.String = 'log_{10} SNR';
+else
+    cc4.Label.String = 'log_{10} SNR ratio';
+end
 cc4.Label.FontSize = 12;
 hold on
 plot(sp4, [0 2], [0 2], 'Color', 'k', 'LineWidth', 2)
