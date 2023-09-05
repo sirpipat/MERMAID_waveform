@@ -35,7 +35,7 @@ function [t_shift, CCmax, lag, cc, s] = ...
 % CC            Vector of CC for every time shift in lag
 % s             Scaling to minimize the misfit
 %
-% Last modified by sirawich-at-princeton.edu, 05/11/2022
+% Last modified by sirawich-at-princeton.edu, 09/02/2023
 
 defval('envelope_window', [-10 20])
 defval('waveform_window', [-5 5])
@@ -93,10 +93,13 @@ dt_end1 = dt_ref_o + seconds(hdr_o.T0 + envelope_window(2));
 pres_o1 = pres_o(and(geq(dts_o, dt_start1, ep), leq(dts_o, dt_end1, ep)));
 pres_s1 = pres_s(and(geq(dts_o, dt_start1, ep), leq(dts_o, dt_end1, ep)));
 
+% determine maximum accepted best lag time for envelope cross-correlation
+% which is the maximum of 5 seconds or 2 percent of the travel time
+maxmargin = seconds(max(5, 0.02 * hdr_o.USER5));
+
 % first correlate by the envelope
 [best_lags_time_e, ~, lags_time_e, cc_e, s_e] = ccscale(pres_o1, pres_s1, ...
-    dt_begin_o, dt_begin_o, fs_o, ...
-    seconds(envelope_window(2) - envelope_window(1)) / 2, 'soft', true);
+    dt_begin_o, dt_begin_o, fs_o, maxmargin, 'soft', true);
 
 % cut the short windows to do waveform cross correlation
 dt_start2 = dt_ref_o + seconds(hdr_o.T0 + waveform_window(1));
