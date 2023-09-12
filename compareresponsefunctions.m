@@ -42,13 +42,13 @@ function [t_shift1, t_shift2, CCmax1, CCmax2, bath1, bath2, fcorners, snr] = ...
 %               for fcorners chosen by FREQSELECT; opt==2. Otherwise, snr 
 %               is set to NaN)
 %
-% Last modified by sirawich-at-princeton.edu, 05/19/2023
+% Last modified by sirawich-at-princeton.edu, 09/12/2023
 
 defval('fopt', 2)
 defval('plt', true)
 defval('la', {'flat', 'bathymetry'})
 
-window_envelope = [-10 20];
+window_envelope = [-20 20];
 window_waveform = [-5 5];
 
 %% read the data
@@ -80,7 +80,8 @@ else
 end
 
 % filter
-pres_o = bandpass(pres_o, fs_o, fcorners(1), fcorners(2), 4, 2, 'butter', 'linear');
+pres_o = bandpass(pres_o, fs_o, fcorners(1), fcorners(2), 4, 2, ...
+    'butter', 'linear');
 
 % read the synthetic data
 [seis_s, hdr_s] = readsac(synfile);
@@ -129,8 +130,7 @@ pres_s2 = bandpass(pres_s2, fs_o, fcorners(1), fcorners(2), 4, 2, ...
     fcorners, false, 1, false);
 [t_shift2, CCmax2, lags2, cc2, s2] = comparepressure(seis_s, hdr_s, ...
     seis_o, hdr_o, seis_r2, t_r2, window_envelope, window_waveform, ...
-    fcorners, false, 1, ...
-    false);
+    fcorners, false, 1, false);
 
 %% correlation coefficient between two synthetics
 [t_shift12, CCmax12, lags12, CC12] = ccshift(pres_s1, pres_s2, dt_ref_o, ...
@@ -217,10 +217,14 @@ if plt
     ax1.YTick = 9600 - (8000:-2000:0);
     ax1.YTickLabel = string(ax1.YTick-9600);
     hold on
-    vline(ax1, 5000*(1:3), 'LineWidth', 0.5, 'LineStyle', ':', 'Color', [1 1 0.5]);
-    hline(ax1, ax1.YTick, 'LineWidth', 0.5, 'LineStyle', ':', 'Color', [1 1 0.5]);
-    plot(itfs2{2}.pts(:,1), itfs2{2}.pts(:,2), 'LineStyle', '-', 'LineWidth', 2, 'Color', [0.6 1 1])
-    plot(itfs1{2}.pts(:,1), itfs1{2}.pts(:,2), 'LineStyle', '--', 'LineWidth', 2, 'Color', 'r')
+    vline(ax1, 5000*(1:3), 'LineWidth', 0.5, 'LineStyle', ':', ...
+        'Color', [1 1 0.5]);
+    hline(ax1, ax1.YTick, 'LineWidth', 0.5, 'LineStyle', ':', ...
+        'Color', [1 1 0.5]);
+    plot(itfs2{2}.pts(:,1), itfs2{2}.pts(:,2), 'LineStyle', '-', ...
+        'LineWidth', 2, 'Color', [0.6 1 1])
+    plot(itfs1{2}.pts(:,1), itfs1{2}.pts(:,2), 'LineStyle', '--', ...
+        'LineWidth', 2, 'Color', 'r')
     xlabel('x (m)')
     ylabel('elevation (m)')
     set(ax1, 'FontSize', 8, 'Box', 'on', 'TickDir', 'both')
@@ -229,10 +233,12 @@ if plt
 
     %% response function
     ax2 = subplot('Position', [0.1300 0.5175 0.7750 0.1135]);
-    plot(t_r1, seis_r1 / max(abs(seis_r1)) + 1, 'LineWidth', 1, 'Color', red)
+    plot(t_r1, seis_r1 / max(abs(seis_r1)) + 1, 'LineWidth', 1, ...
+        'Color', red)
     hold on
     grid on
-    plot(t_r2, seis_r2 / max(abs(seis_r1)) - 1, 'LineWidth', 1, 'Color', blue)
+    plot(t_r2, seis_r2 / max(abs(seis_r1)) - 1, 'LineWidth', 1, ...
+        'Color', blue)
     ylim([-2 2])
     legend(la{1}, la{2}, 'location', 'east')
     xlabel('time (s)')
@@ -244,15 +250,16 @@ if plt
     %% synthetic vertical displacement at the ocean bottom
     ax3 = subplot('Position', [0.1300 0.3970 0.7750 0.0525]);
     plot(t_relative, bandpass(seis_s_interp, fs_o, fcorners(1), ...
-        fcorners(2), 4, 2, 'butter', 'linear'), 'LineWidth', 1, 'Color', black)
+        fcorners(2), 4, 2, 'butter', 'linear'), 'LineWidth', 1, ...
+        'Color', black)
     hold on
     grid on
     xlim([-10 25])
-%     vline(ax3, 0, 'LineWidth', 2, 'LineStyle', '--', 'Color', [0.1 0.8 0.1]);
     ylabel('u_z (m)')
-    set(ax3, 'FontSize', 8, 'Box', 'on', 'TickDir', 'both', 'XTickLabel', {})
-    title(sprintf('synthetic vertical displacement: bp%.1f-%.1f', fcorners(1), ...
-        fcorners(2)), 'Interpreter', 'latex', 'FontSize', 11)
+    set(ax3, 'FontSize', 8, 'Box', 'on', 'TickDir', 'both', ...
+        'XTickLabel', {})
+    title(sprintf('synthetic vertical displacement: bp%.1f-%.1f', ...
+        fcorners(1), fcorners(2)), 'Interpreter', 'latex', 'FontSize', 11)
     axb3 = boxedlabel(ax3, 'northwest', 0.18, [], 'c');
 
     %% pressure recorded by the hydrophone
@@ -260,8 +267,10 @@ if plt
     p1 = plot(t_relative, pres_o, 'LineWidth', 1, 'Color', black);
     hold on
     grid on
-    p2 = plot(t_relative + t_shift1, pres_s1 * s1, 'LineWidth', 0.5, 'Color', red);
-    p3 = plot(t_relative + t_shift2, pres_s2 * s2, 'LineWidth', 1, 'Color', blue);
+    p2 = plot(t_relative + t_shift1, pres_s1 * s1, 'LineWidth', 0.5, ...
+        'Color', red);
+    p3 = plot(t_relative + t_shift2, pres_s2 * s2, 'LineWidth', 1, ...
+        'Color', blue);
     xlim([-10 25])
     wh = and(t_relative >= window_waveform(1), ...
         t_relative <= window_waveform(2));
@@ -273,10 +282,6 @@ if plt
                            max(abs(s1 * pres_s1(wh1))), ...
                            max(abs(s2 * pres_s2(wh2))) ...
                           ]));
-%     [~, v] = vline(ax4, 0, 'LineWidth', 2, 'LineStyle', '--', 'Color', [0.1 0.8 0.1]);
-%     set(v,'tag','vline','handlevisibility','on');
-%     
-%     ax4.Children = [p3 p2 p1 v];
     
     label2 = sprintf('$$ \\textnormal{%s} : \\tau^W = %.2f~\\textnormal{s, X}^W = %.2f $$', la{1}, t_shift1, CCmax1);
     label3 = sprintf('$$ \\textnormal{%s} : \\tau^W = %.2f~\\textnormal{s, X}^W = %.2f $$', la{2}, t_shift2, CCmax2);
@@ -284,8 +289,8 @@ if plt
         'Location', 'southoutside', 'Interpreter', 'latex')
     xlabel('time since first picked arrival (s)')
     ylabel('P (Pa)')
-    set(ax4, 'FontSize', 8, 'Box', 'on', 'TickDir', 'both', 'Color', 'none', ...
-        'Position', [0.1300 0.3080 0.7750 0.0525])
+    set(ax4, 'FontSize', 8, 'Box', 'on', 'TickDir', 'both', ...
+        'Color', 'none', 'Position', [0.1300 0.3080 0.7750 0.0525])
     
     % high light the waveform window
     ax4s = doubleaxes(ax4);
@@ -313,7 +318,8 @@ if plt
     grid on
     ylim([-1 1])
     ylabel('X^W')
-    set(ax5, 'FontSize', 8, 'Box', 'on', 'TickDir', 'both', 'XTickLabel', {})
+    set(ax5, 'FontSize', 8, 'Box', 'on', 'TickDir', 'both', ...
+        'XTickLabel', {})
     title(sprintf('correlation coefficients (red - %s, blue - %s)', ...
         la{1}, la{2}), 'Interpreter', 'latex', 'FontSize', 11)
 

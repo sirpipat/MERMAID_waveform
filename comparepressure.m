@@ -17,7 +17,7 @@ function [t_shift, CCmax, lag, cc, s] = ...
 % seis_r        receiver function
 % t_r           time of the receiver function
 % [E_B E_E]     begin and end of the window for envelope correlation
-%               [Default: [-10 20]]
+%               [Default: [-20 20]]
 % [W_B W_E]     begin and end of the window for waveform correlation
 %               [Default: [-5 5]]
 % [lo hi]       corner frequencies for bandpass filtering 
@@ -35,9 +35,9 @@ function [t_shift, CCmax, lag, cc, s] = ...
 % CC            Vector of CC for every time shift in lag
 % s             Scaling to minimize the misfit
 %
-% Last modified by sirawich-at-princeton.edu, 09/02/2023
+% Last modified by sirawich-at-princeton.edu, 09/12/2023
 
-defval('envelope_window', [-10 20])
+defval('envelope_window', [-20 20])
 defval('waveform_window', [-5 5])
 defval('fcorners', [0.4 1])
 defval('plt', true)
@@ -93,14 +93,26 @@ dt_end1 = dt_ref_o + seconds(hdr_o.T0 + envelope_window(2));
 pres_o1 = pres_o(and(geq(dts_o, dt_start1, ep), leq(dts_o, dt_end1, ep)));
 pres_s1 = pres_s(and(geq(dts_o, dt_start1, ep), leq(dts_o, dt_end1, ep)));
 
+% try figuring the starting point for waveform cross-correlation using
+% 5% of the maximum
+max_amplitude = max(abs(pres_s(dts_o - dt_ref_o > seconds(50))));
+dt_arrival = indeks(dts_o(and(abs(pres_s) >= 0.05 * max_amplitude, ...
+    dts_o - dt_ref_o > seconds(50))), 1);
+best_lags_time_e = seconds(dt_ref_o - dt_arrival) + hdr_o.T0;
+
+
 % determine maximum accepted best lag time for envelope cross-correlation
 % which is the maximum of 5 seconds or 2 percent of the travel time
-maxmargin = seconds(max(5, 0.02 * hdr_o.USER5));
+maxmargin_e = seconds(max(5, 0.02 * hdr_o.USER5));
 
+if abs(best_lags_time_e) > seconds(maxmargin_e)
 % first correlate by the envelope
-[best_lags_time_e, ~, lags_time_e, cc_e, s_e] = ccscale(pres_o1, pres_s1, ...
-    dt_begin_o, dt_begin_o, fs_o, maxmargin, 'soft', true);
-
+    [best_lags_time_e, ~, lags_time_e, cc_e, s_e] = ccscale(pres_o1, pres_s1, ...
+        dt_begin_o, dt_begin_o, fs_o, maxmargin_e, 'soft', true);
+else
+    [~, ~, lags_time_e, cc_e, s_e] = ccscale(pres_o1, pres_s1, ...
+        dt_begin_o, dt_begin_o, fs_o, maxmargin_e, 'soft', true);
+end
 % cut the short windows to do waveform cross correlation
 dt_start2 = dt_ref_o + seconds(hdr_o.T0 + waveform_window(1));
 dt_end2 = dt_ref_o + seconds(hdr_o.T0 + waveform_window(2));
@@ -110,9 +122,10 @@ pres_s2 = pres_s(and(geq(dts_o, ...
     leq(dts_o, dt_end2 - seconds(best_lags_time_e), ep)));
 
 % then correlate by the waveform
+maxmargin_w = seconds(5);%seconds(waveform_window(2) - waveform_window(1)) / 2;
 [best_lags_time, ~, lags_time, cc, s] = ccscale(pres_o2, pres_s2, ...
     dt_start2, dt_start2, fs_o, ...
-    seconds(waveform_window(2) - waveform_window(1)) / 2, 'soft', false);
+    maxmargin_w, 'soft', false);
 
 best_lags_time = best_lags_time + best_lags_time_e;
 lags_time = lags_time + best_lags_time_e;
@@ -180,8 +193,8 @@ if plt
         'jul', 'aug', 'sep', 'oct', 'nov', 'dec'};
     tbeg = datenum(dt_origin - minutes(1));
     tend = datenum(dt_origin + minutes(1));
-    mblo = hdr_o.MAG - 0.5;
-    mbhi = hdr_o.MAG + 0.5;
+    mblo = hdr_o.MAG - 1.0;
+    mbhi = hdr_o.MAG + 1.0;
     depmin = hdr_o.EVDP - 50;
     depmax = hdr_o.EVDP + 50;
     
