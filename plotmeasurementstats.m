@@ -1,5 +1,5 @@
-function plotmeasurementstats(obs_struct)
-% PLOTMEASUREMENTSTATS(obs_struct)
+function plotmeasurementstats(obs_struct, min_cc, min_snr, min_gcarc)
+% PLOTMEASUREMENTSTATS(obs_struct, min_cc, min_snr, min_gcarc)
 %
 % Plots various travel time measurement statistics and the metadata for
 % further analysis.
@@ -13,8 +13,15 @@ function plotmeasurementstats(obs_struct)
 %   - metadata          SAC Headers associated to the obsfile
 %   - presiduals        InstaSeis arrival - TauP prediction for rirst P
 %                       arrival
+% min_cc            Correlation coefficient cut-off [default: -1]
+% min_snr           Signal-to-noise ratio cut-off   [default: 0]
+% min_gcarc         Epicentral distance cut-off     [default: 0]
 %
-% Last modified by sirawich-at-princeton.edu: 08/29/2023
+% Last modified by sirawich-at-princeton.edu: 09/12/2023
+
+defval('min_cc', -1)
+defval('min_snr', 0)
+defval('min_gcarc', 0)
 
 %% calculate the derived variables
 % relative travel time from correlation travel time
@@ -58,6 +65,12 @@ i_dlnt_corrected3 = and(dlnt_corrected >= -0.1, dlnt_corrected <= 0.1);
 i_dlnt_joel4 = and(dlnt_joel >= -0.03, dlnt_joel <= 0.03);
 i_dlnt_corrected4 = and(dlnt_corrected >= -0.03, dlnt_corrected <= 0.03);
 
+% limit to only good match
+i_cc = (obs_struct.CCmaxs(:,2) >= min_cc);
+i_snr = (obs_struct.snr >= min_snr);
+i_gcarc = (obs_struct.metadata.GCARC >= min_gcarc);
+i_mask = and(and(i_cc, i_snr), i_gcarc);
+
 %% list of things to plot
 variables = [...
     variableconstructor('t_shift', obs_struct.t_shifts(:,2), 'time shift (s)', [], 1, []);
@@ -75,10 +88,10 @@ variables = [...
     variableconstructor('fc_upper', obs_struct.fcorners(:,2), 'upper corner frequency (Hz)', [0.875 2.025], 0.875:0.05:2.025, []);
     variableconstructor('fc_mid', (obs_struct.fcorners(:,1) + obs_struct.fcorners(:,2)) / 2, 'median of frequency band (Hz)', [0.6375 1.7625], 0.6325:0.025:1.7625, []);
     variableconstructor('bandwidth', obs_struct.fcorners(:,2) - obs_struct.fcorners(:,1), 'bandwidth (Hz)', [0.475 1.625], 0.475:0.05:1.625, []);
-    variableconstructor('t_rel_joel', dlnt_joel * 100, 'relative travel time residual from Simon et al. 2022 (%)', [-80 80], 10, i_ttravel);
-    variableconstructor('t_rel_correct', dlnt_corrected * 100, 'adjusted relative correlation travel time residual (%)', [-80 80], 10, i_ttravel);
-    variableconstructor('t_rel_joel2', dlnt_joel * 100, 'relative travel time residual from Simon et al. 2022 (%)', [-40 40], 1, and(i_ttravel, i_dlnt_joel2));
-    variableconstructor('t_rel_correct2', dlnt_corrected * 100, 'adjusted relative correlation travel time residual (%)', [-40 40], 1, and(i_ttravel, i_dlnt_corrected2));
+    variableconstructor('t_rel_joel', dlnt_joel * 100, 'relative travel time residual from Simon et al. 2022 (%)', [-40 40], 2, i_ttravel);
+    variableconstructor('t_rel_correct', dlnt_corrected * 100, 'adjusted relative correlation travel time residual (%)', [-40 40], 2, i_ttravel);
+    variableconstructor('t_rel_joel2', dlnt_joel * 100, 'relative travel time residual from Simon et al. 2022 (%)', [-20 20], 1, and(i_ttravel, i_dlnt_joel2));
+    variableconstructor('t_rel_correct2', dlnt_corrected * 100, 'adjusted relative correlation travel time residual (%)', [-20 20], 1, and(i_ttravel, i_dlnt_corrected2));
     variableconstructor('t_rel_joel3', dlnt_joel * 100, 'relative travel time residual from Simon et al. 2022 (%)', [-10 10], 0.5, and(i_ttravel, i_dlnt_joel3));
     variableconstructor('t_rel_correct3', dlnt_corrected * 100, 'adjusted relative correlation travel time residual (%)', [-10 10], 0.5, and(i_ttravel, i_dlnt_corrected3));
     variableconstructor('t_rel_joel4', dlnt_joel * 100, 'relative travel time residual from Simon et al. 2022 (%)', [-3 3], 0.2, and(i_ttravel, i_dlnt_joel4));
@@ -103,6 +116,7 @@ variable_pairs = [...
     8 9 2;
     8 9 3;
     8 9 4;
+    8 9 24;
     10 12 nan;
     10 13 nan;
     10 14 nan;
@@ -136,6 +150,10 @@ variable_pairs = [...
     24 7 1;
     24 7 2;
     24 7 26;
+    1 24 2;
+    9 24 2;
+    1 7 2;
+    9 7 2;
 ];
 
 %% make histograms of time shifts, maximum correlation
@@ -185,11 +203,11 @@ for ii = 1:size(variable_pairs, 1)
     end
     
     % check if filtering is needed
-    i_var1 = var1.indices;
-    i_var2 = var2.indices;
+    i_var1 = and(var1.indices, i_mask);
+    i_var2 = and(var2.indices, i_mask);
     i_var = and(i_var1, i_var2);
     if ~isempty(var3)
-        i_var3 = var3.indices;
+        i_var3 = and(var3.indices, i_mask);
         i_var = and(i_var, i_var3);
     end
         
