@@ -157,7 +157,7 @@ variable_pairs = [...
 ];
 
 %% make histograms of time shifts, maximum correlation
-for ii = 100:length(variables)
+for ii = 1:length(variables)
     figure(1)
     set(gcf, 'Units', 'inches', 'Position', [0 1 8 5])
     clf
