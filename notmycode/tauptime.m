@@ -329,7 +329,6 @@ if(nargout==0)
     % header
     disp(' ')
     fprintf('Model: %s  Receiver Depth: %g km\n', model, stdp);
-    %disp(['Model: ' modelname '  Receiver Depth: ' char(string(stdp)) ' km'])
     disp('Distance   Depth   Phase        Travel    Ray Param   Purist    Purist')
     disp('  (deg)     (km)   Name         Time (s)  p (s/rad)  Distance   Name  ')
     disp('--------------------------------------------------------------------------')
