@@ -42,7 +42,7 @@ function [t_shift1, t_shift2, CCmax1, CCmax2, bath1, bath2, fcorners, snr] = ...
 %               for fcorners chosen by FREQSELECT; opt==2. Otherwise, snr 
 %               is set to NaN)
 %
-% Last modified by sirawich-at-princeton.edu, 09/12/2023
+% Last modified by sirawich-at-princeton.edu, 09/21/2023
 
 defval('fopt', 2)
 defval('plt', true)
@@ -144,7 +144,7 @@ if plt
     black = [0.4 0.4 0.4];
 
     figure(3)
-    set(gcf, 'Units', 'inches', 'Position', [9 8 6 8])
+    set(gcf, 'Units', 'inches', 'Position', [0 8 6 8])
     clf
 
     %% report
