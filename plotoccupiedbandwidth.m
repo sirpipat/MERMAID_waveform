@@ -12,7 +12,7 @@ function plotoccupiedbandwidth(obs_struct)
 %                       [flat bath] cases
 %   - metadata          SAC Headers associated to the obsfile
 %
-% Last modified by sirawich-at-princeton.edu: 05/24/2023
+% Last modified by sirawich-at-princeton.edu: 09/21/2023
 
 % largest acceptable error for value comparisons
 epsilon = 1e-6;
@@ -48,6 +48,8 @@ midband = (obs_struct.fcorners(:,2) + obs_struct.fcorners(:,1)) / 2;
 highcorner = obs_struct.fcorners(:,2);
 [~,~,BAZ_bin] = histcounts(obs_struct.metadata.BAZ, 'BinWidth', 45);
 [~,~,MAG_bin] = histcounts(obs_struct.metadata.MAG, 'BinWidth', 1);
+snr = obs_struct.snr;
+cc = obs_struct.CCmaxs(:,2);
 
 polarity = nan(size(obs_struct.snr));
 for ii = 1:length(obs_struct.snr)
@@ -70,13 +72,28 @@ for ii = 1:length(obs_struct.snr)
 end
 [~,~,POL_bin] = histcounts(polarity, [-1.0 -0.6 -0.2 0.2 0.6 1.0]);
 
-sorting_criteria = [bandwidth, lowcorner, midband, highcorner, ...
-    BAZ_bin, MAG_bin, POL_bin];
+sorting_criteria = [bandwidth, ...
+                    lowcorner, ...
+                    midband, ...
+                    highcorner, ...
+                    BAZ_bin, ...
+                    MAG_bin, ...
+                    POL_bin, ...
+                    snr, ...
+                    cc];
 
 [~,I] = sortrows(sorting_criteria, [1 4]);
 plotter(OB_snr, OB_cc, fc_bin_mid, I, ...
         'occupied bandwidth', 'occupied_bandwidth');
 
+[~,I] = sortrows(sorting_criteria, [1 3 8]);
+plotter(OB_snr, OB_cc, fc_bin_mid, I, ...
+        'occupied bandwidth - midband - snr', 'occupied_bandwidth-midband-snr');
+    
+[~,I] = sortrows(sorting_criteria, [1 3 9]);
+plotter(OB_snr, OB_cc, fc_bin_mid, I, ...
+        'occupied bandwidth - midband - cc', 'occupied_bandwidth-midband-cc');
+    
 [~,I] = sort(obs_struct.snr);
 plotter(OB_snr, OB_cc, fc_bin_mid, I, ...
     'signal-to-noise ratio', 'snr');
