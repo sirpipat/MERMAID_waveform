@@ -11,13 +11,13 @@ function plotmeasurementstats(obs_struct, min_cc, min_snr, min_gcarc)
 %   - CCmaxs            maximum correlation coefficients for
 %                       [flat bath] cases
 %   - metadata          SAC Headers associated to the obsfile
-%   - presiduals        InstaSeis arrival - TauP prediction for rirst P
+%   - presiduals        InstaSeis arrival - TauP prediction for first P
 %                       arrival
 % min_cc            Correlation coefficient cut-off [default: -1]
 % min_snr           Signal-to-noise ratio cut-off   [default: 0]
 % min_gcarc         Epicentral distance cut-off     [default: 0]
 %
-% Last modified by sirawich-at-princeton.edu: 09/12/2023
+% Last modified by sirawich-at-princeton.edu: 09/25/2023
 
 defval('min_cc', -1)
 defval('min_snr', 0)
@@ -65,11 +65,14 @@ i_dlnt_corrected3 = and(dlnt_corrected >= -0.1, dlnt_corrected <= 0.1);
 i_dlnt_joel4 = and(dlnt_joel >= -0.03, dlnt_joel <= 0.03);
 i_dlnt_corrected4 = and(dlnt_corrected >= -0.03, dlnt_corrected <= 0.03);
 
+% ANOTHER WAY TO LIMIT: using percentile maybe from 5th to 95th
+
 % limit to only good match
 i_cc = (obs_struct.CCmaxs(:,2) >= min_cc);
-i_snr = (obs_struct.snr >= min_snr);
+i_snr2 = (obs_struct.snr >= min_snr);
 i_gcarc = (obs_struct.metadata.GCARC >= min_gcarc);
-i_mask = and(and(i_cc, i_snr), i_gcarc);
+i_dlnt = and(dlnt >= prctile(dlnt, 5), dlnt <= prctile(dlnt, 95));
+i_mask = and(and(i_cc, i_snr2), i_gcarc);
 
 %% list of things to plot
 variables = [...
@@ -99,6 +102,7 @@ variables = [...
     variableconstructor('gcarc', obs_struct.metadata.GCARC, 'great-circle epicentral distance (degree)', [0 180], 5, []);
     variableconstructor('log10gcarc', log10(obs_struct.metadata.GCARC), 'log_{10}great-circle epicentral distance (degree)', [], 0.1, []);
     variableconstructor('baz', obs_struct.metadata.BAZ, 'back azimuth (degree)', [0 360], 0:30:360, []);
+    variableconstructor('evdp', obs_struct.metadata.EVDP', 'event depth (km)', [0 700], 25, []);
 ];
 
 variable_pairs = [...
@@ -113,10 +117,10 @@ variable_pairs = [...
     4 6 nan;
     7 5 nan;
     7 6 nan;
-    8 9 2;
-    8 9 3;
-    8 9 4;
-    8 9 24;
+    9 8 2;
+    9 8 3;
+    9 8 4;
+    9 8 24;
     10 12 nan;
     10 13 nan;
     10 14 nan;
@@ -157,7 +161,7 @@ variable_pairs = [...
 ];
 
 %% make histograms of time shifts, maximum correlation
-for ii = 1:length(variables)
+for ii = length(variables):length(variables)
     figure(1)
     set(gcf, 'Units', 'inches', 'Position', [0 1 8 5])
     clf
@@ -210,7 +214,12 @@ for ii = 1:size(variable_pairs, 1)
         i_var3 = and(var3.indices, i_mask);
         i_var = and(i_var, i_var3);
     end
+    % change i_var from logical array to indices array
+    % e.g. from [1 0 1 1 0 0 1] to [1 3 4 7]
+    i_all = (1:length(var1.value))';
+    i_var = i_all(i_var);
         
+    % set the savename to the variables being plotted
     if isempty(var3)
         savename = sprintf('%s-v-%s', var1.name, var2.name);
     else
@@ -227,10 +236,22 @@ for ii = 1:size(variable_pairs, 1)
     else
         histy_arg = {'BinEdges', var2.BinWidth};
     end
+    
+    % reorder the dots accordingly
+    if ~isempty(var3)
+        switch var3.name
+            case {'cc', 'log10snr', 'snr', 'gcarc', 'log10gcarc'}
+                [~, i_sort] = sort(var3.value(i_var), 'ascend');
+                i_var = i_var(i_sort);
+            otherwise
+        end
+    end
+    
     if isempty(var3)
-        scathistplot(var1.value(i_var), var2.value(i_var), [], [], ...
-            var1.label, var2.label, [], var1.axlimit, var2.axlimit, [], ...
-            histx_arg, histy_arg, {'SizeData', 9});
+        [~, ~, ~, ax_scat] = scathistplot(var1.value(i_var), ...
+            var2.value(i_var), [], [], var1.label, var2.label, [], ...
+            var1.axlimit, var2.axlimit, [], histx_arg, histy_arg, ...
+            {'SizeData', 9});
     else
         [~, ~, ~, ax_scat] = scathistplot(var1.value(i_var), ...
             var2.value(i_var), var3.value(i_var), [], var1.label, ...
@@ -243,6 +264,19 @@ for ii = 1:size(variable_pairs, 1)
         end
     end
     
+    % store i_var in scatter plot UserData for GETDATAPOINT.m
+    for jj = 1:length(ax_scat.Children)
+        if isa(ax_scat.Children(jj), ...
+                'matlab.graphics.chart.primitive.Scatter')
+            set(ax_scat.Children(jj), 'UserData', i_var);
+            break
+        end
+    end
+    
+    % ADD lines paralleled to the refline (1 seconds apart)
+    % COMPUTE the percentange of points fall within X seconds away from the
+    % refline
+    % MAYBE compute correlation between x and y
     if strcmp(var1.name, 't_res_joel') && strcmp(var2.name, 't_res_correct')
         rf = refline(ax_scat, 1, 0);
         set(rf, 'LineWidth', 1, 'Color', 'k')

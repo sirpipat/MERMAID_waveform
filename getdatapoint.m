@@ -40,13 +40,16 @@ function getdatapoint(src, ax, data, name)
 %   SelfAssessedHealthStatus: Good
 % ----------------------------------------
 %
-% Last modified by sirawich-at-princeton.edu: 08/29/2023
+% Last modified by sirawich-at-princeton.edu: 09/25/2023
 
 defval('data', [])
 defval('name', 'value')
 
 pt = ax.CurrentPoint(1,1:2);
 ii = knnsearch([src.XData' src.YData'], pt);
+if ~isempty(src.UserData)
+    ii = src.UserData(ii);
+end
 fprintf('x : %g\n', pt(1));
 fprintf('y : %g\n', pt(2));
 fprintf('ii: %g\n', ii);
@@ -84,9 +87,15 @@ else
             if size(data, 1) == 1
                 data = data';
             end
-            value = data(dndex, :);
+            if isa(data, 'char') || isa(data, 'string')
+                value = [];
+            else
+                value = data(dndex, :);
+            end
         end
-        if isa(value, 'double')
+        if isempty(value)
+            % do nothing
+        elseif isa(value, 'double')
             if strcmp(replace(fieldname, ' ', ''), 'USER7')
                 if length(value) == 1
                     fprintf('%s: %i\n', fieldname, value);
