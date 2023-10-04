@@ -15,36 +15,50 @@ function updatesynthetics(fname, model)
 % KTn           phase name of n-th phase
 % USER9         ray parameter of the first arrival phase
 %
-% Last modified by sirawich-at-princeton.edu, 11/02/2021
+% Last modified by sirawich-at-princeton.edu, 10/04/2023
 
 defval('model', 'ak135')
 
 % read a synthetic SAC file
 [SeisData, HdrData] = readsac(fname);
 
+new_version = true;
+% NEW VERSION
+% Use TauP 1.3.0 or newer where we can specify receiver depth
+if new_version
+    tt = tauptime('mod', model, ...
+                  'depth', HdrData.EVDP, ...
+                  'gcarc', HdrData.GCARC, ...
+                  'ph', 'p,s,P,S,PP,SS,PKP,SKS,PKIKP,SKIKS', ...
+                  'stadepth', -HdrData.STEL/1000);
+else
+% OLD VERSION
 % compute theoretical travel times at the ocean bottom below MERMAID.
 % [lat lon] of the receiver is slightly shifted if incident angle is not
 % close to zero.
-tt = taupPierce(model, HdrData.EVDP, ...
-    'p,s,P,S,PP,SS,PKP,SKS,PKIKP,SKIKS', ...
-    'sta', [HdrData.STLA HdrData.STLO], ...
-    'evt', [HdrData.EVLA HdrData.EVLO], ...
-    'pierce', -HdrData.STEL/1000, 'nodiscon');
+    tt = taupPierce(model, HdrData.EVDP, ...
+        'p,s,P,S,PP,SS,PKP,SKS,PKIKP,SKIKS', ...
+        'sta', [HdrData.STLA HdrData.STLO], ...
+        'evt', [HdrData.EVLA HdrData.EVLO], ...
+        'pierce', -HdrData.STEL/1000, 'nodiscon');
 
-% remove all zero piercings
-for ii = 1:length(tt)
-    index = length(tt(ii).pierce.p);
-    while tt(ii).pierce.time(index) <= 0 && index > 1
-        index = index - 1;
+    % remove all zero piercings
+    for ii = 1:length(tt)
+        index = length(tt(ii).pierce.p);
+        while tt(ii).pierce.time(index) <= 0 && index > 1
+            index = index - 1;
+        end
+        tt(ii).time = tt(ii).pierce.time(index);
+        tt(ii).distance = tt(ii).pierce.distance(index);
     end
-    tt(ii).time = tt(ii).pierce.time(index);
-    tt(ii).distance = tt(ii).pierce.distance(index);
 end
-
 
 % keep only one arrival for each phase
 ph = cell(size(tt));
 for ii = 1:length(ph)
+    if new_version
+        tt(ii).phaseName = tt(ii).phase;
+    end
     ph{ii} = tt(ii).phaseName;
 end
 [~, ia] = unique(ph);
@@ -118,7 +132,11 @@ for ii = 1:length(tt)
             break
     end
 end
-HdrData.USER9 = tt(1).rayParam;
+if new_version
+    HdrData.USER9 = tt(1).rayparameter;
+else
+    HdrData.USER9 = tt(1).rayParam;
+end
 
 % save SAC file
 writesac(SeisData, HdrData, fname);
