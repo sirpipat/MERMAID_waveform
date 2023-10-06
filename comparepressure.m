@@ -40,7 +40,7 @@ function [t_shift, CCmax, lag, cc, s] = ...
 % CC            Vector of CC for every time shift in lag
 % s             Scaling to minimize the misfit
 %
-% Last modified by sirawich-at-princeton.edu, 09/21/2023
+% Last modified by sirawich-at-princeton.edu, 10/06/2023
 
 defval('envelope_window', [-20 20])
 defval('waveform_window', [-5 5])
@@ -48,7 +48,7 @@ defval('fcorners', [0.4 1])
 defval('plt', true)
 defval('numpicks', 1)
 defval('is_rmnoise', false)
-defval('method', 1)
+defval('method', 2)
 
 %% Part 1: compute the synthetic pressure
 % sampling rate
