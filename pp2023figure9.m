@@ -6,7 +6,7 @@ function varargout = pp2023figure9
 % OUTPUT:
 % fig       figure handle to the plots
 %
-% Last modified by sirawich-at-princeton.edu: 07/06/2023
+% Last modified by sirawich-at-princeton.edu: 10/06/2023
 
 %% load data
 
@@ -33,7 +33,7 @@ file_s = [ddir 'OUTPUT_FILES/AB.S0001.BXZ.semd'];
 fs = 1 / (t_s(2) - t_s(1));
 
 % deconvolve for the response function due to the ocean layer
-[~, ~, t_r, seis_r] = cctransplot(ddir, ddir, 'flat_10996154_P0009', ...
+[~, ~, t_r, seis_r] = cctransplot(ddir, ddir, 'flat_10936816_P1009', ...
     {'bottom', 'displacement'}, {'hydrophone', 'pressure'}, [], fs, false);
 
 % time relative to the first P-wave arrival
@@ -48,11 +48,11 @@ pres_o = real(pres_o);
 %[fcorners, ~] = freqselect(t_relative, pres_o, fs_o, false);
 
 % filter
-fcorners = [0.80 1.50];
+fcorners = [0.40 2.00];
 pres_o = bandpass(pres_o, fs_o, fcorners(1), fcorners(2), 4, 2, 'butter', 'linear');
 
 % timeshift
-timeshift = 4.0486;
+timeshift = 4.1003;
 
 % resample to MERMAID datetimes
 seis_s_interp = shannon(dts_s, seis_s, dts_o);
