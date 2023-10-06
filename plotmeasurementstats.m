@@ -17,7 +17,7 @@ function plotmeasurementstats(obs_struct, min_cc, min_snr, min_gcarc)
 % min_snr           Signal-to-noise ratio cut-off   [default: 0]
 % min_gcarc         Epicentral distance cut-off     [default: 0]
 %
-% Last modified by sirawich-at-princeton.edu: 09/25/2023
+% Last modified by sirawich-at-princeton.edu: 10/06/2023
 
 defval('min_cc', -1)
 defval('min_snr', 0)
@@ -161,7 +161,7 @@ variable_pairs = [...
 ];
 
 %% make histograms of time shifts, maximum correlation
-for ii = length(variables):length(variables)
+for ii = 1:length(variables)
     figure(1)
     set(gcf, 'Units', 'inches', 'Position', [0 1 8 5])
     clf
@@ -181,8 +181,9 @@ for ii = length(variables):length(variables)
     ylabel('counts')
     set(gca, 'FontSize', 12, 'TickDir', 'out', 'Box', 'on')
     varmed = median(variables(ii).value(variables(ii).indices));
-    vline(gca, varmed, 'Color', 'k', ...
+    [~, vl] = vline(gca, varmed, 'Color', 'k', ...
         'LineWidth', 2, 'LineStyle', '-.');
+    uistack(vl, 'bottom')
     
     title(gca, sprintf('n = %d, x = %s (median = %.2f)', ...
         sum(variables(ii).indices), variables(ii).label, ...
@@ -277,21 +278,74 @@ for ii = 1:size(variable_pairs, 1)
     % COMPUTE the percentange of points fall within X seconds away from the
     % refline
     % MAYBE compute correlation between x and y
-    if strcmp(var1.name, 't_res_joel') && strcmp(var2.name, 't_res_correct')
+    rfweight = 0.5;
+    rfcolor = [0.75 0.75 0.75];
+    if strcmp(var2.name, 't_res_joel') && strcmp(var1.name, 't_res_correct')
         rf = refline(ax_scat, 1, 0);
-        set(rf, 'LineWidth', 1, 'Color', 'k')
+        set(rf, 'LineWidth', rfweight, 'Color', rfcolor)
+        uistack(rf, 'bottom')
+        rf = refline(ax_scat, 1, 2);
+        set(rf, 'LineWidth', rfweight, 'Color', rfcolor)
+        uistack(rf, 'bottom')
+        rf = refline(ax_scat, 1, 4);
+        set(rf, 'LineWidth', rfweight, 'Color', rfcolor)
+        uistack(rf, 'bottom')
+        rf = refline(ax_scat, 1, 6);
+        set(rf, 'LineWidth', rfweight, 'Color', rfcolor)
+        uistack(rf, 'bottom')
+        rf = refline(ax_scat, 1, -2);
+        set(rf, 'LineWidth', rfweight, 'Color', rfcolor)
+        uistack(rf, 'bottom')
+        rf = refline(ax_scat, 1, -4);
+        set(rf, 'LineWidth', rfweight, 'Color', rfcolor)
+        uistack(rf, 'bottom')
+        rf = refline(ax_scat, 1, -6);
+        set(rf, 'LineWidth', rfweight, 'Color', rfcolor)
+        uistack(rf, 'bottom')
+        set(ax_scat, 'XLim', var1.axlimit, 'YLim', var2.axlimit)
+        
+        % add # of observations within the regions
+        diff = var2.value(i_var) - var1.value(i_var);
+        p2 = sum(and(diff > 0, diff <= 2));
+        p4 = sum(and(diff > 2, diff <= 4));
+        p6 = sum(and(diff > 4, diff <= 6));
+        pp = sum(diff > 6);
+        n2 = sum(and(diff > -2, diff <= 0));
+        n4 = sum(and(diff > -4, diff <= -2));
+        n6 = sum(and(diff > -6, diff <= -4));
+        nn = sum(diff <= -6);
+        
+        text(ax_scat, 10, -1, sprintf('pp = %.2f %%', pp * 100 / length(diff)))
+        text(ax_scat, 10, -3, sprintf('p6 = %.2f %%', p6 * 100 / length(diff)))
+        text(ax_scat, 10, -5, sprintf('p4 = %.2f %%', p4 * 100 / length(diff)))
+        text(ax_scat, 10, -7, sprintf('p2 = %.2f %%', p2 * 100 / length(diff)))
+        text(ax_scat, 10, -9, sprintf('n2 = %.2f %%', n2 * 100 / length(diff)))
+        text(ax_scat, 10, -11, sprintf('n4 = %.2f %%', n4 * 100 / length(diff)))
+        text(ax_scat, 10, -13, sprintf('n6 = %.2f %%', n6 * 100 / length(diff)))
+        text(ax_scat, 10, -15, sprintf('nn = %.2f %%', nn * 100 / length(diff)))
+        
+        % Stats
+        stats = regstats(var2.value(i_var), var1.value(i_var), ...
+            'linear', {'beta', 'rsquare', 'fstat', 'tstat'});
+        
+        text(ax_scat, 10, -17, sprintf('R^2 = %.2f', stats.rsquare))
+        text(ax_scat, 10, -19, sprintf('pval = %.2g', stats.fstat.pval))
     elseif strcmp(var1.name, 't_rel_joel') && strcmp(var2.name, 't_rel_correct')
         rf = refline(ax_scat, 1, 0);
         set(rf, 'LineWidth', 1, 'Color', 'k')
+        uistack(rf, 'bottom')
     elseif strcmp(var1.name, 't_rel_joel2') && strcmp(var2.name, 't_rel_correct2')
         rf = refline(ax_scat, 1, 0);
         set(rf, 'LineWidth', 1, 'Color', 'k')
+        uistack(rf, 'bottom')
     elseif strcmp(var1.name, 't_rel_joel3') && strcmp(var2.name, 't_rel_correct3')
         rf = refline(ax_scat, 1, 0);
         set(rf, 'LineWidth', 1, 'Color', 'k')
+        uistack(rf, 'bottom')
     elseif strcmp(var1.name, 't_rel_joel4') && strcmp(var2.name, 't_rel_correct4')
         rf = refline(ax_scat, 1, 0);
         set(rf, 'LineWidth', 1, 'Color', 'k')
+        uistack(rf, 'bottom')
     end
     
     fname = sprintf('%s_%s.eps', 'scathistplot', savename);
@@ -314,7 +368,7 @@ end
 % axlimit       axes limit when plotting this variable
 % BinWidth      histogram bin width (if given as a scalar) or
 %               histogram bin edges (if given as a vector)
-% incdices      logical array whether to use each element in value or not
+% indices       logical array whether to use each element in value or not
 %               (it has to be the same size as value)
 %
 % OUTPUT:
