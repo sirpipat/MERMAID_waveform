@@ -150,25 +150,27 @@ function plotter(OB_snr, OB_cc, fc_bin_mid, sortindex, sortedby, savename)
     % create a plot
     figure(1)
     clf
-    set(gcf, 'Units', 'inches', 'Position', [0 1 8 10])
+    set(gcf, 'Units', 'inches', 'Position', [0 1 10 8])
     
     % SNR
-    ax1 = subplot('Position', [0.09 0.08 0.37 0.88]);
-    imagesc([fc_bin_mid(1) fc_bin_mid(end)], ...
-        [1 size(OB_snr,1)], log10(OB_snr(sortindex,:)));
+    ax1 = subplot('Position', [0.08 0.04 0.88 0.41]);
+    imagesc([1 size(OB_snr,1)], [fc_bin_mid(1) fc_bin_mid(end)], ...
+        log10(OB_snr(sortindex,:)'));
     setimagenan(ax1, ax1.Children, [0 0 0]);
-    xlabel('frequency (Hz)')
-    ylabel('trace number')
-    colorbar
+    ylabel('frequency (Hz)')
+    xlabel('trace number')
+    colorbar('SouthOutside')
+    axis xy
 
     % CC
-    ax2 = subplot('Position', [0.59 0.08 0.37 0.88]);
-    imagesc([fc_bin_mid(1) fc_bin_mid(end)], ...
-        [1 size(OB_cc,1)], OB_cc(sortindex,:));
+    ax2 = subplot('Position', [0.08 0.54 0.88 0.41]);
+    imagesc([1 size(OB_cc,1)], [fc_bin_mid(1) fc_bin_mid(end)], ...
+        OB_cc(sortindex,:)');
     setimagenan(ax2, ax2.Children, [0 0 0]);
-    xlabel('frequency (Hz)')
-    ylabel('trace number')
-    colorbar
+    ylabel('frequency (Hz)')
+    xlabel('trace number')
+    colorbar('SouthOutside')
+    axis xy
 
     set(ax1.Parent.Children(1), 'FontSize', 11)
     set(ax1.Parent.Children(2), 'FontSize', 11)
@@ -187,6 +189,7 @@ function plotter(OB_snr, OB_cc, fc_bin_mid, sortindex, sortedby, savename)
     [axt.Title.Position(1), axt.Title.Position(2)] = ...
             norm2trueposition(axt, 0.5, 1.06);
     axt.XAxis.Visible = 'off';
+    axt.YAxis.Visible = 'off';
     axt.Color = 'none';
 
     % save the figure
