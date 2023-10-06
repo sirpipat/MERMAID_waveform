@@ -68,7 +68,7 @@ function [fig, ax_histx, ax_histy, ax_scat, cb_scat] = ...
 %     {'BinWidth', 0.25}, {'BinWidth', 0.25}, ...
 %     {'SizeData', 16, 'MarkerFaceColor', 'r'});
 %
-% Last modified by sirawich-at-princeton.edu: 08/29/2023
+% Last modified by sirawich-at-princeton.edu: 10/05/2023
 
 defval('c', rgbcolor('1'))
 defval('savename', false)
@@ -110,8 +110,9 @@ end
 ylabel('counts')
 set(ax_histx, 'FontSize', 12, 'TickDir', 'out', 'Box', 'on', ...
     'XAxisLocation', 'top')
-vline(ax_histx, x_med, 'Color', 'k', 'LineWidth', 2, ...
+[~, vl] = vline(ax_histx, x_med, 'Color', 'k', 'LineWidth', 2, ...
     'LineStyle', '-.');
+uistack(vl, 'bottom')
 
 % histogram of y
 ax_histy = subplot('Position', [0.6600 0.1400 0.2350 0.5050]);
@@ -124,8 +125,9 @@ end
 xlabel('counts')
 set(ax_histy, 'FontSize', 12, 'TickDir', 'out', 'Box', 'on', ...
     'YAxisLocation', 'right')
-hline(ax_histy, y_med, 'Color', 'k', 'LineWidth', 2, ...
+[~, hl] = hline(ax_histy, y_med, 'Color', 'k', 'LineWidth', 2, ...
     'LineStyle', '-.');
+uistack(hl, 'bottom')
 
 % scatter plot
 ax_scat = subplot('Position', [0.1300 0.1400 0.5050 0.5050]);
@@ -135,13 +137,16 @@ box on
 hold on
 xlim(ax_histx.XLim)
 ylim(ax_histy.YLim)
-vline(ax_scat, x_med, 'Color', 'k', 'LineWidth', 2, ...
+[~, vl] = vline(ax_scat, x_med, 'Color', 'k', 'LineWidth', 2, ...
     'LineStyle', '-.');
-hline(ax_scat, y_med, 'Color', 'k', 'LineWidth', 2, ...
+[~, hl] = hline(ax_scat, y_med, 'Color', 'k', 'LineWidth', 2, ...
     'LineStyle', '-.');
+uistack(vl, 'bottom')
+uistack(hl, 'bottom')
 if limx == limy
     rl = refline(ax_scat, 1, 0);
     set(rl, 'Color', [0 0 0], 'LineWidth', 1)
+    uistack(rl, 'bottom')
 end
 xlabel(labelx)
 ylabel(labely)
