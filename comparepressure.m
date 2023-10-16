@@ -40,7 +40,7 @@ function [t_shift, CCmax, lag, cc, s] = ...
 % CC            Vector of CC for every time shift in lag
 % s             Scaling to minimize the misfit
 %
-% Last modified by sirawich-at-princeton.edu, 10/06/2023
+% Last modified by sirawich-at-princeton.edu, 10/13/2023
 
 defval('envelope_window', [-20 20])
 defval('waveform_window', [-5 5])
@@ -110,12 +110,18 @@ if method == 1
 elseif method == 2
     % EXPERIMENTAL METHOD: 
     % use expected arrival time as the starting point
-    % Try to align the starting piont with the timestamp of the observed
+    % Try to align the starting point with the timestamp of the observed
     % pressure waveform
+    
+    % find the time of first arrival
+    wh_lookfor = (tr_r_interp < 5);
+    tr_r_interp_lookfor = tr_r_interp(wh_lookfor);
+    seis_r_lookfor = seis_r(wh_lookfor);
+    tr_r_arrival = tr_r_interp_lookfor(seis_r_lookfor == max(seis_r_lookfor));
     
     % arrival times with respect to beginning of the observed waveform
     t_P_arrival_guess = seconds(dt_ref_s - dts_o(1)) + hdr_s.T0 + ...
-        tr_r_interp(seis_r == max(seis_r));
+        tr_r_arrival;
     t_P_arrival_record = seconds(dt_ref_o - dts_o(1)) + hdr_o.T0;
     % round to the exact timestamp of the observed pressure waveform
     idt_guess = knnsearch(seconds(dts_o - dts_o(1)), ...
