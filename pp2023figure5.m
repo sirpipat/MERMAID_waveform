@@ -7,19 +7,25 @@ function varargout = pp2023figure5
 % OUTPUT:
 % fig       figure handle to the plots
 %
-% Last modified by sirawich-at-princeton.edu: 04/11/2023
+% Last modified by sirawich-at-princeton.edu: 10/12/2023
 
 %% Load data
-obsfiles = allfile(sprintf('%sDATA/Figure5/observed/10996154/', ...
+% obsfiles = allfile(sprintf('%sDATA/Figure5/observed/10996154/', ...
+%     getenv('MERMAID2')))';
+% synfiles = allfile(sprintf('%sDATA/Figure5/synthetic/10996154/', ...
+%     getenv('MERMAID2')))';
+obsfiles = allfile(sprintf('%sDATA/Figure5/observed/10936816/', ...
     getenv('MERMAID2')))';
-synfiles = allfile(sprintf('%sDATA/Figure5/synthetic/10996154/', ...
+synfiles = allfile(sprintf('%sDATA/Figure5/synthetic/10936816/', ...
     getenv('MERMAID2')))';
 
 metadata_o = getheaderarray(obsfiles);
 metadata_s = getheaderarray(synfiles);
 
-ddir = '/Users/sirawich/research/remote_specfem2d/flat_10996154_P0009/';
-name = 'flat_10996154_P0009';
+% ddir = '/Users/sirawich/research/remote_specfem2d/flat_10996154_P0009/';
+% name = 'flat_10996154_P0009';
+ddir = '/Users/sirawich/research/remote_specfem2d/flat_10936816_P0009/';
+name = 'flat_10936816_P0009';
 
 % number of MERMAID floats
 n = length(metadata_o.STLO);
@@ -42,7 +48,7 @@ set(gcf, 'Units', 'inches', 'Position', [0 1 8 8])
 clf
 
 % source-receivers map
-ax1 = subplot('Position', [0.04 0.53 0.42 0.45]);
+ax1 = subplot('Position', [0.00 0.53 0.56 0.45]);
 
 stlo = mod(metadata_o.STLO, 360);
 stla = metadata_o.STLA;
@@ -67,6 +73,7 @@ lonmin = lonmid - 1.2 * halfwidth;
 lonmax = lonmid + 1.2 * halfwidth;
 
 % zoom in the map
+axis equal
 original_x2y_ratio = (ax1.XLim(2)-ax1.XLim(1))/(ax1.YLim(2)-ax1.YLim(1));
 new_x2y_ratio = (lonmax-lonmin)/(latmax-latmin);
 if new_x2y_ratio > original_x2y_ratio
@@ -118,7 +125,7 @@ xlabel('longitude (degrees)')
 ylabel('latitude (degrees)')
 set(ax1, 'Box', 'on', 'TickDir', 'out', 'FontSize', 12)
 
-boxedlabel(ax1, 'northwest', 0.3, [], 'a', 'FontSize', 14);
+ax1c = boxedlabel(ax1, 'northwest', 0.3, [], 'a', 'FontSize', 14);
 
 ax1s.XLim = ax1.XLim;
 ax1s.YLim = ax1.YLim;
@@ -139,19 +146,29 @@ ax1b.Color = 'none';
 ax1b.DataAspectRatio = [1 1 1];
 
 % text label
-ax1b08 = addbox(ax1s, [0.51 0.4 1/15 1/16]);
-text(ax1b08, 0.17, 0.47, '08');
-ax1b09 = addbox(ax1s, [0.57 0.56 1/15 1/16]);
-text(ax1b09, 0.17, 0.47, '09');
-ax1b10 = addbox(ax1s, [0.64 0.38 1/15 1/16]);
-text(ax1b10, 0.17, 0.47, '10');
-ax1b11 = addbox(ax1s, [0.72 0.49 1/15 1/16]);
-text(ax1b11, 0.17, 0.47, '11');
-ax1b12 = addbox(ax1s, [0.81 0.37 1/15 1/16]);
-text(ax1b12, 0.17, 0.47, '12');
+% ax1b08 = addbox(ax1s, [0.51 0.4 1/15 1/16]);
+% text(ax1b08, 0.17, 0.47, '08');
+% ax1b09 = addbox(ax1s, [0.57 0.56 1/15 1/16]);
+% text(ax1b09, 0.17, 0.47, '09');
+% ax1b10 = addbox(ax1s, [0.64 0.38 1/15 1/16]);
+% text(ax1b10, 0.17, 0.47, '10');
+% ax1b11 = addbox(ax1s, [0.72 0.49 1/15 1/16]);
+% text(ax1b11, 0.17, 0.47, '11');
+% ax1b12 = addbox(ax1s, [0.81 0.37 1/15 1/16]);
+% text(ax1b12, 0.17, 0.47, '12');
+ax1b08 = addbox(ax1s, [0.65 0.39 1/20 1/16]);
+text(ax1b08, 0.13, 0.47, '08');
+ax1b09 = addbox(ax1s, [0.69 0.52 1/20 1/16]);
+text(ax1b09, 0.13, 0.47, '09');
+ax1b10 = addbox(ax1s, [0.71 0.37 1/20 1/16]);
+text(ax1b10, 0.13, 0.47, '10');
+ax1b11 = addbox(ax1s, [0.75 0.50 1/20 1/16]);
+text(ax1b11, 0.13, 0.47, '11');
+ax1b12 = addbox(ax1s, [0.79 0.36 1/20 1/16]);
+text(ax1b12, 0.13, 0.47, '12');
 
 %% bathymetry of all trajectory
-ax2 = subplot('Position', [0.54 0.57 0.38 0.41]);
+ax2 = subplot('Position', [0.58 0.57 0.357 0.41]);
 hold on
 y_elev_left = nan(n, 1);
 y_elev_right = nan(n, 1);
@@ -190,11 +207,11 @@ text(ax2, x_label_left - 0.4, y_label_left - 0.35, ...
     '\Delta = ' + string(round(metadata_o.GCARC, 2)) + '^{\circ}');
 
 % elevation scale bar
-pgon1 = polyshape([4.8 5.2 5.2 4.8], [2.7 2.7 2.45 2.45]);
+pgon1 = polyshape([4.8 5.2 5.2 4.8], [4.7 4.7 4.45 4.45]);
 plot(ax2, pgon1, 'FaceColor', 'k', 'FaceAlpha', 1);
-pgon2 = polyshape([4.8 5.2 5.2 4.8], [2.45 2.45 2.2 2.2]);
+pgon2 = polyshape([4.8 5.2 5.2 4.8], [4.45 4.45 4.2 4.2]);
 plot(ax2, pgon2, 'FaceColor', 'w', 'FaceAlpha', 1);
-text(ax2, 5.5, 2.5, '2000 m')
+text(ax2, 5.5, 4.3, '1000 m')
 
 ax2.YLim = [0.5 n+0.5];
 ax2.YTickLabel = flip(stnm);
@@ -211,7 +228,7 @@ set(ax2s, 'Box', 'on', 'TickDir', 'out', 'FontSize', 12, 'Color', 'none')
 boxedlabel(ax2, 'northwest', 0.3, [], 'b', 'FontSize', 14);
 
 %% SPECFEM2D setting of the selected path
-ax3 = subplot('Position', [0.08 0.07 0.88 0.42]);
+ax3 = subplot('Position', [0.06 0.07 0.88 0.42]);
 
 % draw the seafloor setting
 interfacefile = [ddir 'DATA/interfaces_' name '.dat'];
@@ -329,10 +346,15 @@ text(axcp, 0.05, 0.5, 'c_p = 3400 m/s', 'FontSize', 12);
 axcw = addbox(ax3, [0.8 0.86 0.17 0.1]);
 text(axcw, 0.05, 0.5, 'c_w = 1500 m/s', 'FontSize', 12);
 
-boxedlabel(ax3, 'northwest', 0.3, [], 'c', 'FontSize', 14);
+ax3b = boxedlabel(ax3, 'northwest', 0.3, [], 'c', 'FontSize', 14);
 
 axes(axcp)
 axes(axcw)
+
+% adjust boxed label position
+ax1.Position(1) = ax1.Position(1) - 0.008;
+ax1c.Position(1) = ax1c.Position(1) + 0.0638;
+ax3b.Position = ax3b.Position + [0.003 0 0 0];
 
 set(gcf, 'Renderer', 'painters')
 %% Save
