@@ -12,7 +12,7 @@ function plotoccupiedbandwidth(obs_struct)
 %                       [flat bath] cases
 %   - metadata          SAC Headers associated to the obsfile
 %
-% Last modified by sirawich-at-princeton.edu: 09/21/2023
+% Last modified by sirawich-at-princeton.edu: 10/16/2023
 
 % largest acceptable error for value comparisons
 epsilon = 1e-6;
@@ -153,7 +153,7 @@ function plotter(OB_snr, OB_cc, fc_bin_mid, sortindex, sortedby, savename)
     set(gcf, 'Units', 'inches', 'Position', [0 1 10 8])
     
     % SNR
-    ax1 = subplot('Position', [0.08 0.04 0.88 0.41]);
+    ax1 = subplot('Position', [0.08 0.54 0.88 0.41]);
     imagesc([1 size(OB_snr,1)], [fc_bin_mid(1) fc_bin_mid(end)], ...
         log10(OB_snr(sortindex,:)'));
     setimagenan(ax1, ax1.Children, [0 0 0]);
@@ -163,7 +163,7 @@ function plotter(OB_snr, OB_cc, fc_bin_mid, sortindex, sortedby, savename)
     axis xy
 
     % CC
-    ax2 = subplot('Position', [0.08 0.54 0.88 0.41]);
+    ax2 = subplot('Position', [0.08 0.04 0.88 0.41]);
     imagesc([1 size(OB_cc,1)], [fc_bin_mid(1) fc_bin_mid(end)], ...
         OB_cc(sortindex,:)');
     setimagenan(ax2, ax2.Children, [0 0 0]);
