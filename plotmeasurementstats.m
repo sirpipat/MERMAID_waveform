@@ -172,6 +172,9 @@ for ii = 1:length(variables)
         histogram(variables(ii).value(variables(ii).indices), ...
             'BinEdges', variables(ii).BinWidth);
     end
+    if strcmp(variables(ii).name, 'baz')
+        xticks(0:60:360);
+    end
     ax = gca;
     grid on
     if ~isempty(variables(ii).axlimit)
@@ -179,7 +182,7 @@ for ii = 1:length(variables)
     end
     xlabel(variables(ii).label)
     ylabel('counts')
-    set(gca, 'FontSize', 12, 'TickDir', 'out', 'Box', 'on')
+    set(gca, 'FontSize', 16, 'TickDir', 'out', 'Box', 'on')
     varmed = median(variables(ii).value(variables(ii).indices));
     [~, vl] = vline(gca, varmed, 'Color', 'k', ...
         'LineWidth', 2, 'LineStyle', '-.');
@@ -187,7 +190,7 @@ for ii = 1:length(variables)
     
     title(gca, sprintf('n = %d, x = %s (median = %.2f)', ...
         sum(variables(ii).indices), variables(ii).label, ...
-        varmed), 'FontSize', 12)
+        varmed), 'FontSize', 16)
     [ax.Title.Position(1), ax.Title.Position(2)] = ...
         norm2trueposition(ax, 0.5, 1.06);
     
