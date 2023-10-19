@@ -1,8 +1,9 @@
 function [fc, s, tmax] = freqselect(t, x, fs, plt, titlename, savename)
 % [fc, s, tmax] = FREQSELECT(t, x, fs, plt, titlename, savename)
 %
-% Figures out the frequency band where the signal stands out the most from
-% the background noise.
+% Figures out the frequency band where the signal stands out the most
+% from the background noise, assuming the breakpoint already occurs in
+% the middle (only slight variations about that time explorations).
 % 
 % INPUT:
 % t             time [for an example, go between -100 and 100]
@@ -70,6 +71,7 @@ for ii = 1:length(fcs)
         else
             fmid = max(fcs(ii), delf); %(2 * fcs(ii) + fNq) / 3;
         end
+        % How much you look left and right of the center point in time
         halfwin = 2/ fmid;
         [A(jj, ii), T(jj, ii)] = snrvar(t, xf, [-1 1] * halfwin/2, ...
             -60, 80, 1 * halfwin);
