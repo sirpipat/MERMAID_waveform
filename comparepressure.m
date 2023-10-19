@@ -17,7 +17,7 @@ function [t_shift, CCmax, lag, cc, s] = ...
 % seis_r        receiver function
 % t_r           time of the receiver function
 % [E_B E_E]     begin and end of the window for envelope correlation
-%               [Default: [-10 20]]
+%               [Default: [-20 20]]
 % [W_B W_E]     begin and end of the window for waveform correlation
 %               [Default: [-5 5]]
 % [lo hi]       corner frequencies for bandpass filtering 
@@ -27,6 +27,11 @@ function [t_shift, CCmax, lag, cc, s] = ...
 %               [Default: 1]
 % is_rmnoise    whether to use REMOVENOISE to remove the noise or not
 %               This is experimental. [default: false]
+% method        options for method to determine the starting point for
+%               waveform correlation [default: 1]
+%               1 - rising signal in the synthetic pressure waveform
+%               2 - ray-theory arrival time with transfer function included
+%               3 - envelope correlation
 %
 % OUTPUT:
 % t_shift       N best time shifts where CCs are at maximum peak
@@ -35,18 +40,19 @@ function [t_shift, CCmax, lag, cc, s] = ...
 % CC            Vector of CC for every time shift in lag
 % s             Scaling to minimize the misfit
 %
-% Last modified by sirawich-at-princeton.edu, 05/11/2022
+% Last modified by sirawich-at-princeton.edu, 10/13/2023
 
-defval('envelope_window', [-10 20])
+defval('envelope_window', [-20 20])
 defval('waveform_window', [-5 5])
 defval('fcorners', [0.4 1])
 defval('plt', true)
 defval('numpicks', 1)
 defval('is_rmnoise', false)
+defval('method', 2)
 
 %% Part 1: compute the synthetic pressure
 % sampling rate
-[~, dt_begin_s, ~, fs_s, ~, dts_s] = gethdrinfo(hdr_s);
+[dt_ref_s, dt_begin_s, ~, fs_s, ~, dts_s] = gethdrinfo(hdr_s);
 [dt_ref_o, dt_begin_o, ~, fs_o, ~, dts_o] = gethdrinfo(hdr_o);
 fs_r = 1 / (t_r(2) - t_r(1));
 
@@ -93,23 +99,67 @@ dt_end1 = dt_ref_o + seconds(hdr_o.T0 + envelope_window(2));
 pres_o1 = pres_o(and(geq(dts_o, dt_start1, ep), leq(dts_o, dt_end1, ep)));
 pres_s1 = pres_s(and(geq(dts_o, dt_start1, ep), leq(dts_o, dt_end1, ep)));
 
-% first correlate by the envelope
-[best_lags_time_e, ~, lags_time_e, cc_e, s_e] = ccscale(pres_o1, pres_s1, ...
-    dt_begin_o, dt_begin_o, fs_o, ...
-    seconds(envelope_window(2) - envelope_window(1)) / 2, 'soft', true);
+% CURRENT METHOD:
+% try figuring the starting point for waveform cross-correlation using
+% 5% of the maximum
+if method == 1
+    max_amplitude = max(abs(pres_s(dts_o - dt_ref_o > seconds(50))));
+    dt_arrival = indeks(dts_o(and(abs(pres_s) >= 0.05 * max_amplitude, ...
+        dts_o - dt_ref_o > seconds(50))), 1);
+    best_lags_time_e = seconds(dt_ref_o - dt_arrival) + hdr_o.T0;
+elseif method == 2
+    % EXPERIMENTAL METHOD: 
+    % use expected arrival time as the starting point
+    % Try to align the starting point with the timestamp of the observed
+    % pressure waveform
+    
+    % find the time of first arrival
+    wh_lookfor = (tr_r_interp < 5);
+    tr_r_interp_lookfor = tr_r_interp(wh_lookfor);
+    seis_r_lookfor = seis_r(wh_lookfor);
+    tr_r_arrival = tr_r_interp_lookfor(seis_r_lookfor == max(seis_r_lookfor));
+    
+    % arrival times with respect to beginning of the observed waveform
+    t_P_arrival_guess = seconds(dt_ref_s - dts_o(1)) + hdr_s.T0 + ...
+        tr_r_arrival;
+    t_P_arrival_record = seconds(dt_ref_o - dts_o(1)) + hdr_o.T0;
+    % round to the exact timestamp of the observed pressure waveform
+    idt_guess = knnsearch(seconds(dts_o - dts_o(1)), ...
+        t_P_arrival_guess);
+    idt_record = knnsearch(seconds(dts_o - dts_o(1)), ...
+        t_P_arrival_record);
+    
+    best_lags_time_e = seconds(dts_o(idt_record) - dts_o(idt_guess));
+else
+    % assigned the starting point to be a very large number to force
+    % envelope correlation
+    best_lags_time_e = inf;
+end
+% determine maximum accepted best lag time for envelope cross-correlation
+% which is the maximum of 5 seconds or 2 percent of the travel time
+maxmargin_e = seconds(max(5, 0.02 * hdr_o.USER5));
 
+if abs(best_lags_time_e) > seconds(maxmargin_e)
+% first correlate by the envelope
+    [best_lags_time_e, ~, lags_time_e, cc_e, s_e] = ccscale(pres_o1, pres_s1, ...
+        dt_begin_o, dt_begin_o, fs_o, maxmargin_e, 'soft', true);
+else
+    [~, ~, lags_time_e, cc_e, s_e] = ccscale(pres_o1, pres_s1, ...
+        dt_begin_o, dt_begin_o, fs_o, maxmargin_e, 'soft', true);
+end
 % cut the short windows to do waveform cross correlation
 dt_start2 = dt_ref_o + seconds(hdr_o.T0 + waveform_window(1));
 dt_end2 = dt_ref_o + seconds(hdr_o.T0 + waveform_window(2));
 pres_o2 = pres_o(and(geq(dts_o, dt_start2, ep), leq(dts_o, dt_end2, ep)));
 pres_s2 = pres_s(and(geq(dts_o, ...
-    dt_start2 - seconds(best_lags_time_e), ep), ...
-    leq(dts_o, dt_end2 - seconds(best_lags_time_e), ep)));
+    dt_start2 - seconds(best_lags_time_e) + seconds(waveform_window(1)), ep), ...
+    leq(dts_o, dt_end2 - seconds(best_lags_time_e) + seconds(waveform_window(2)), ep)));
 
 % then correlate by the waveform
+maxmargin_w = seconds(5);%seconds(waveform_window(2) - waveform_window(1)) / 2;
 [best_lags_time, ~, lags_time, cc, s] = ccscale(pres_o2, pres_s2, ...
-    dt_start2, dt_start2, fs_o, ...
-    seconds(waveform_window(2) - waveform_window(1)) / 2, 'soft', false);
+    dt_start2, dt_start2 + seconds(waveform_window(1)), fs_o, ...
+    maxmargin_w, 'soft', false);
 
 best_lags_time = best_lags_time + best_lags_time_e;
 lags_time = lags_time + best_lags_time_e;
@@ -177,8 +227,8 @@ if plt
         'jul', 'aug', 'sep', 'oct', 'nov', 'dec'};
     tbeg = datenum(dt_origin - minutes(1));
     tend = datenum(dt_origin + minutes(1));
-    mblo = hdr_o.MAG - 0.5;
-    mbhi = hdr_o.MAG + 0.5;
+    mblo = hdr_o.MAG - 1.0;
+    mbhi = hdr_o.MAG + 1.0;
     depmin = hdr_o.EVDP - 50;
     depmax = hdr_o.EVDP + 50;
     

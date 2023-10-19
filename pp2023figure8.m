@@ -6,7 +6,7 @@ function varargout = pp2023figure8
 % OUTPUT:
 % fig       figure handle to the plots
 %
-% Last modified by sirawich-at-princeton.edu: 06/27/2023
+% Last modified by sirawich-at-princeton.edu: 07/10/2023
 %% load data
 
 % SPECFEM-vertical displacement (template)
@@ -41,18 +41,22 @@ grid on
 xlim([0, 30])
 ylim([-1.5, 1.5])
 nolabels(ax1, 1)
+ylabel('press. (Pa)')
 
 % label graph
-text(ax1, 19.5, 0.9, 'pressure at hydrophone ($$p$$)', ...
-    'FontSize', 14, 'Color', 'b', 'Interpreter', 'latex')
-text(ax1, 13, -1.0, 'estimated pressure at hydrophone ($$\hat{p} = s*r$$)', ...
-    'FontSize', 14, 'Color', 'r', 'Interpreter', 'latex')
+text(ax1, 29.5, 0.9, 'pressure at hydrophone ($$p$$)', ...
+    'FontSize', 14, 'Color', 'b', 'Interpreter', 'latex', ...
+    'HorizontalAlignment', 'right')
+text(ax1, 29.5, -1.0, 'estimated pressure at hydrophone ($$\hat{p} = s*r$$)', ...
+    'FontSize', 14, 'Color', 'r', 'Interpreter', 'latex', ...
+    'HorizontalAlignment', 'right')
 
 % label scale
-scalelabel = sprintf('%.2g}', max(abs(x_p)));
-scalelabel = replace(scalelabel, 'e', '\times10^{');
-scalelabel = replace(scalelabel, 'x', '\times');
-yticklabels({['-' scalelabel], 0 ,scalelabel})
+% scalelabel = sprintf('%.2g}', max(abs(x_p)));
+% scalelabel = replace(scalelabel, 'e', '\times10^{');
+% scalelabel = replace(scalelabel, 'x', '\times');
+% yticklabels({['-' scalelabel], 0 ,scalelabel})
+yticklabels({'', '', ''})
 
 set(ax1, 'Box', 'on', 'FontSize', 12, 'TickDir', 'out')
 
@@ -64,16 +68,19 @@ grid on
 xlim([0, 30])
 ylim([-1.2, 1.2])
 nolabels(ax2, 1)
+ylabel('disp. (m)')
 
 % label graph
-text(ax2, 17, 0.4, 'displacement at ocean bottom ($$s$$)', ...
-    'FontSize', 14, 'Color', [0 0.4 0], 'Interpreter', 'latex')
+text(ax2, 29.5, 0.4, 'displacement at ocean bottom ($$s$$)', ...
+    'FontSize', 14, 'Color', [0 0.4 0], 'Interpreter', 'latex', ...
+    'HorizontalAlignment', 'right')
 
 % label scale
-scalelabel = sprintf('%.2g}', max(abs(x_s)));
-scalelabel = replace(scalelabel, 'e', '\times10^{');
-scalelabel = replace(scalelabel, 'x', '\times');
-yticklabels({['-' scalelabel], 0 ,scalelabel})
+% scalelabel = sprintf('%.2g}', max(abs(x_s)));
+% scalelabel = replace(scalelabel, 'e', '\times10^{');
+% scalelabel = replace(scalelabel, 'x', '\times');
+% yticklabels({['-' scalelabel], 0 ,scalelabel})
+yticklabels({'', '', ''})
 
 set(ax2, 'Box', 'on', 'FontSize', 12, 'TickDir', 'out')
 
@@ -85,17 +92,20 @@ grid on
 xlim([0, 30])
 ylim([-1.5, 1.5])
 xlabel('time (s)')
+ylabel('resp. (Pa/m)')
 
 % label graph
-text(ax3, 19.3, 1.05, 'response function ($$r = s/p$$)', ...
-    'FontSize', 14, 'Interpreter', 'latex')
+text(ax3, 29.5, 1.05, ['response function ' ...
+    '($$r =\mathcal{F}^{-1}(\tilde{p}/\tilde{s})$$)'], ...
+    'FontSize', 14, 'Interpreter', 'latex', 'HorizontalAlignment', 'right')
 
 % label scale
-scalelabel = sprintf('%.2g}', max(abs(rf)));
-scalelabel = replace(scalelabel, 'e', '\times10^{');
-scalelabel = replace(scalelabel, '+0', '');
-scalelabel = replace(scalelabel, 'x', '\times');
-yticklabels({['-' scalelabel], 0 ,scalelabel})
+% scalelabel = sprintf('%.2g}', max(abs(rf)));
+% scalelabel = replace(scalelabel, 'e', '\times10^{');
+% scalelabel = replace(scalelabel, '+0', '');
+% scalelabel = replace(scalelabel, 'x', '\times');
+% yticklabels({['-' scalelabel], 0 ,scalelabel})
+yticklabels({'', '', ''})
 
 set(ax3, 'Box', 'on', 'FontSize', 12, 'TickDir', 'out')
 

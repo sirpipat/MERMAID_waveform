@@ -1,5 +1,5 @@
-function r = presiduestat(sacfiles, plt)
-% r = presiduestat(sacfiles, plt)
+function r = presiduestat(sacfiles, fcs, plt)
+% r = presiduestat(sacfiles, fcs, plt)
 % 
 % Compute the residual times between the pick arrvial and the assigned
 % arrival time for P-phase. The arivals are picked by finding the first
@@ -9,12 +9,25 @@ function r = presiduestat(sacfiles, plt)
 %
 % INPUT:
 % sacfiles      cell array to SAC files
-% plt           whether to plot the picks and the stat or not
+% fcs           corner frequency pairs [default: []]
+%               - empty, no filtering
+%               - 1x2 matrix, apply the same bandpass to all waveforms
+%               - Nx2 matrix where N is the number of sacfiles, i-th
+%                 waveform is filtered using the i-th corner frequency pair
+% plt           whether to plot the picks and the stat or not 
+%               [default: false]
 %
 % OUTPUT:
 % r             residuals
 %
-% Last modified by sirawich-at-princeton.edu, 05/23/2023
+% Last modified by sirawich-at-princeton.edu, 10/06/2023
+
+defval('fcs', [])
+defval('plt', false)
+
+if all(size(fcs) == [1 2])
+    fcs = repmat(fcs, length(sacfiles), 1);
+end
 
 n = length(sacfiles);
 r = zeros(size(sacfiles));
@@ -68,6 +81,12 @@ for ii = 1:n
             otherwise
                 break
         end
+    end
+    
+    % filter the waveform
+    if ~isempty(fcs)
+        x = bandpass(x, fs, fcs(ii, 1), fcs(ii, 2), 4, 2, ...
+            'butter', 'linear');
     end
     
     % pick the arrival based on the rise of the signal

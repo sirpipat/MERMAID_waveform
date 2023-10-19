@@ -29,9 +29,9 @@ function plotsynthetics(obsmasterdir, synmasterdir, specmasterdir, ...
 %                   2  --   zoom in
 %
 % SEE ALSO:
-% PLOTMEMAID, PLOTINSTASEIS, PLOTRECORDS, ARRAYCCSHIFTPLOT
+% PLOTMERMAID, PLOTINSTASEIS, PLOTRECORDS, ARRAYCCSHIFTPLOT
 %
-% Last modified by sirawich-at-princeton.edu, 05/15/2023
+% Last modified by sirawich-at-princeton.edu, 07/06/2023
 
 defval('op1', 2)
 defval('op2', 2)

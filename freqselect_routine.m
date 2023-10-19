@@ -1,4 +1,4 @@
-function [fc, s] = freqselect_routine(sacfiles, plt)
+function [fc, s] = freqselect_routine(sacfiles, plt, option)
 % [fc, s] = FREQSELECT_ROUTINE(sacfiles, plt)
 %
 % Figures out the frequency band where the signal stands out the most from
@@ -7,12 +7,22 @@ function [fc, s] = freqselect_routine(sacfiles, plt)
 % INPUT:
 % sacfiles      cell array to sacfiles
 % plt           whether to plot and save figure or not
+% option        how to select the best corner frequency [default: 4]
+%               1 -- highest bandpass SNR
+%               2 -- highest bandpass SNR to bandstop SNR ratio
+%               3 -- widest bandwidth that keep bandpass SNR > 50% of the 
+%               highest
+%               4 -- widest bandwidth that keep SNR ratio > 50% of the
+%               highest
+%               5 -- argmax(bandpass SNR + 1/(1 - bandstop SNR))
 %
 % OUTPUT:
 % fc            best corner frequency for each seismogram
 % s             best signal-to-noise ratio for each seismogram
 %
-% Last modified by sirawich-at-princeton.edu, 10/24/2022
+% Last modified by sirawich-at-princeton.edu, 08/31/2023
+
+defval('option', 5)
 
 badval = -12345;
 
@@ -54,7 +64,8 @@ for ii = 1:length(sacfiles)
         hdrdata.USER7, hdrdata.MAG, hdrdata.GCARC, hdrdata.KSTNM);
     savename = sprintf('%d_%s', hdrdata.USER7, replace(hdrdata.KSTNM, ' ', ''));
     try
-        [fc(ii,:), s(ii)] = freqselect(t, pa, fs, plt, titlename, savename);
+        [fc(ii,:), s(ii)] = freqselect(t, pa, fs, plt, titlename, ...
+            savename, option);
     catch ME
         fprintf('%s\n', ME.getReport);
         continue
