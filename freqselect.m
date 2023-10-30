@@ -1,8 +1,9 @@
 function [fc, s, tmax] = freqselect(t, x, fs, plt, titlename, savename, option, plt_all)
 % [fc, s, tmax] = FREQSELECT(t, x, fs, plt, titlename, savename, option, plt_all)
 %
-% Figures out the frequency band where the signal stands out the most from
-% the background noise.
+% Figures out the frequency band where the signal stands out the most
+% from the background noise, assuming the breakpoint already occurs in
+% the middle (only slight variations about that time explorations).
 % 
 % INPUT:
 % t             time [for an example, go between -100 and 100]
@@ -100,6 +101,7 @@ if ~exist(pname, 'file')
                 [B(jj, ii), U(jj, ii)] = snrvar(t, xs, [-1 1] / fcs(ii), ...
                     -60, 80, 1 * 2 / fcs(ii));
             end
+>>>>>>> cc06bc09173ab8dd3ba7aa1c8b4a032d0bedcd96
         end
     end
     
