@@ -12,7 +12,7 @@ function plotoccupiedbandwidth(obs_struct)
 %                       [flat bath] cases
 %   - metadata          SAC Headers associated to the obsfile
 %
-% Last modified by sirawich-at-princeton.edu: 10/16/2023
+% Last modified by sirawich-at-princeton.edu: 10/30/2023
 
 % largest acceptable error for value comparisons
 epsilon = 1e-6;
@@ -158,8 +158,12 @@ function plotter(OB_snr, OB_cc, fc_bin_mid, sortindex, sortedby, savename)
         log10(OB_snr(sortindex,:)'));
     setimagenan(ax1, ax1.Children, [0 0 0]);
     ylabel('frequency (Hz)')
-    xlabel('trace number')
-    colorbar('SouthOutside')
+    xlabel('trace rank')
+    c1 = colorbar('SouthOutside');
+    c1.Limits = log10([3 10000]);
+    c1.Ticks = log10([3 10 30 100 300 1000 3000 10000]);
+    c1.TickLabels = [3 10 30 100 300 1000 3000 10000];
+    c1.TickDirection = 'out';
     axis xy
 
     % CC
@@ -168,8 +172,10 @@ function plotter(OB_snr, OB_cc, fc_bin_mid, sortindex, sortedby, savename)
         OB_cc(sortindex,:)');
     setimagenan(ax2, ax2.Children, [0 0 0]);
     ylabel('frequency (Hz)')
-    xlabel('trace number')
-    colorbar('SouthOutside')
+    xlabel('trace rank')
+    c2 =  colorbar('SouthOutside');
+    c2.Limits = [0 1];
+    c2.TickDirection = 'out';
     axis xy
 
     set(ax1.Parent.Children(1), 'FontSize', 11)
@@ -180,8 +186,8 @@ function plotter(OB_snr, OB_cc, fc_bin_mid, sortindex, sortedby, savename)
     set(ax1.Parent.Children(2), 'TickDir', 'out', 'Box', 'on')
     set(ax1.Parent.Children(4), 'TickDir', 'out', 'Box', 'on')
 
-    ax1.Parent.Children(3).Label.String = 'log_{10} SNR';
-    ax1.Parent.Children(1).Label.String = 'maximum correlation coefficient';
+    c1.Label.String = 'SNR';
+    c2.Label.String = 'maximum correlation coefficient';
 
     % throwaway title axes
     axt = subplot('Position', [0 0.96 1 0.01]);
