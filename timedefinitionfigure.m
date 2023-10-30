@@ -145,7 +145,7 @@ y0 = 1.9;
 scatter(x0, y0, 100, 'k', 'filled');
 % plot([0 0] + x0, [-0.08 0.08] + y0, 'LineStyle', '-', 'Color', 'k', ...
 %     'LineWidth', 1.5)
-text(xtext, y0, 'Picked arrival from Simon et al. (2022)', ...
+text(xtext, y0, 'picked arrival from Simon et al. (2022)', ...
     'Color', 'k', 'FontSize', 14)
 
 y0 = 1.7;
@@ -161,7 +161,7 @@ scatter(x0, y0, 100, GREEN, 'v', 'filled', ...
     'MarkerEdgeColor', 'k', 'LineWidth', 1);
 % plot([0 0] + x0, [-0.08 0.08] + y0, 'LineStyle', '-', ...
 %     'Color', GREEN, 'LineWidth', 1.5)
-text(xtext, y0, 'Pick arrival in Instaseis seismogram', ...
+text(xtext, y0, 'pick arrival in Instaseis seismogram', ...
     'Color', GREEN, 'FontSize', 14)
 
 y0 = 1.3;
@@ -187,8 +187,8 @@ plot([0 0] + xleft, [-0.08 0.08] + y0, 'LineStyle', ':', ...
 plot([0 0] + xright, [-0.08 0.08] + y0, 'LineStyle', '-', 'Color', 'k', ...
     'LineWidth', 1.5)
 hpete = arrow(xleft, y0, xright - xleft, 0, 1, 1);
-set(hpete, 'LineWidth', 2, 'Color', [0.6 0 0], 'MaxHeadSize', 0.5);
-text(xtext, y0, 'travel time anomaly (\Delta\tau) in this study', 'Color', [0.6 0 0], 'FontSize', 14)
+set(hpete, 'LineWidth', 2, 'Color', RED, 'MaxHeadSize', 0.5);
+text(xtext, y0, 'travel time anomaly (\Delta\tau) in this study', 'Color', RED, 'FontSize', 14)
 
 y0 = 0.7;
 plot([0 0] + xleft, [-0.08 0.08] + y0, 'LineStyle', ':', ...
@@ -207,12 +207,12 @@ text(xleft, y0, 'sign indication', 'Color', 'k', 'FontSize', 14, ...
 y0 = 0.3;
 hplus = arrow(xleft, y0, xright - xleft, 0, 1, 1);
 set(hplus, 'LineWidth', 2, 'Color', 'k', 'MaxHeadSize', 0.5);
-text(xtext, y0, 'positive value', 'Color', 'k', 'FontSize', 14)
+text(xtext, y0, 'positive', 'Color', 'k', 'FontSize', 14)
 
 y0 = 0.1;
 hminus = arrow(xright, y0, xleft - xright, 0, 1, 1);
 set(hminus, 'LineWidth', 2, 'Color', 'k', 'MaxHeadSize', 0.5);
-text(xtext, y0, 'negative value', 'Color', 'k', 'FontSize', 14)
+text(xtext, y0, 'negative', 'Color', 'k', 'FontSize', 14)
 
 xlim([0 10])
 ylim([-0.2 2])
