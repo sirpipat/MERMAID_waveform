@@ -12,7 +12,7 @@ function plotoccupiedbandwidth(obs_struct)
 %                       [flat bath] cases
 %   - metadata          SAC Headers associated to the obsfile
 %
-% Last modified by sirawich-at-princeton.edu: 10/30/2023
+% Last modified by sirawich-at-princeton.edu: 11/03/2023
 
 % largest acceptable error for value comparisons
 epsilon = 1e-6;
@@ -198,10 +198,13 @@ function plotter(OB_snr, OB_cc, fc_bin_mid, sortindex, sortedby, savename)
     axt.YAxis.Visible = 'off';
     axt.Color = 'none';
 
-    % save the figure
-%     set(gcf, 'Renderer', 'opengl')
-%     filename = sprintf('%s_%s_opengl.eps', mfilename, savename);
-%     figdisp(filename, [], '-r1200', 2, [], 'epstopdf');
+    % boxed labels
+    ax1b = boxedlabel(ax1, 'northwest', 0.03, 'norm', 'a', ...
+            'FontSize', 14);
+    ax1b.Position = [0.01 0.915 0.03 0.0375];
+    ax2b = boxedlabel(ax2, 'northwest', 0.03, 'norm', 'b', ...
+            'FontSize', 14);
+    ax2b.Position = [0.01 0.415 0.03 0.0375];
     
     set(gcf, 'Renderer', 'painters')
     filename = sprintf('%s_%s.eps', mfilename, savename);
