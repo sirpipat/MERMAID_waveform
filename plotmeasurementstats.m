@@ -17,9 +17,9 @@ function plotmeasurementstats(obs_struct, min_cc, min_snr, min_gcarc)
 % min_snr           Signal-to-noise ratio cut-off   [default: 0]
 % min_gcarc         Epicentral distance cut-off     [default: 0]
 %
-% Last modified by sirawich-at-princeton.edu: 10/06/2023
+% Last modified by sirawich-at-princeton.edu: 11/03/2023
 
-defval('min_cc', -1)
+defval('min_cc', 0)
 defval('min_snr', 0)
 defval('min_gcarc', 0)
 
@@ -77,14 +77,14 @@ i_mask = and(and(i_cc, i_snr2), i_gcarc);
 %% list of things to plot
 variables = [...
     variableconstructor('t_shift', obs_struct.t_shifts(:,2), 'time shift (s)', [], 1, []);
-    variableconstructor('cc', obs_struct.CCmaxs(:,2), 'correlation coefficient', [0 1], 0.05, []);
+    variableconstructor('cc', obs_struct.CCmaxs(:,2), 'correlation coefficient', [min_cc 1], 0.05, []);
     variableconstructor('log10snr', log10(obs_struct.snr), 'log_{10} signal-to-noise ratio', [], 0.1, []);
     variableconstructor('snr', obs_struct.snr, 'signal-to-noise ratio', [], 10, i_snr);
     variableconstructor('dlnt', dlnt * 100, 'relative time shift (%)', [], 10, []);
     variableconstructor('dlnt2', dlnt * 100, 'relative time shift, outliers removed (%)', [-3 3], 0.2, i_dlnt2);
     variableconstructor('ttravel', ttravel, 'travel time (s)', [], 100, i_ttravel);
-    variableconstructor('t_res_joel', obs_struct.metadata.USER4, 'travel time residual from Simon et al. 2022 (s)', [-20 20], 1, i_ttravel);
-    variableconstructor('t_res_correct', t_shift_corrected, 'adjusted correlation travel time residual (s)', [-20 20], 1, i_ttravel);
+    variableconstructor('t_res_joel', obs_struct.metadata.USER4, 'travel time residual from Simon et al. 2022 (s)', [-10 20], 1, i_ttravel);
+    variableconstructor('t_res_correct', t_shift_corrected, 'adjusted correlation travel time residual (s)', [-10 20], 1, i_ttravel);
     variableconstructor('presidual', obs_struct.presiduals, 'InstaSeis - ray theory prediction of P-wave arrival on AK135 model (s)', [], 1, []);
     variableconstructor('presidual_limit', obs_struct.presiduals, 'InstaSeis - ray theory prediction of P-wave arrival on AK135 model (s)', [-4 4], 0.2, i_presiduals);
     variableconstructor('fc_lower', obs_struct.fcorners(:,1), 'lower corner frequency (Hz)', [0.375 1.525], 0.375:0.05:1.525, []);
@@ -99,7 +99,7 @@ variables = [...
     variableconstructor('t_rel_correct3', dlnt_corrected * 100, 'adjusted relative correlation travel time residual (%)', [-10 10], 0.5, and(i_ttravel, i_dlnt_corrected3));
     variableconstructor('t_rel_joel4', dlnt_joel * 100, 'relative travel time residual from Simon et al. 2022 (%)', [-3 3], 0.2, and(i_ttravel, i_dlnt_joel4));
     variableconstructor('t_rel_correct4', dlnt_corrected * 100, 'adjusted relative correlation travel time residual (%)', [-3 3], 0.2, and(i_ttravel, i_dlnt_corrected4));
-    variableconstructor('gcarc', obs_struct.metadata.GCARC, 'great-circle epicentral distance (degree)', [0 180], 5, []);
+    variableconstructor('gcarc', obs_struct.metadata.GCARC, 'great-circle epicentral distance (degree)', [min_gcarc 180], 5, []);
     variableconstructor('log10gcarc', log10(obs_struct.metadata.GCARC), 'log_{10}great-circle epicentral distance (degree)', [], 0.1, []);
     variableconstructor('baz', obs_struct.metadata.BAZ, 'back azimuth (degree)', [0 360], 0:30:360, []);
     variableconstructor('evdp', obs_struct.metadata.EVDP', 'event depth (km)', [0 700], 25, []);
@@ -129,26 +129,26 @@ variable_pairs = [...
     11 13 nan;
     11 14 nan;
     11 15 nan;
-    16 17 2;
-    18 19 2;
-    20 21 2;
-    22 23 2;
-    16 17 3;
-    18 19 3;
-    20 21 3;
-    22 23 3;
-    16 17 4;
-    18 19 4;
-    20 21 4;
-    22 23 4;
-    16 17 24;
-    18 19 24;
-    20 21 24;
-    22 23 24;
-    16 17 25;
-    18 19 25;
-    20 21 25;
-    22 23 25;
+    17 16 2;
+    19 18 2;
+    21 20 2;
+    23 22 2;
+    17 16 3;
+    19 18 3;
+    21 20 3;
+    23 22 3;
+    17 16 4;
+    19 18 4;
+    21 20 4;
+    23 22 4;
+    17 16 24;
+    19 18 24;
+    21 20 24;
+    23 22 24;
+    17 16 25;
+    19 18 25;
+    21 20 25;
+    23 22 25;
     24 16 2;
     24 17 2;
     24 7 1;
@@ -283,7 +283,7 @@ for ii = 1:size(variable_pairs, 1)
     % MAYBE compute correlation between x and y
     rfweight = 0.5;
     rfcolor = [0.75 0.75 0.75];
-    if strcmp(var2.name, 't_res_joel') && strcmp(var1.name, 't_res_correct')
+    if strcmp(var2.name, 't_res_joel') && strcmp(var1.name, 't_res_correct') 
         rf = refline(ax_scat, 1, 0);
         set(rf, 'LineWidth', rfweight, 'Color', rfcolor)
         uistack(rf, 'bottom')
@@ -318,37 +318,117 @@ for ii = 1:size(variable_pairs, 1)
         n6 = sum(and(diff > -6, diff <= -4));
         nn = sum(diff <= -6);
         
-        text(ax_scat, 10, -1, sprintf('pp = %.2f %%', pp * 100 / length(diff)))
-        text(ax_scat, 10, -3, sprintf('p6 = %.2f %%', p6 * 100 / length(diff)))
-        text(ax_scat, 10, -5, sprintf('p4 = %.2f %%', p4 * 100 / length(diff)))
-        text(ax_scat, 10, -7, sprintf('p2 = %.2f %%', p2 * 100 / length(diff)))
-        text(ax_scat, 10, -9, sprintf('n2 = %.2f %%', n2 * 100 / length(diff)))
-        text(ax_scat, 10, -11, sprintf('n4 = %.2f %%', n4 * 100 / length(diff)))
-        text(ax_scat, 10, -13, sprintf('n6 = %.2f %%', n6 * 100 / length(diff)))
-        text(ax_scat, 10, -15, sprintf('nn = %.2f %%', nn * 100 / length(diff)))
+        text(ax_scat, 10.6, 17.7, ...
+            sprintf('%.2f %%', pp * 100 / length(diff)), ...
+            'Rotation', 45, 'FontSize', 9);
+        text(ax_scat, 12.6, 17.7, ...
+            sprintf('%.2f %%', p6 * 100 / length(diff)), ...
+            'Rotation', 45, 'FontSize', 9);
+        text(ax_scat, 14.6, 17.7, ...
+            sprintf('%.2f %%', p4 * 100 / length(diff)), ...
+            'Rotation', 45, 'FontSize', 9);
+        text(ax_scat, 16.6, 17.7, ...
+            sprintf('%.2f %%', p2 * 100 / length(diff)), ...
+            'Rotation', 45, 'FontSize', 9);
+        text(ax_scat, 17.6, 16.7, ...
+            sprintf('%.2f %%', n2 * 100 / length(diff)), ...
+            'Rotation', 45, 'FontSize', 9);
+        text(ax_scat, 17.6, 14.7, ...
+            sprintf('%.2f %%', n4 * 100 / length(diff)), ...
+            'Rotation', 45, 'FontSize', 9);
+        text(ax_scat, 17.6, 12.7, ...
+            sprintf('%.2f %%', n6 * 100 / length(diff)), ...
+            'Rotation', 45, 'FontSize', 9);
+        text(ax_scat, 17.6, 10.7, ...
+            sprintf('%.2f %%', nn * 100 / length(diff)), ...
+            'Rotation', 45, 'FontSize', 9);
         
         % Stats
         stats = regstats(var2.value(i_var), var1.value(i_var), ...
             'linear', {'beta', 'rsquare', 'fstat', 'tstat'});
         
-        text(ax_scat, 10, -17, sprintf('R^2 = %.2f', stats.rsquare))
-        text(ax_scat, 10, -19, sprintf('pval = %.2g', stats.fstat.pval))
-    elseif strcmp(var1.name, 't_rel_joel') && strcmp(var2.name, 't_rel_correct')
+        text(ax_scat, 10.6, -6.5, sprintf('R^2 = %.2f', stats.rsquare))
+        text(ax_scat, 10.6, -8.0, sprintf('p-value = %.2g', ...
+            stats.fstat.pval * (stats.fstat.pval >= eps('double'))))
+    elseif strcmp(var2.name, 't_rel_joel') && strcmp(var1.name, 't_rel_correct')
         rf = refline(ax_scat, 1, 0);
         set(rf, 'LineWidth', 1, 'Color', 'k')
         uistack(rf, 'bottom')
-    elseif strcmp(var1.name, 't_rel_joel2') && strcmp(var2.name, 't_rel_correct2')
+    elseif strcmp(var2.name, 't_rel_joel2') && strcmp(var1.name, 't_rel_correct2')
         rf = refline(ax_scat, 1, 0);
         set(rf, 'LineWidth', 1, 'Color', 'k')
         uistack(rf, 'bottom')
-    elseif strcmp(var1.name, 't_rel_joel3') && strcmp(var2.name, 't_rel_correct3')
+    elseif strcmp(var2.name, 't_rel_joel3') && strcmp(var1.name, 't_rel_correct3')
         rf = refline(ax_scat, 1, 0);
         set(rf, 'LineWidth', 1, 'Color', 'k')
         uistack(rf, 'bottom')
-    elseif strcmp(var1.name, 't_rel_joel4') && strcmp(var2.name, 't_rel_correct4')
+    elseif strcmp(var2.name, 't_rel_joel4') && strcmp(var1.name, 't_rel_correct4')
         rf = refline(ax_scat, 1, 0);
-        set(rf, 'LineWidth', 1, 'Color', 'k')
+        set(rf, 'LineWidth', rfweight, 'Color', rfcolor)
         uistack(rf, 'bottom')
+        rf = refline(ax_scat, 1, 0.4);
+        set(rf, 'LineWidth', rfweight, 'Color', rfcolor)
+        uistack(rf, 'bottom')
+        rf = refline(ax_scat, 1, 0.8);
+        set(rf, 'LineWidth', rfweight, 'Color', rfcolor)
+        uistack(rf, 'bottom')
+        rf = refline(ax_scat, 1, 1.2);
+        set(rf, 'LineWidth', rfweight, 'Color', rfcolor)
+        uistack(rf, 'bottom')
+        rf = refline(ax_scat, 1, -0.4);
+        set(rf, 'LineWidth', rfweight, 'Color', rfcolor)
+        uistack(rf, 'bottom')
+        rf = refline(ax_scat, 1, -0.8);
+        set(rf, 'LineWidth', rfweight, 'Color', rfcolor)
+        uistack(rf, 'bottom')
+        rf = refline(ax_scat, 1, -1.2);
+        set(rf, 'LineWidth', rfweight, 'Color', rfcolor)
+        uistack(rf, 'bottom')
+        set(ax_scat, 'XLim', var1.axlimit, 'YLim', var2.axlimit)
+        
+        % add # of observations within the regions
+        diff = var2.value(i_var) - var1.value(i_var);
+        p2 = sum(and(diff > 0, diff <= 0.4));
+        p4 = sum(and(diff > 0.4, diff <= 0.8));
+        p6 = sum(and(diff > 0.8, diff <= 1.2));
+        pp = sum(diff > 1.2);
+        n2 = sum(and(diff > -0.4, diff <= 0));
+        n4 = sum(and(diff > -0.8, diff <= -0.4));
+        n6 = sum(and(diff > -1.2, diff <= -0.8));
+        nn = sum(diff <= -1.2);
+        
+        text(ax_scat, 1.1, 2.5, ...
+            sprintf('%.2f %%', pp * 100 / length(diff)), ...
+            'Rotation', 45, 'FontSize', 9);
+        text(ax_scat, 1.5, 2.5, ...
+            sprintf('%.2f %%', p6 * 100 / length(diff)), ...
+            'Rotation', 45, 'FontSize', 9);
+        text(ax_scat, 1.9, 2.5, ...
+            sprintf('%.2f %%', p4 * 100 / length(diff)), ...
+            'Rotation', 45, 'FontSize', 9);
+        text(ax_scat, 2.3, 2.5, ...
+            sprintf('%.2f %%', p2 * 100 / length(diff)), ...
+            'Rotation', 45, 'FontSize', 9);
+        text(ax_scat, 2.5, 2.3, ...
+            sprintf('%.2f %%', n2 * 100 / length(diff)), ...
+            'Rotation', 45, 'FontSize', 9);
+        text(ax_scat, 2.5, 1.9, ...
+            sprintf('%.2f %%', n4 * 100 / length(diff)), ...
+            'Rotation', 45, 'FontSize', 9);
+        text(ax_scat, 2.5, 1.5, ...
+            sprintf('%.2f %%', n6 * 100 / length(diff)), ...
+            'Rotation', 45, 'FontSize', 9);
+        text(ax_scat, 2.5, 1.1, ...
+            sprintf('%.2f %%', nn * 100 / length(diff)), ...
+            'Rotation', 45, 'FontSize', 9);
+        
+        % Stats
+        stats = regstats(var2.value(i_var), var1.value(i_var), ...
+            'linear', {'beta', 'rsquare', 'fstat', 'tstat'});
+        
+        text(ax_scat, 1.15, -2.3, sprintf('R^2 = %.2f', stats.rsquare))
+        text(ax_scat, 1.15, -2.6, sprintf('p-value = %.2g', ...
+            stats.fstat.pval * (stats.fstat.pval >= eps('double'))))
     end
     
     fname = sprintf('%s_%s.eps', 'scathistplot', savename);
