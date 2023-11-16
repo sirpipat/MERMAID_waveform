@@ -20,18 +20,18 @@ function [fp,fsv,fsh,v] = cmtpolarity(M, evla, evlo, evdp, stla, stlo, model)
 % model     Earth model [Default: 'ak135']
 %
 % OUTPUT:
-% fp        polarization of P-wave
+% fp        polarity of P-wave
 %           +1 for tension axis
 %           -1 for compressional axis
 %            0 for nodal planes
-% fsv       polarization of SV-wave
-% fsh       polarization of SH-wave
+% fsv       polarity of SV-wave
+% fsh       polarity of SH-wave
 % v         take-off direction
 %
 % Known issues: when the wave departs vertically, SV is not defined since
 % all S-wave motions are horizontal. For that case, fsv = fsh = NaN.
 %
-% Last modified by sirawich-at-princeton.edu: 04/24/2023
+% Last modified by sirawich-at-princeton.edu: 11/16/2023
 
 defval('mod', 'ak135')
 
