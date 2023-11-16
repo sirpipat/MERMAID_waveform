@@ -17,7 +17,7 @@ function plotmeasurementstats(obs_struct, min_cc, min_snr, min_gcarc)
 % min_snr           Signal-to-noise ratio cut-off   [default: 0]
 % min_gcarc         Epicentral distance cut-off     [default: 0]
 %
-% Last modified by sirawich-at-princeton.edu: 11/03/2023
+% Last modified by sirawich-at-princeton.edu: 11/09/2023
 
 defval('min_cc', 0)
 defval('min_snr', 0)
@@ -97,8 +97,8 @@ variables = [...
     variableconstructor('t_rel_correct2', dlnt_corrected * 100, 'adjusted relative correlation travel time residual (%)', [-20 20], 1, and(i_ttravel, i_dlnt_corrected2));
     variableconstructor('t_rel_joel3', dlnt_joel * 100, 'relative travel time residual from Simon et al. 2022 (%)', [-10 10], 0.5, and(i_ttravel, i_dlnt_joel3));
     variableconstructor('t_rel_correct3', dlnt_corrected * 100, 'adjusted relative correlation travel time residual (%)', [-10 10], 0.5, and(i_ttravel, i_dlnt_corrected3));
-    variableconstructor('t_rel_joel4', dlnt_joel * 100, 'relative travel time residual from Simon et al. 2022 (%)', [-3 3], 0.2, and(i_ttravel, i_dlnt_joel4));
-    variableconstructor('t_rel_correct4', dlnt_corrected * 100, 'adjusted relative correlation travel time residual (%)', [-3 3], 0.2, and(i_ttravel, i_dlnt_corrected4));
+    variableconstructor('t_rel_joel4', dlnt_joel * 100, 'relative travel time residual from Simon et al. 2022 (%)', [-1.5 3], 0.2, and(i_ttravel, i_dlnt_joel4));
+    variableconstructor('t_rel_correct4', dlnt_corrected * 100, 'adjusted relative correlation travel time residual (%)', [-1.5 3], 0.2, and(i_ttravel, i_dlnt_corrected4));
     variableconstructor('gcarc', obs_struct.metadata.GCARC, 'great-circle epicentral distance (degree)', [min_gcarc 180], 5, []);
     variableconstructor('log10gcarc', log10(obs_struct.metadata.GCARC), 'log_{10}great-circle epicentral distance (degree)', [], 0.1, []);
     variableconstructor('baz', obs_struct.metadata.BAZ, 'back azimuth (degree)', [0 360], 0:30:360, []);
@@ -277,13 +277,13 @@ for ii = 1:size(variable_pairs, 1)
         end
     end
     
-    % ADD lines paralleled to the refline (1 seconds apart)
-    % COMPUTE the percentange of points fall within X seconds away from the
-    % refline
-    % MAYBE compute correlation between x and y
     rfweight = 0.5;
     rfcolor = [0.75 0.75 0.75];
-    if strcmp(var2.name, 't_res_joel') && strcmp(var1.name, 't_res_correct') 
+    if strcmp(var2.name, 't_res_joel') && strcmp(var1.name, 't_res_correct')
+        % ADD lines paralleled to the refline (2 seconds apart)
+        % COMPUTE the percentange of points fall within X seconds away from the
+        % refline
+        % MAYBE compute correlation between x and y
         rf = refline(ax_scat, 1, 0);
         set(rf, 'LineWidth', rfweight, 'Color', rfcolor)
         uistack(rf, 'bottom')
@@ -363,62 +363,66 @@ for ii = 1:size(variable_pairs, 1)
         set(rf, 'LineWidth', 1, 'Color', 'k')
         uistack(rf, 'bottom')
     elseif strcmp(var2.name, 't_rel_joel4') && strcmp(var1.name, 't_rel_correct4')
+        % ADD lines paralleled to the refline (0.25 % apart)
+        % COMPUTE the percentange of points fall within X % away from the
+        % refline
+        % MAYBE compute correlation between x and y
         rf = refline(ax_scat, 1, 0);
         set(rf, 'LineWidth', rfweight, 'Color', rfcolor)
         uistack(rf, 'bottom')
-        rf = refline(ax_scat, 1, 0.4);
+        rf = refline(ax_scat, 1, 0.25);
         set(rf, 'LineWidth', rfweight, 'Color', rfcolor)
         uistack(rf, 'bottom')
-        rf = refline(ax_scat, 1, 0.8);
+        rf = refline(ax_scat, 1, 0.50);
         set(rf, 'LineWidth', rfweight, 'Color', rfcolor)
         uistack(rf, 'bottom')
-        rf = refline(ax_scat, 1, 1.2);
+        rf = refline(ax_scat, 1, 0.75);
         set(rf, 'LineWidth', rfweight, 'Color', rfcolor)
         uistack(rf, 'bottom')
-        rf = refline(ax_scat, 1, -0.4);
+        rf = refline(ax_scat, 1, -0.25);
         set(rf, 'LineWidth', rfweight, 'Color', rfcolor)
         uistack(rf, 'bottom')
-        rf = refline(ax_scat, 1, -0.8);
+        rf = refline(ax_scat, 1, -0.50);
         set(rf, 'LineWidth', rfweight, 'Color', rfcolor)
         uistack(rf, 'bottom')
-        rf = refline(ax_scat, 1, -1.2);
+        rf = refline(ax_scat, 1, -0.75);
         set(rf, 'LineWidth', rfweight, 'Color', rfcolor)
         uistack(rf, 'bottom')
         set(ax_scat, 'XLim', var1.axlimit, 'YLim', var2.axlimit)
         
         % add # of observations within the regions
         diff = var2.value(i_var) - var1.value(i_var);
-        p2 = sum(and(diff > 0, diff <= 0.4));
-        p4 = sum(and(diff > 0.4, diff <= 0.8));
-        p6 = sum(and(diff > 0.8, diff <= 1.2));
-        pp = sum(diff > 1.2);
-        n2 = sum(and(diff > -0.4, diff <= 0));
-        n4 = sum(and(diff > -0.8, diff <= -0.4));
-        n6 = sum(and(diff > -1.2, diff <= -0.8));
-        nn = sum(diff <= -1.2);
+        p2 = sum(and(diff > 0, diff <= 0.25));
+        p4 = sum(and(diff > 0.25, diff <= 0.50));
+        p6 = sum(and(diff > 0.50, diff <= 0.75));
+        pp = sum(diff > 0.75);
+        n2 = sum(and(diff > -0.25, diff <= 0));
+        n4 = sum(and(diff > -0.50, diff <= -0.25));
+        n6 = sum(and(diff > -0.75, diff <= -0.50));
+        nn = sum(diff <= -0.75);
         
-        text(ax_scat, 1.1, 2.5, ...
+        text(ax_scat, 1.75, 2.63, ...
             sprintf('%.2f %%', pp * 100 / length(diff)), ...
             'Rotation', 45, 'FontSize', 9);
-        text(ax_scat, 1.5, 2.5, ...
+        text(ax_scat, 2.00, 2.63, ...
             sprintf('%.2f %%', p6 * 100 / length(diff)), ...
             'Rotation', 45, 'FontSize', 9);
-        text(ax_scat, 1.9, 2.5, ...
+        text(ax_scat, 2.25, 2.63, ...
             sprintf('%.2f %%', p4 * 100 / length(diff)), ...
             'Rotation', 45, 'FontSize', 9);
-        text(ax_scat, 2.3, 2.5, ...
+        text(ax_scat, 2.50, 2.63, ...
             sprintf('%.2f %%', p2 * 100 / length(diff)), ...
             'Rotation', 45, 'FontSize', 9);
-        text(ax_scat, 2.5, 2.3, ...
+        text(ax_scat, 2.63, 2.50, ...
             sprintf('%.2f %%', n2 * 100 / length(diff)), ...
             'Rotation', 45, 'FontSize', 9);
-        text(ax_scat, 2.5, 1.9, ...
+        text(ax_scat, 2.63, 2.25, ...
             sprintf('%.2f %%', n4 * 100 / length(diff)), ...
             'Rotation', 45, 'FontSize', 9);
-        text(ax_scat, 2.5, 1.5, ...
+        text(ax_scat, 2.63, 2.00, ...
             sprintf('%.2f %%', n6 * 100 / length(diff)), ...
             'Rotation', 45, 'FontSize', 9);
-        text(ax_scat, 2.5, 1.1, ...
+        text(ax_scat, 2.63, 1.75, ...
             sprintf('%.2f %%', nn * 100 / length(diff)), ...
             'Rotation', 45, 'FontSize', 9);
         
@@ -426,8 +430,8 @@ for ii = 1:size(variable_pairs, 1)
         stats = regstats(var2.value(i_var), var1.value(i_var), ...
             'linear', {'beta', 'rsquare', 'fstat', 'tstat'});
         
-        text(ax_scat, 1.15, -2.3, sprintf('R^2 = %.2f', stats.rsquare))
-        text(ax_scat, 1.15, -2.6, sprintf('p-value = %.2g', ...
+        text(ax_scat, 1.55, -0.7, sprintf('R^2 = %.2f', stats.rsquare))
+        text(ax_scat, 1.55, -0.9, sprintf('p-value = %.2g', ...
             stats.fstat.pval * (stats.fstat.pval >= eps('double'))))
     end
     
