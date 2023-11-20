@@ -110,8 +110,8 @@ end
 ylabel('counts')
 set(ax_histx, 'FontSize', 12, 'TickDir', 'out', 'Box', 'on', ...
     'XAxisLocation', 'top')
-[~, vl] = vline(ax_histx, x_med, 'Color', 'k', 'LineWidth', 2, ...
-    'LineStyle', '-.');
+[~, vl] = vline(ax_histx, x_med, 'Color', 'k', 'LineWidth', 1, ...
+    'LineStyle', '-');
 uistack(vl, 'bottom')
 
 % histogram of y
@@ -125,8 +125,8 @@ end
 xlabel('counts')
 set(ax_histy, 'FontSize', 12, 'TickDir', 'out', 'Box', 'on', ...
     'YAxisLocation', 'right')
-[~, hl] = hline(ax_histy, y_med, 'Color', 'k', 'LineWidth', 2, ...
-    'LineStyle', '-.');
+[~, hl] = hline(ax_histy, y_med, 'Color', 'k', 'LineWidth', 1, ...
+    'LineStyle', '-');
 uistack(hl, 'bottom')
 
 % scatter plot
@@ -137,10 +137,10 @@ box on
 hold on
 xlim(ax_histx.XLim)
 ylim(ax_histy.YLim)
-[~, vl] = vline(ax_scat, x_med, 'Color', 'k', 'LineWidth', 2, ...
-    'LineStyle', '-.');
-[~, hl] = hline(ax_scat, y_med, 'Color', 'k', 'LineWidth', 2, ...
-    'LineStyle', '-.');
+[~, vl] = vline(ax_scat, x_med, 'Color', 'k', 'LineWidth', 1, ...
+    'LineStyle', '-');
+[~, hl] = hline(ax_scat, y_med, 'Color', 'k', 'LineWidth', 1, ...
+    'LineStyle', '-');
 uistack(vl, 'bottom')
 uistack(hl, 'bottom')
 if limx == limy
