@@ -15,7 +15,7 @@ function fig = plotsac2(SeisData, HdrData, varargin)
 % SEE ALSO:
 % ARRIVAL2SAC, READSAC, PLOTSAC
 %
-% Last modified by Sirawich Pipatprathanporn, 05/23/2023
+% Last modified by Sirawich Pipatprathanporn, 11/20/2023
 
 % gets the information from SAC header
 [dt_ref, dt_B, dt_E, fs, npts, dts, tims] = gethdrinfo(HdrData);
@@ -30,7 +30,7 @@ end
 
 fig = figure(5);
 clf
-set(fig, 'Units', 'inches', 'Position', [0 12 6 4])
+set(fig, 'Units', 'inches', 'Position', [0 12 8 4.5])
 ax1 = subplot('Position', [0.07 0.6 0.89 0.33], 'Box', 'on', 'TickDir', 'out');
 
 % plot sesimogram
@@ -87,7 +87,7 @@ end
 
 ax1.XLim = [max(t(1), t_limit(1)) min(t_limit(2), t(end))];
 
-vline(ax1, arrivals, 'LineStyle', '--', 'LineWidth', 1, 'Color', 'r');
+vline(ax1, arrivals, 'LineStyle', '-', 'LineWidth', 1, 'Color', 'r');
 
 for ii = 1:phaseNum
     if mod(ii, 2) == 0
@@ -103,6 +103,10 @@ ax1.Title.String = sprintf('Origin: %s, ID: %d, Mw = %5.2f', ...
     string(dt_ref), HdrData.USER7, HdrData.MAG);
 ax1.XLabel.String = 'time (s)';
 
+% move the title up a little bit
+[ax1.Title.Position(1), ax1.Title.Position(2)] = ...
+    norm2trueposition(ax1, 0.5, 1.15);
+
 
 %% plot seismogram arround first P-wave arrival
 wh = and(t - arrivals(1) >= -15, t - arrivals(1) <= 15);
@@ -110,8 +114,9 @@ ax2 = subplot('Position', [0.07 0.11 0.39 0.33], 'Box', 'on', 'TickDir', 'out');
 ax2 = signalplot(x(wh), fs, indeks(t(wh), 1) - arrivals(1), ax2, ...
     phases{1}, [], 'k', varargin{:});
 ax2.XLim = [-15 15];
-vline(ax2, 0, 'LineStyle', '--', 'LineWidth', 1, 'Color', 'r');
-ax2.XLabel.String = 'time (s)';
+ax2.YLim = [-1.1 1.1] * max(abs(x(wh)));
+vline(ax2, 0, 'LineStyle', '-', 'LineWidth', 1, 'Color', 'r');
+ax2.XLabel.String = 'time since predicted arrival (s)';
 ax2.XTick = -15:5:15;
 %% plot seismogram arround first S-wave arrival
 s_index = 1;
@@ -148,7 +153,8 @@ ax3 = subplot('Position', [0.57 0.11 0.39 0.33], 'Box', 'on', 'TickDir', 'out');
 ax3 = signalplot(x(wh), fs, indeks(t(wh), 1) - arrivals(s_index), ax3, ...
     phases{s_index}, [], 'k', varargin{:});
 ax3.XLim = [-15 15];
-vline(ax3, 0, 'LineStyle', '--', 'LineWidth', 1, 'Color', 'r');
-ax3.XLabel.String = 'time (s)';
+ax3.YLim = [-1.1 1.1] * max(abs(x(wh)));
+vline(ax3, 0, 'LineStyle', '-', 'LineWidth', 1, 'Color', 'r');
+ax3.XLabel.String = 'time since predicted arrival (s)';
 ax3.XTick = -15:5:15;
 end

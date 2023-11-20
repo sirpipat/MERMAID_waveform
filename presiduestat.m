@@ -20,7 +20,7 @@ function r = presiduestat(sacfiles, fcs, plt)
 % OUTPUT:
 % r             residuals
 %
-% Last modified by sirawich-at-princeton.edu, 10/06/2023
+% Last modified by sirawich-at-princeton.edu, 11/20/2023
 
 defval('fcs', [])
 defval('plt', false)
@@ -107,9 +107,9 @@ for ii = 1:n
         fig = gcf;
         ax = fig.Children(2);
         hold on
-        vline(ax, r(ii), 'LineWidth', 1, 'LineStyle', '-.', 'Color', [0.1 0.4 0.9]);
+        vline(ax, r(ii), 'LineWidth', 1, 'LineStyle', '-', 'Color', [0.1 0.4 0.9]);
         hold off
-        legend(ax.Children(1:2), 'InstaSeis', 'TauP', 'Location', 'northeast')
+        legend(ax.Children(1:2), 'Instaseis', 'TauP', 'Location', 'southwest')
         
         savename = sprintf('%s_seis_%d_%s.eps', mfilename, ...
             HdrData.USER7, replace(HdrData.KSTNM, ' ', ''));
@@ -120,17 +120,25 @@ end
 
 if plt
     figure
-    histogram(r, 'BinWidth', 0.5, 'FaceColor', [0.75 0.75 0.75])
+    histogram(r, 'BinWidth', 0.1, 'FaceColor', [0.75 0.75 0.75])
     hold on
-    [~,v1] = vline(gca, mean(r), 'Color', 'k', 'LineWidth', 1.5, 'LineStyle', '-.');
-    [~,v2] = vline(gca, median(r), 'Color', 'r', 'LineWidth', 1.5, 'LineStyle', '--');
-    [~,v3] = vline(gca, median(r) + std(r) * [-1 1], 'Color', [0.1 0.4 0.9], 'LineWidth', 1.5, 'LineStyle', '--');
+    xlim([-5, 1])
+    [~,v1] = vline(gca, mean(r), 'Color', 'k', 'LineWidth', 1, 'LineStyle', '-');
+    [~,v2] = vline(gca, median(r), 'Color', 'r', 'LineWidth', 1, 'LineStyle', '-');
+    [~,v3] = vline(gca, median(r) + std(r) * [-1 1], 'Color', [0.1 0.4 0.9], 'LineWidth', 1.5, 'LineStyle', '-');
     grid on
-    set(gca, 'FontSize', 12, 'TickDir', 'out');
+    ax = gca;
+    ax.Children = ax.Children([end 1:(end-1)]);
+    set(ax, 'FontSize', 12, 'TickDir', 'out');
     xlabel('residual (s)')
     ylabel('counts')
     title(sprintf('n = %d, mean = %.2f, median = %.2f, std = %.2f', n, mean(r), median(r), std(r)));
-    legend([v1 v2 v3(1)], 'mean', 'median', '1 std from median')
+    legend([v1 v2 v3(1)], 'mean', 'median', '1 std from median', ...
+        'Location', 'northwest')
+    
+    % move the title up a little bit
+    [ax.Title.Position(1), ax.Title.Position(2)] = ...
+        norm2trueposition(ax, 0.5, 1.03);
     
     set(gcf, 'Renderer', 'painters')
     savename = sprintf('%s_histogram.eps', mfilename);
