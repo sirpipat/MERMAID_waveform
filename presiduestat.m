@@ -1,5 +1,5 @@
-function r = presiduestat(sacfiles, fcs, plt)
-% r = presiduestat(sacfiles, fcs, plt)
+function [r, a] = presiduestat(sacfiles, fcs, plt)
+% [r, a] = presiduestat(sacfiles, fcs, plt)
 % 
 % Compute the residual times between the pick arrvial and the assigned
 % arrival time for P-phase. The arivals are picked by finding the first
@@ -19,8 +19,9 @@ function r = presiduestat(sacfiles, fcs, plt)
 %
 % OUTPUT:
 % r             residuals
+% a             amplitude (signed absolute maximum)
 %
-% Last modified by sirawich-at-princeton.edu, 11/20/2023
+% Last modified by sirawich-at-princeton.edu, 11/21/2023
 
 defval('fcs', [])
 defval('plt', false)
@@ -30,7 +31,8 @@ if all(size(fcs) == [1 2])
 end
 
 n = length(sacfiles);
-r = zeros(size(sacfiles));
+r = zeros(length(sacfiles), 1);
+a = zeros(length(sacfiles), 1);
 
 for ii = 1:n
     % read the sac file
@@ -94,8 +96,11 @@ for ii = 1:n
     t_wh = t(wh);
     x_wh = x(wh);
     
-    arrival = indeks(t_wh(abs(x_wh) > 2e-2 * max(abs(x_wh))), 1);
+    [absmax, whmax] = max(abs(x_wh));
+    
+    arrival = indeks(t_wh(abs(x_wh) > 2e-2 * absmax), 1);
     r(ii) = arrival - phaseTime;
+    a(ii) = x_wh(whmax);
     
     if plt
         if HdrData.USER7 == -12345
@@ -109,8 +114,14 @@ for ii = 1:n
         hold on
         vline(ax, r(ii), 'LineWidth', 1, 'LineStyle', '-', 'Color', [0.1 0.4 0.9]);
         hold off
-        legend(ax.Children(1:2), 'Instaseis', 'TauP', 'Location', 'southwest')
+                
+        % move the seismogram to the front
+        ax.Children = ax.Children([2:end 1]);
         
+        % add legend
+        legend(ax.Children(3:-1:2), 'Instaseis', 'TauP', 'Location', 'southwest')
+
+
         savename = sprintf('%s_seis_%d_%s.eps', mfilename, ...
             HdrData.USER7, replace(HdrData.KSTNM, ' ', ''));
         figdisp(savename,[],[],2,[],'epstopdf');

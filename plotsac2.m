@@ -15,7 +15,7 @@ function fig = plotsac2(SeisData, HdrData, varargin)
 % SEE ALSO:
 % ARRIVAL2SAC, READSAC, PLOTSAC
 %
-% Last modified by Sirawich Pipatprathanporn, 11/20/2023
+% Last modified by Sirawich Pipatprathanporn, 11/21/2023
 
 % gets the information from SAC header
 [dt_ref, dt_B, dt_E, fs, npts, dts, tims] = gethdrinfo(HdrData);
@@ -86,6 +86,8 @@ while phaseTime ~= -12345
 end
 
 ax1.XLim = [max(t(1), t_limit(1)) min(t_limit(2), t(end))];
+wh = and(t >= t_limit(1), t <= t_limit(2));
+ax1.YLim = [-1.05 1.05] * max(abs(x(wh)));
 
 vline(ax1, arrivals, 'LineStyle', '-', 'LineWidth', 1, 'Color', 'r');
 
@@ -97,6 +99,9 @@ for ii = 1:phaseNum
     end
     text(x_pos + arrivals(ii) - ax1.XLim(1), y_pos, phases{ii}, 'FontSize', 12);
 end
+
+% move the seismogram to the front
+ax1.Children = ax1.Children([end 1:(end-1)]);
 
 % adds title
 ax1.Title.String = sprintf('Origin: %s, ID: %d, Mw = %5.2f', ...
@@ -118,6 +123,9 @@ ax2.YLim = [-1.1 1.1] * max(abs(x(wh)));
 vline(ax2, 0, 'LineStyle', '-', 'LineWidth', 1, 'Color', 'r');
 ax2.XLabel.String = 'time since predicted arrival (s)';
 ax2.XTick = -15:5:15;
+
+% move the seismogram to the front
+ax2.Children = ax2.Children([end 1:(end-1)]);
 %% plot seismogram arround first S-wave arrival
 s_index = 1;
 while s_index < 10
@@ -157,4 +165,7 @@ ax3.YLim = [-1.1 1.1] * max(abs(x(wh)));
 vline(ax3, 0, 'LineStyle', '-', 'LineWidth', 1, 'Color', 'r');
 ax3.XLabel.String = 'time since predicted arrival (s)';
 ax3.XTick = -15:5:15;
+
+% move the seismogram to the front
+ax3.Children = ax3.Children([end 1:(end-1)]);
 end
