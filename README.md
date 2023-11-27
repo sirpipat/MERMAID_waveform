@@ -28,7 +28,8 @@ Email:  sirawich@princeton.edu
 [2] The following environmental variable must be set in the shell:
 
 ```
-export MERMAID=/where-you-clone-the-repoitory/
+export MERMAID2=/where-you-clone-THIS-repoitory/
+export MERMAID=/where-you-clone-MERMAID_Buffer-repoitory/
 export ONEYEAR=/where-you-keep-the-buffer-files/
 export SAC=/where-you-store-MERMAID-reports/
 export IFILES=/where-you-keep-the-information-files/
@@ -39,6 +40,7 @@ export SLEPIANS=/where-you-put-slepian_alpha-and-slepian_oscar/
 export IRISFETCH=/where-you-keep-irisFetch/
 export REMOTE2D=/where-you-keep-SPECFEM2D-simulations/
 export SPECFEM2D=/where-you-keep-SPECFEM2D-software/
+export SEIZMO=/where-you-clone-SEIZMO-repository/
 ```
 
 [3] Add the following paths `startup.m`, so that MATLAB recognizes the installed packages
@@ -46,5 +48,7 @@ export SPECFEM2D=/where-you-keep-SPECFEM2D-software/
 ```
 addpath(genpath(getenv('SLEPIANS')))
 addpath(genpath(getenv('MERMAID')))
+addpath(genpath(getenv('MERMAID2')))
+addpath(genpath(getenv('SEIZMO')))
 addpath(genpath(getenv('IRISFETCH')))
 ```
