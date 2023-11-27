@@ -21,7 +21,7 @@ function [r, a] = presiduestat(sacfiles, fcs, plt)
 % r             residuals
 % a             amplitude (signed absolute maximum)
 %
-% Last modified by sirawich-at-princeton.edu, 11/21/2023
+% Last modified by sirawich-at-princeton.edu, 11/26/2023
 
 defval('fcs', [])
 defval('plt', false)
@@ -110,7 +110,8 @@ for ii = 1:n
         
         % add the pick arrival
         fig = gcf;
-        ax = fig.Children(2);
+        axb = fig.Children(3);
+        ax = fig.Children(4);
         hold on
         vline(ax, r(ii), 'LineWidth', 1, 'LineStyle', '-', 'Color', [0.1 0.4 0.9]);
         hold off
@@ -121,7 +122,9 @@ for ii = 1:n
         % add legend
         legend(ax.Children(3:-1:2), 'Instaseis', 'TauP', 'Location', 'southwest')
 
-
+        % bring back plot label
+        axes(axb)
+        
         savename = sprintf('%s_seis_%d_%s.eps', mfilename, ...
             HdrData.USER7, replace(HdrData.KSTNM, ' ', ''));
         figdisp(savename,[],[],2,[],'epstopdf');

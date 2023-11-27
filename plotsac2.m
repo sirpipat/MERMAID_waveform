@@ -15,7 +15,7 @@ function fig = plotsac2(SeisData, HdrData, varargin)
 % SEE ALSO:
 % ARRIVAL2SAC, READSAC, PLOTSAC
 %
-% Last modified by Sirawich Pipatprathanporn, 11/21/2023
+% Last modified by Sirawich Pipatprathanporn, 11/26/2023
 
 % gets the information from SAC header
 [dt_ref, dt_B, dt_E, fs, npts, dts, tims] = gethdrinfo(HdrData);
@@ -112,7 +112,7 @@ ax1.XLabel.String = 'time (s)';
 [ax1.Title.Position(1), ax1.Title.Position(2)] = ...
     norm2trueposition(ax1, 0.5, 1.15);
 
-
+boxedlabel(ax1, 'northwest', 0.22, [], 'a', 'FontSize', 12);
 %% plot seismogram arround first P-wave arrival
 wh = and(t - arrivals(1) >= -15, t - arrivals(1) <= 15);
 ax2 = subplot('Position', [0.07 0.11 0.39 0.33], 'Box', 'on', 'TickDir', 'out');
@@ -126,6 +126,8 @@ ax2.XTick = -15:5:15;
 
 % move the seismogram to the front
 ax2.Children = ax2.Children([end 1:(end-1)]);
+
+boxedlabel(ax2, 'northwest', 0.22, [], 'b', 'FontSize', 12);
 %% plot seismogram arround first S-wave arrival
 s_index = 1;
 while s_index < 10
@@ -168,4 +170,6 @@ ax3.XTick = -15:5:15;
 
 % move the seismogram to the front
 ax3.Children = ax3.Children([end 1:(end-1)]);
+
+boxedlabel(ax3, 'northwest', 0.22, [], 'c', 'FontSize', 12);
 end
