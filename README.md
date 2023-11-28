@@ -5,7 +5,7 @@ in the paper **Waveform modeling of hydroacoustic teleseismic earthquake records
 
 ### Cited as
 
-To be detemined
+To be announced
 
 Author: Sirawich Pipatprathanporn
 
@@ -24,6 +24,9 @@ Email:  sirawich@princeton.edu
 - [irisFetch](https://ds.iris.edu/ds/nodes/dmc/software/downloads/irisfetch.m/)
 - [mermaid_buffer](https://github.com/sirpipat/MERMAID_buffer)
 - [seizmo](https://github.com/sirpipat/seizmo)
+- [TauP](https://www.seis.sc.edu/taup/) (Version 2.3.0 or later)
+- [Instaseis](https://instaseis.net)
+- [SPECFEM2D](https://github.com/SPECFEM/specfem2d)
 
 [2] The following environmental variable must be set in the shell:
 
@@ -41,6 +44,7 @@ export IRISFETCH=/where-you-keep-irisFetch/
 export REMOTE2D=/where-you-keep-SPECFEM2D-simulations/
 export SPECFEM2D=/where-you-keep-SPECFEM2D-software/
 export SEIZMO=/where-you-clone-SEIZMO-repository/
+export TAUP=/where-you-keep-TauP-package/
 ```
 
 [3] Add the following paths `startup.m`, so that MATLAB recognizes the installed packages
@@ -51,4 +55,18 @@ addpath(genpath(getenv('MERMAID')))
 addpath(genpath(getenv('MERMAID2')))
 addpath(genpath(getenv('SEIZMO')))
 addpath(genpath(getenv('IRISFETCH')))
+javaaddpath(fullfile(getenv('TAUP'), 'lib', 'TauP-x.x.x.jar'))  % x.x.x is the TauP version
+```
+
+[4] Some of the packages may have their own `startup.m` files. To prevent MATLAB from using other startup files by accident, create another environmental variable to locate *your* startup file
+
+```
+export STARTUP=/where-you-put-your-start-up-file/
+```
+
+Then, add this line to *your* startup file
+
+```
+% ensure that running this does not cause MATLAB to use other startup file
+addpath(genpath(getenv('STARTUP')))
 ```
