@@ -64,9 +64,8 @@ javaaddpath(fullfile(getenv('TAUP'), 'lib', 'TauP-x.x.x.jar'))  % x.x.x is the T
 export STARTUP=/where-you-put-your-start-up-file/
 ```
 
-Then, add this line to *your* startup file
+Then, append this line to the end of *your* startup file
 
 ```
-% ensure that running this does not cause MATLAB to use other startup file
 addpath(genpath(getenv('STARTUP')))
 ```
