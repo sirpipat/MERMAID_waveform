@@ -27,7 +27,7 @@ function [fc, s, tmax] = freqselect(t, x, fs, plt, titlename, savename, option, 
 % s             best signal-to-noise ratio
 % tmax          best signal-to-noise ratio
 %
-% Last modified by sirawich-at-princeton.edu, 08/31/2023
+% Last modified by sirawich-at-princeton.edu, 12/04/2023
 
 defval('option', 4)
 defval('plt_all', false)
@@ -101,7 +101,6 @@ if ~exist(pname, 'file')
                 [B(jj, ii), U(jj, ii)] = snrvar(t, xs, [-1 1] / fcs(ii), ...
                     -60, 80, 1 * 2 / fcs(ii));
             end
->>>>>>> cc06bc09173ab8dd3ba7aa1c8b4a032d0bedcd96
         end
     end
     
