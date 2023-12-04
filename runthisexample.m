@@ -48,14 +48,15 @@ system(sprintf('ln -s %sxmeshfem2D %s', specfem_bin, ddir));
 system(sprintf('ln -s %sxspecfem2D %s', specfem_bin, ddir));
 
 %% run a pilot to get the model files
-% copy Par_file_example to Par_file
-params = loadparfile(sprintf('%sDATA/Par_file_%s', ddir, example));
+% keep the original Par_file in Par_file_temp for the actual run
+system(sprintf('cp %sDATA/Par_file %sDATA/Par_file_temp', ddir, ddir));
+params = loadparfile(sprintf('%sDATA/Par_file', ddir));
 params.NSTEP = 5;
 params.MODEL = 'default';
 writeparfile(params, sprintf('%sDATA/Par_file', ddir));
 
-% copy SOURCE_example to SOURCE
-system(sprintf('cp %sDATA/SOURCE_%s %s/DATA/SOURCE', ddir, example, ddir));
+% % copy SOURCE_example to SOURCE
+% system(sprintf('cp %sDATA/SOURCE_%s %sDATA/SOURCE', ddir, example, ddir));
 
 % run
 system(sprintf('%sxmeshfem2D', ddir));
@@ -94,14 +95,14 @@ if ~strcmp(water_model.name, 'homogeneous')
 end
 
 %% run the full simulation with updated model
-system(sprintf('cp %sDATA/Par_file_%s %s/DATA/Par_file', ddir, example, ddir));
+system(sprintf('mv %sDATA/Par_file_temp %sDATA/Par_file', ddir, ddir));
 
-% cleans output files
-system(sprintf('rm -rf %sOUTPUT_FILES/*', ddir));
-
-% run
-system(sprintf('%sxmeshfem2D', ddir));
-system(sprintf('%sxspecfem2D', ddir));
+% % cleans output files
+% system(sprintf('rm -rf %sOUTPUT_FILES/*', ddir));
+% 
+% % run
+% system(sprintf('%sxmeshfem2D', ddir));
+% system(sprintf('%sxspecfem2D', ddir));
 
 % no longer copy DATA/ to OUTPUT_FILES/ to save the disk space (11/09/2021)
 
