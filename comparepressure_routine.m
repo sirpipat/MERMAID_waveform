@@ -32,7 +32,7 @@ function [t_shifts, CCmaxs, scales, n, metadata] = ...
 % SEE ALSO:
 % COMPAREPRESSURE
 %
-% Last modified by sirawich-at-princeton.edu, 03/28/2022
+% Last modified by sirawich-at-princeton.edu, 12/04/2023
 
 defval('obsmasterdir', '/home/sirawich/research/processed_data/MERMAID_reports_updated/')
 defval('synmasterdir', '/home/sirawich/research/SYNTHETICS/')
@@ -91,7 +91,7 @@ for ii = i_begin:i_end
             outputdirs{1} = sprintf('%s%s_1/', getenv('REMOTE2D'), example);
             outputdirs{2} = sprintf('%s%s_2/', getenv('REMOTE2D'), example);
         else
-            outputdirs = sprintf('%s%s/', getenv('REMOTE2D'), example);
+            outputdirs = sprintf('%sAK135_RUNS_FLAT/%s/', getenv('REMOTE2D'), example);
         end
 
         % get best timeshift, CC, and scaling if the output folders exist
