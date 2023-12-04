@@ -21,7 +21,7 @@ defval('plt', false)
 
 for ii = 1:dndex
     [allsynfiles, sndex] = allfile([allsyndirs{ii} '/']);
-    for jj = 1:sndex
+    for jj = 1:3:sndex
         updatesynthetics(allsynfiles{jj}, 'ak135');
         if plt
             [SeisData, HdrData] = readsac(allsynfiles{jj});
