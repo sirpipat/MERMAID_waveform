@@ -61,7 +61,7 @@ set(gca, 'TickDir', 'out', 'FontSize', 12, 'LineWidth', 0.75, 'Box', 'on')
 boxedlabel(ax3, 'northwest', 0.25, [], 'c', 'FontSize', 14)
 
 ax4 = subplot('Position', [0.56 0.12 0.42 0.36]);
-scatter(obs_struct.metadata.MAG, obs_struct.presiduals, 10, 'k', 'filled')
+scatter(obs_struct.cmt.Mw, obs_struct.presiduals, 10, 'k', 'filled')
 ylim([-5 1])
 yticks(-5:1)
 xlabel('magnitude')
