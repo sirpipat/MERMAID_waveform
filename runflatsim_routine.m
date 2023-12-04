@@ -1,5 +1,5 @@
-function outputdirs = runflatsim_routine(obsmasterdir, synmasterdir, i_begin, i_end, is_create, is_run, is_plt, branch, gpu_mode)
-% outputdirs = RUNFLATSIM_ROUTINE(obsmasterdir, synmasterdir, i_begin, i_end, is_create, is_run, is_plt, branch, gpu_mode)
+function outputdirs = runflatsim_routine(obsmasterdir, synmasterdir, outmasterdir, i_begin, i_end, is_create, is_run, is_plt, branch, gpu_mode)
+% outputdirs = RUNFLATSIM_ROUTINE(obsmasterdir, synmasterdir, outmasterdir, i_begin, i_end, is_create, is_run, is_plt, branch, gpu_mode)
 %
 % A script for run fluid-solid simulation to find the response function
 % between z-displacement at the ocean bottom and the pressure at the
@@ -10,6 +10,8 @@ function outputdirs = runflatsim_routine(obsmasterdir, synmasterdir, i_begin, i_
 % obsmasterdir      the master directory to the observed files sorted into
 %                   IRIS event ID folders
 % synmasterdir      the master directory to the synthetic files sorted into
+%                   IRIS event ID folders
+% outmasterdir      the master directory of the output files sorted into
 %                   IRIS event ID folders
 % i_begin           first index for IRIS event ID folders
 % i_end             last index for IRIS event ID folders
@@ -44,6 +46,7 @@ function outputdirs = runflatsim_routine(obsmasterdir, synmasterdir, i_begin, i_
 
 defval('obsmasterdir', '/home/sirawich/research/processed_data/MERMAID_reports_updated/')
 defval('synmasterdir', '/home/sirawich/research/SYNTHETICS/')
+defval('outmasterdir', sprintf('%sAK135_RUNS/', getenv('REMOTE2D')))
 defval('is_create', true)
 defval('is_run', true)
 defval('is_plt', true)
@@ -56,8 +59,10 @@ badval = -12345;
 
 % input validation
 if i_begin < 1 || i_end > dndex || i_begin > i_end
-    error('i_begin and i_end must satisfy the condition: 1 <= i_begin <= i_end <= dndex')
+    error('i_begin and i_end must satisfy the condition: 1 <= i_begin <= i_end <= %d', dndex)
 end
+
+system(sprintf('mkdir %s', outmasterdir));
 
 for ii = i_begin:i_end
     evid = removepath(allsyndirs{ii});
@@ -77,9 +82,23 @@ for ii = i_begin:i_end
             replace(hdr_o.KSTNM, ' ', ''));
         % create directories for files I/O for SPECFEM2D
         if is_create
-            use_bathymetry = true;
+            use_bathymetry = false;
             if ~use_bathymetry
-                outputdirs = runflatsim(allobsfiles{jj}, [], [], is_run, false, branch, gpu_mode);
+                outputdirs = runflatsim(allobsfiles{jj}, outmasterdir, [], is_run, false, branch, gpu_mode);
+                
+                % plot the bathymetry
+                try
+                    if strcmp(branch, 'master')
+                        for kk = 1:length(outputdirs)
+                            plotoutput(outputdirs{kk}, example);
+                            plotoutput(outputdirs{kk}, example);
+                        end
+                    else
+                        plotoutput(outputdirs, example);
+                    end
+                catch ME
+                    delete(gcf)
+                end
             else
                 % use GEBCO bathymetry instead
                 [x, z] = bathymetryprofile(20000, 401, ...
@@ -135,8 +154,7 @@ for ii = i_begin:i_end
                     depth = hdr_s.STDP;
                 end
                 
-                outputdir = sprintf('%sAK135_RUNS_BATHYMETRY_MUNK/%s/', ...
-                    getenv('REMOTE2D'), example);
+                outputdir = sprintf('%s%s/', outmasterdir, example);
                 outputdirs = specfem2d_input_setup_response(example, ...
                     'custom', tparams, depth, 'munk', ...
                     'homogeneous', 1, theta, [], outputdir, false, branch, ...
@@ -150,7 +168,7 @@ for ii = i_begin:i_end
                             plotoutput(outputdirs{kk}, example);
                         end
                     else
-                        plotoutput(outputdir, example);
+                        plotoutput(outputdirs, example);
                     end
                 catch ME
                     delete(gcf)
