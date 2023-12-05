@@ -64,7 +64,7 @@ function [t_shifts, CCmaxs, fcorners, snr, s, depthstats, slopestats, ...
 % SEE ALSO
 % RUNFLATSIM, COMPARERESPONSEFUNCTIONS
 %
-% Last modified by sirawich-at-princeton.edu, 12/04/2023
+% Last modified by sirawich-at-princeton.edu, 12/05/2023
 
 defval('opt', 2)
 defval('true', plt)
@@ -205,13 +205,13 @@ if plt || ~exist(pname, 'file')
     
     % save
     fprintf('save the output to a file to %s ...\n', pname);
-    save(pname, 't_shifts', 'CCmaxs', 'fcorners', 'snr', 'depthstats', ...
-        'slopestats', 'peakstats', 'n', 'metadata');
+    save(pname, 't_shifts', 'CCmaxs', 'fcorners', 'snr', 's', ...
+        'depthstats', 'slopestats', 'peakstats', 'n', 'metadata');
 else
     % load
     fprintf('found the save in a file in %s\n', pname);
     fprintf('load the variables ...\n');
-    load(pname, 't_shifts', 'CCmaxs', 'fcorners', 'snr', 'depthstats', ...
-        'slopestats', 'peakstats', 'n', 'metadata');
+    load(pname, 't_shifts', 'CCmaxs', 'fcorners', 'snr', 's', ...
+        'depthstats', 'slopestats', 'peakstats', 'n', 'metadata');
 end
 end
