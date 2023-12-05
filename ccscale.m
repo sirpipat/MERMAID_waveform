@@ -35,7 +35,7 @@ function [t_shift, CCmax, lag, CC, s] = ...
 % SEE ALSO:
 % CCSHIFT, XCORR
 %
-% Last modified by Sirawich Pipatprathanporn: 01/26/2022
+% Last modified by Sirawich Pipatprathanporn: 12/05/2023
 
 defval('maxmargin', seconds(inf))
 defval('windowtype', 'hard')
@@ -94,7 +94,11 @@ xs1 = x1(and(geq(dt1, dt_min, ep), leq(dt1, dt_max, ep)));
 xs2 = x2(and(geq(dt2  + seconds(t_shift), dt_min, ep), ...
     leq(dt2 + seconds(t_shift), dt_max, ep)));
 
-s = rms(xs1) / rms(xs2);
+if cc_env
+    s = rms(xs1) / rms(xs2);
+else
+    s = std(xs1) / std(xs2);
+end
 end
 
 function r = leq(a, b, ep)
