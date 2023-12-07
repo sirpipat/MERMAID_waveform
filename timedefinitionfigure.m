@@ -86,7 +86,7 @@ yseis_s = interp1(t, seis_s, seconds(dt_predict - dt_arrival), 'linear');
 scatter(seconds(dt_predict - dt_arrival), ...
     yseis_s / max(abs(seis_s)) - 6, 100, GREEN, '^', 'filled', ...
     'MarkerEdgeColor', 'k', 'LineWidth', 1)
-% mark my pick arrival in Instaseis seismogram
+% mark my picked arrival on Instaseis seismogram
 yseis_s = interp1(t, seis_s, ...
     seconds(dt_predict - dt_arrival) + presidue, 'linear');
 scatter(seconds(dt_predict - dt_arrival) + presidue, ...
@@ -121,7 +121,7 @@ hinst = arrow(seconds(dt_predict - dt_arrival), -7.5, presidue, 0, 1, 1);
 set(hinst, 'LineWidth', 2, 'Color', GREEN, 'MaxHeadSize', 4);
 
 % text label
-text(-13, 0.7, 'mermaid', 'Color', BLUE, 'FontSize', 14)
+text(-13, 0.7, 'MERMAID', 'Color', BLUE, 'FontSize', 14)
 text(-13, -2.3, 'synthetic', 'Color', RED, 'FontSize', 14)
 text(-13, -5.3, 'Instaseis', 'Color', GREEN, 'FontSize', 14)
 %text(0.5, -4.3, 'picked arrival from Simon et al. (2022)', 'Color', 'k', 'FontSize', 14)
@@ -161,7 +161,7 @@ scatter(x0, y0, 100, GREEN, 'v', 'filled', ...
     'MarkerEdgeColor', 'k', 'LineWidth', 1);
 % plot([0 0] + x0, [-0.08 0.08] + y0, 'LineStyle', '-', ...
 %     'Color', GREEN, 'LineWidth', 1.5)
-text(xtext, y0, 'pick arrival in Instaseis seismogram', ...
+text(xtext, y0, 'picked arrival on Instaseis seismogram', ...
     'Color', GREEN, 'FontSize', 14)
 
 y0 = 1.3;

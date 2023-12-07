@@ -2,7 +2,7 @@ function fig = pp2023figureA2(obs_struct)
 % fig = PP2023FIGUREA2(obs_struct)
 %
 % Makes figure A2 of Pipatprathanporn+2023 containing the histogram of the
-% travel time corrections (pick arrival time in Instaseis seismogram minus
+% travel-time adjustments (pick arrival time in Instaseis seismogram minus
 % the ray-thoery based arrival time by TauP for first P-wave arrival) and
 % scatter plots of travel time correction against event depth, epicentral
 % distance, and event magnitude.
@@ -20,7 +20,7 @@ function fig = pp2023figureA2(obs_struct)
 % OUTPUT:
 % fig               figure handle to the plots
 %
-% Last modified by sirawich-at-princeton.edu: 11/26/2023
+% Last modified by sirawich-at-princeton.edu: 12/07/2023
 
 fig = figure(2);
 set(gcf, 'Units', 'inches', 'Position', [2 2 10 6])
@@ -30,7 +30,7 @@ xlim([-4.5 1.5])
 ylim([0 160])
 xticks(-4:1)
 yticks(0:40:160)
-xlabel('correction (s)')
+xlabel('travel-time adjustment (s)')
 ylabel('counts')
 grid on
 set(gca, 'TickDir', 'out', 'FontSize', 12, 'LineWidth', 0.75, 'Box', 'on')
@@ -43,7 +43,7 @@ ylim([-5 1])
 xticks([0 100 250 410 660])
 yticks(-5:1)
 xlabel('event depth (km)')
-ylabel('correction (s)')
+ylabel('travel-time adjustment (s)')
 grid on
 set(gca, 'TickDir', 'out', 'FontSize', 12, 'LineWidth', 0.75, 'Box', 'on')
 boxedlabel(ax2, 'northwest', 0.25, [], 'b', 'FontSize', 14)
@@ -55,7 +55,7 @@ ylim([-5 1])
 xticks(0:30:180)
 yticks(-5:1)
 xlabel('distance (\circ)')
-ylabel('correction (s)')
+ylabel('travel-time adjustment (s)')
 grid on
 set(gca, 'TickDir', 'out', 'FontSize', 12, 'LineWidth', 0.75, 'Box', 'on')
 boxedlabel(ax3, 'northwest', 0.25, [], 'c', 'FontSize', 14)
@@ -65,7 +65,7 @@ scatter(obs_struct.cmt.Mw, obs_struct.presiduals, 10, 'k', 'filled')
 ylim([-5 1])
 yticks(-5:1)
 xlabel('magnitude')
-ylabel('correction (s)')
+ylabel('travel-time adjustment (s)')
 grid on
 set(gca, 'TickDir', 'out', 'FontSize', 12, 'LineWidth', 0.75, 'Box', 'on')
 boxedlabel(ax4, 'northwest', 0.25, [], 'd', 'FontSize', 14)
