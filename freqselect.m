@@ -24,10 +24,12 @@ function [fc, s, tmax] = freqselect(t, x, fs, plt, titlename, savename, option, 
 %
 % OUTPUT:
 % fc            best corner frequency
-% s             best signal-to-noise ratio
-% tmax          best signal-to-noise ratio
+% s             signal-to-noise ratio at
+%               [0.4--10 Hz , bandpass fc , bandstop fc]
+% tmax          timeshift to maximize signal-to-noise ratio given the band
+%               [0.4--10 Hz , bandpass fc , bandstop fc]
 %
-% Last modified by sirawich-at-princeton.edu, 12/04/2023
+% Last modified by sirawich-at-princeton.edu, 12/07/2023
 
 defval('option', 4)
 defval('plt_all', false)
@@ -114,7 +116,8 @@ else
     load(pname, 'A', 'T', 'B', 'U')
 end
 
-[s_raw,~] = snrvar(t, x, [-1 1] * 5/2, -60, 80, 1 * 5);
+% determine SNR and optimal time for the original signal
+[s_raw, t_max_raw] = snrvar(t, x, [-1 1] * 5/2, -60, 80, 1 * 5);
 
 switch option
     case 2
@@ -124,8 +127,8 @@ switch option
         fc = [fcs(J) fcs(I(J))];
         
         % optimal SNR and corresponding time
-        s = A(I(J), J);
-        tmax = T(I(J), J);
+        s = [s_raw A(I(J), J) B(I(J), J)];
+        tmax = [t_max_raw T(I(J), J) U(I(J), J)];
     case 3
         % 1. search starts with the largest bandwidth first
         % 2. search finishes when found one with bandpass SNR greater than
@@ -134,17 +137,19 @@ switch option
         % bandwidth are found, pick the one with higher SNR
         maxSNR = max(A, [], 'all');
         is_found = false;
-        s = 1;
-        tmax = 0;
+        s = [s_raw 1 1];
+        tmax = [t_max_raw 0 0];
         fc = [0 0];
         for diff_index = length(fcs)-1:-1:2
             for upper_index = diff_index+1:length(fcs)
                 lower_index = upper_index - diff_index;
                 if A(upper_index, lower_index) >= max(max(maxSNR/2, 1), s_raw)
                     is_found = true;
-                    if A(upper_index, lower_index) > s
-                        s = A(upper_index, lower_index);
-                        tmax = T(upper_index, lower_index);
+                    if A(upper_index, lower_index) > s(2)
+                        s(2) = A(upper_index, lower_index);
+                        s(3) = B(upper_index, lower_index);
+                        tmax(2) = T(upper_index, lower_index);
+                        tmax(3) = T(upper_index, lower_index);
                         fc = [fcs(lower_index) fcs(upper_index)];
                     end
                 end
@@ -163,9 +168,11 @@ switch option
                     lower_index = upper_index - diff_index;
                     if A(upper_index, lower_index) >= max(maxSNR/2, 1)
                         is_found = true;
-                        if A(upper_index, lower_index) > s
-                            s = A(upper_index, lower_index);
-                            tmax = T(upper_index, lower_index);
+                        if A(upper_index, lower_index) > s(2)
+                            s(2) = A(upper_index, lower_index);
+                            s(3) = B(upper_index, lower_index);
+                            tmax(2) = T(upper_index, lower_index);
+                            tmax(3) = U(upper_index, lower_index);
                             fc = [fcs(lower_index) fcs(upper_index)];
                         end
                     end
@@ -186,9 +193,9 @@ switch option
         R = A ./ B;
         maxSNRratio = max(R, [], 'all');
         is_found = false;
-        s = 1;
+        s = [s_raw 1 1];
         r = 1;  % recorded SNR ratio for comparison between cases
-        tmax = 0;
+        tmax = [t_max_raw 0 0];
         fc = [0 0];
         for diff_index = length(fcs)-1:-1:2
             for upper_index = diff_index+1:length(fcs)
@@ -197,9 +204,11 @@ switch option
                         && A(upper_index, lower_index) >= s_raw
                     is_found = true;
                     if R(upper_index, lower_index) > r
-                        s = A(upper_index, lower_index);
+                        s(2) = A(upper_index, lower_index);
+                        s(3) = B(upper_index, lower_index);
                         r = R(upper_index, lower_index);
-                        tmax = T(upper_index, lower_index);
+                        tmax(2) = T(upper_index, lower_index);
+                        tmax(3) = U(upper_index, lower_index);
                         fc = [fcs(lower_index) fcs(upper_index)];
                     end
                 end
@@ -220,9 +229,11 @@ switch option
                     if R(upper_index, lower_index) >= maxSNRratio/2
                         is_found = true;
                         if R(upper_index, lower_index) > r
-                            s = A(upper_index, lower_index);
+                            s(2) = A(upper_index, lower_index);
+                            s(3) = B(upper_index, lower_index);
                             r = R(upper_index, lower_index);
-                            tmax = T(upper_index, lower_index);
+                            tmax(2) = T(upper_index, lower_index);
+                            tmax(3) = U(upper_index, lower_index);
                             fc = [fcs(lower_index) fcs(upper_index)];
                         end
                     end
@@ -241,8 +252,8 @@ switch option
         fc = [fcs(J) fcs(I(J))];
         
         % optimal SNR and corresponding time
-        s = A(I(J), J);
-        tmax = T(I(J), J);
+        s = [s_raw A(I(J), J) B(I(J), J)];
+        tmax = [t_max_raw T(I(J), J) U(I(J), J)];
     otherwise
         % pick the best corner frequencies
         [M, I] = max(A, [], 1);
@@ -250,8 +261,8 @@ switch option
         fc = [fcs(J) fcs(I(J))];
 
         % best SNR and corresponding time
-        s = A(I(J), J);
-        tmax = T(I(J), J);
+        s = [s_raw A(I(J), J) B(I(J), J)];
+        tmax = [t_max_raw T(I(J), J) U(I(J), J)];
 end
     
 %% visualize the result
