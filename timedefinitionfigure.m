@@ -4,7 +4,7 @@ function timedefinitionfigure
 % Makes a figure that visually defines terms for travel-time measurements
 % for the paper
 %
-% Last modified by sirawich-at-princeton.edu, 10/17/2023
+% Last modified by sirawich-at-princeton.edu, 12/07/2023
 
 % TODO: Move to $MERMAID2/FIGURE??
 obsfile = '/Users/sirawich/research/processed_data/MERMAID_reports_updated/10936816/20180817T154351.09_5B77394A.MER.DET.WLT5.sac';
@@ -179,7 +179,7 @@ plot([0 0] + xright, [-0.08 0.08] + y0, 'LineStyle', '-', 'Color', 'k', ...
     'LineWidth', 1.5)
 hpick = arrow(xleft, y0, xright-xleft, 0, 1, 1);
 set(hpick, 'LineWidth', 2, 'Color', BLUE, 'MaxHeadSize', 0.5);
-text(xtext, y0, 'travel time anomaly (t_{res}^*) from Simon et al. (2022)', 'Color', BLUE, 'FontSize', 14)
+text(xtext, y0, 'travel-time anomaly (t_{res}^*) from Simon et al. (2022)', 'Color', BLUE, 'FontSize', 14)
 
 y0 = 0.9;
 plot([0 0] + xleft, [-0.08 0.08] + y0, 'LineStyle', ':', ...
@@ -188,16 +188,16 @@ plot([0 0] + xright, [-0.08 0.08] + y0, 'LineStyle', '-', 'Color', 'k', ...
     'LineWidth', 1.5)
 hpete = arrow(xleft, y0, xright - xleft, 0, 1, 1);
 set(hpete, 'LineWidth', 2, 'Color', RED, 'MaxHeadSize', 0.5);
-text(xtext, y0, 'travel time anomaly (\Delta\tau) in this study', 'Color', RED, 'FontSize', 14)
+text(xtext, y0, 'travel-time anomaly (\Delta\tau) in this study', 'Color', RED, 'FontSize', 14)
 
 y0 = 0.7;
-plot([0 0] + xleft, [-0.08 0.08] + y0, 'LineStyle', ':', ...
+plot([0 0] + xleft, [-0.08 0.08] + y0, 'LineStyle', '--', ...
     'Color', GREEN, 'LineWidth', 1)
-plot([0 0] + xright, [-0.1 0.1] + y0, 'LineStyle', '--', ...
+plot([0 0] + xright, [-0.1 0.1] + y0, 'LineStyle', ':', ...
     'Color', GREEN, 'LineWidth', 1.5)
-hpete = arrow(xleft, y0, xright - xleft, 0, 1, 1);
+hpete = arrow(xright, y0, xleft - xright, 0, 1, 1);
 set(hpete, 'LineWidth', 2, 'Color', GREEN, 'MaxHeadSize', 0.5);
-text(xtext, y0, 'correction travel time', 'Color', GREEN, 'FontSize', 14)
+text(xtext, y0, 'travel-time anomaly adjustment', 'Color', GREEN, 'FontSize', 14)
 
 % sign indication
 y0 = 0.5;
