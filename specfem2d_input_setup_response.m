@@ -52,7 +52,11 @@ function outputdirs = specfem2d_input_setup_response(name, topo, tparams, depth,
 %       outputdirs          both pressures and displacements at OBS and
 %                           hydrophone
 %
-% Last modified by sirawich-at-princeton.edu, 07/27/2022
+% SEE ALSO:
+% SPECFEM2D_INPUT_SETUP, SPECFEM2D_INPUT_SETUP_FLAT, 
+% SPECFEM2D_INPUT_SETUP_TPHASE, RUNFLATSIM
+%
+% Last modified by sirawich-at-princeton.edu, 01/31/2024
 
 defval('bottom', 4800)
 defval('depth', 1500)

@@ -1,5 +1,14 @@
-function compare_runs(ddir_run1, ddir_run2, wh)
-
+function compare_runs(ddir_run1, ddir_run2)
+% COMPARE_RUNS(ddir_run1, ddir_run2)
+%
+% Compares homogenous case vs Munk sould speed profile
+%
+% INPUT:
+% ddir_run1     output directory for homogenous fluid-solid simulation
+% ddir_run2     output directory for fluid-solid simulation with Munk 
+%               sound speed profile 
+%
+% Last modified by sirawich-at-princeton.edu, 01/31/2024
 
 % read stations
 station_fname1 = strcat(ddir_run1, 'DATA/STATIONS');
