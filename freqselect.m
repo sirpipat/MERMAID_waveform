@@ -29,7 +29,7 @@ function [fc, s, tmax] = freqselect(t, x, fs, plt, titlename, savename, option, 
 % tmax          timeshift to maximize signal-to-noise ratio given the band
 %               [0.4--10 Hz , bandpass fc , bandstop fc]
 %
-% Last modified by sirawich-at-princeton.edu, 12/07/2023
+% Last modified by sirawich-at-princeton.edu, 01/31/2024
 
 defval('option', 4)
 defval('plt_all', false)
@@ -135,7 +135,7 @@ switch option
         % 50% of the greatest bandpass SNR
         % 3. if more than one corner frequency pairs with the same
         % bandwidth are found, pick the one with higher SNR
-        maxSNR = max(A, [], 'all');
+        maxSNR = max(max(A));
         is_found = false;
         s = [s_raw 1 1];
         tmax = [t_max_raw 0 0];
@@ -191,7 +191,7 @@ switch option
         
         % SNR ratio
         R = A ./ B;
-        maxSNRratio = max(R, [], 'all');
+        maxSNRratio = max(max(R));
         is_found = false;
         s = [s_raw 1 1];
         r = 1;  % recorded SNR ratio for comparison between cases
