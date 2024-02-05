@@ -42,7 +42,7 @@ function outputdirs = runflatsim_routine(obsmasterdir, synmasterdir, outmasterdi
 % SEE ALSO:
 % RUNFLATSIM, CCTRANSPLOT, COMPAREPRESSURE
 %
-% Last modified by sirawich-at-princeton.edu, 02/08/2023
+% Last modified by sirawich-at-princeton.edu, 02/05/2024
 
 defval('obsmasterdir', '/home/sirawich/research/processed_data/MERMAID_reports_updated/')
 defval('synmasterdir', '/home/sirawich/research/SYNTHETICS/')
@@ -69,9 +69,14 @@ for ii = i_begin:i_end
     [allobsfiles, ondex] = allfile([obsmasterdir evid '/']);
     [allsynfiles, sndex] = allfile([allsyndirs{ii} '/']);
     receiverid = cell(1,ondex);
+    % determining the receiver ID
     for jj = 1:ondex
-        receiverid{jj} = indeks(cindeks(split(cindeks(split(...
-            allobsfiles{jj}, '/'), 'end'), '.'), 2), 1:2);
+        % It has to deal with both 2 and 4-digit ID.
+        % First, get either 2 or 4-digit ID from the filename 
+        receiverid{jj} = cindeks(split(cindeks(split(cindeks(split(...
+            allobsfiles{jj}, '/'), 'end'), '.'), 2), '_'), 1);
+        % convert all ID to 4 digits for the consistency
+        receiverid{jj} = sprintf('%04s', receiverid{jj});
     end
     [~, ia, ~] = unique(receiverid);
     allobsfiles = allobsfiles(ia);
