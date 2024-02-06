@@ -33,7 +33,7 @@ function [x, z] = bathymetryprofile(width, npts, lonlat, az)
 % SEE ALSO
 % BATHYMETRY
 % 
-% Last modified by sirawich-at-princeton.edu, 03/21/2022
+% Last modified by sirawich-at-princeton.edu, 02/06/2024
 
 % Earth's radius in meter
 R = 6371000;
@@ -146,14 +146,32 @@ x = linspace(-width/2, width/2, npts)';
 % latitude and longitude of the bathymetry
 [lats, lons] = reckon(lonlat(2), lonlat(1), x * m2deg, az);
 
+% This handles cases where lons span across 180 E/W longitude
+% Determine if there is any jump in lons
+difflons = lons(2:end) - lons(1:(end-1));
+if ~or(all(difflons < 0), all(difflons > 0))
+    lons = mod(lons, 360);
+    is_across180 = true;
+else
+    is_across180 = false;
+end
+
 % request grided elevation
 [longrid, latgrid, elev] = bathymetry([], ...
     [min(lons) max(lons)] + [-0.1 0.1], ...
     [min(lats) max(lats)] + [-0.1 0.1], ...
     false);
 
-% convert longitude to [-180 180]
-longrid = mod(longrid + 180, 360) - 180;
+% convert longitude to [-180 180] when lons do not span across 180 E/W
+if ~is_across180
+    longrid = mod(longrid + 180, 360) - 180;
+end
+
+% handle edge cases where longrid span across 180 E/W longitude
+if longrid(1) > longrid(end)
+    longrid = mod(longrid, 360);
+    lons = mod(lons, 360);
+end
 
 % get the elevation along the straight path
 z = interp2(latgrid, longrid, double(elev), lats, lons);
