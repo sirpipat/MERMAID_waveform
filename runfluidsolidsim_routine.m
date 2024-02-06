@@ -1,5 +1,9 @@
-function outputdirs = runflatsim_routine(obsmasterdir, synmasterdir, outmasterdir, i_begin, i_end, is_create, is_run, is_plt, branch, gpu_mode)
-% outputdirs = RUNFLATSIM_ROUTINE(obsmasterdir, synmasterdir, outmasterdir, i_begin, i_end, is_create, is_run, is_plt, branch, gpu_mode)
+function outputdirs = runfluidsolidsim_routine(obsmasterdir, ...
+    synmasterdir, outmasterdir, use_bathymetry, i_begin, i_end, ...
+    is_create, is_run, is_plt, branch, gpu_mode)
+% outputdirs = RUNFLUIDSOLIDSIM_ROUTINE(obsmasterdir, synmasterdir, ...
+%     outmasterdir, use_bathymetry, i_begin, i_end, is_create, is_run, ...
+%     is_plt, branch, gpu_mode)
 %
 % A script for run fluid-solid simulation to find the response function
 % between z-displacement at the ocean bottom and the pressure at the
@@ -13,6 +17,8 @@ function outputdirs = runflatsim_routine(obsmasterdir, synmasterdir, outmasterdi
 %                   IRIS event ID folders
 % outmasterdir      the master directory of the output files sorted into
 %                   IRIS event ID folders
+% use_bathymetry    whether to use GEBCO bathymetry profile or not
+%                   [default: false, which means using flat ocean bottom]
 % i_begin           first index for IRIS event ID folders
 % i_end             last index for IRIS event ID folders
 % is_create         whether to create input files instead of using existing
@@ -42,11 +48,12 @@ function outputdirs = runflatsim_routine(obsmasterdir, synmasterdir, outmasterdi
 % SEE ALSO:
 % RUNFLATSIM, CCTRANSPLOT, COMPAREPRESSURE
 %
-% Last modified by sirawich-at-princeton.edu, 02/05/2024
+% Last modified by sirawich-at-princeton.edu, 02/06/2024
 
 defval('obsmasterdir', '/home/sirawich/research/processed_data/MERMAID_reports_updated/')
 defval('synmasterdir', '/home/sirawich/research/SYNTHETICS/')
 defval('outmasterdir', sprintf('%sAK135_RUNS/', getenv('REMOTE2D')))
+defval('use_bathymetry', false)
 defval('is_create', true)
 defval('is_run', true)
 defval('is_plt', true)
@@ -83,12 +90,11 @@ for ii = i_begin:i_end
     for jj = 1:sndex
         [seis_o, hdr_o] = readsac(allobsfiles{jj});
         [seis_s, hdr_s] = readsac(allsynfiles{jj});
-        example = sprintf('flat_%d_%s', hdr_o.USER7, ...
-            replace(hdr_o.KSTNM, ' ', ''));
         % create directories for files I/O for SPECFEM2D
         if is_create
-            use_bathymetry = false;
             if ~use_bathymetry
+                example = sprintf('flat_%d_%s', hdr_o.USER7, ...
+                    replace(hdr_o.KSTNM, ' ', ''));
                 outputdirs = runflatsim(allobsfiles{jj}, outmasterdir, [], is_run, false, branch, gpu_mode);
                 
                 % plot the bathymetry
@@ -158,7 +164,8 @@ for ii = i_begin:i_end
                 else
                     depth = hdr_s.STDP;
                 end
-                
+                example = sprintf('bath_%d_%s', hdr_o.USER7, ...
+                    replace(hdr_o.KSTNM, ' ', ''));
                 outputdir = sprintf('%s%s/', outmasterdir, example);
                 outputdirs = specfem2d_input_setup_response(example, ...
                     'custom', tparams, depth, 'munk', ...
