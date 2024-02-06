@@ -13,7 +13,7 @@ function HdrData = getheaderarray(sacfiles)
 % SEE ALSO:
 % READSAC
 %
-% Last modified by sirawich-at-princeton.edu, 01/20/2022
+% Last modified by sirawich-at-princeton.edu, 02/06/2024
 
 N = length(sacfiles);
 
@@ -38,6 +38,8 @@ for ii = 1:N
     for jj = 1:length(hdrfields)
         eval(sprintf('fieldvar = hdr.%s;', hdrfields{jj}));
         if ischar(fieldvar)
+            % change all non-printable characters to space
+            fieldvar(~ismember(double(fieldvar), 32:126)) = ' ';
             eval(sprintf('HdrData.%s{%d,1} = ''%s'';', hdrfields{jj}, ...
                 ii, fieldvar));
         else

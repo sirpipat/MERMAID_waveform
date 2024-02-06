@@ -1,5 +1,5 @@
 function updateheader_from_tomocat(sacfiles, tomofile, ddirout)
-% UPDATEHEADER_FROM_TOMOCAT(ddirin, tomofile, ddirout)
+% UPDATEHEADER_FROM_TOMOCAT(sacfiles, tomofile, ddirout)
 %
 % Takes reported SAC files as an input. Then, applies firstarrival picks
 % and identified earthquakes to the headers. Finally, saved SAC files with
@@ -36,7 +36,7 @@ function updateheader_from_tomocat(sacfiles, tomofile, ddirout)
 % SEE ALSO:
 % UPDATEHEADER
 %
-% Last modified by sirawich-at-princeton.edu, 01/24/2024
+% Last modified by sirawich-at-princeton.edu, 02/06/2024
 
 mermaid = read_tomocat1(tomofile);
 for ii = 1:length(mermaid.seismogram_time)
@@ -54,7 +54,10 @@ for ii = 1:length(sacfiles)
     %dt_B.Format = 'uuuu-MM-dd''T''HH:mm:ss.SS';
     dt_B_string = string(dt_B);
     begin_time_index = strcmp(mermaid.seismogram_time, dt_B_string);
-    station_index = strcmp(mermaid.KSTNM, replace(hdr.KSTNM, ' ', ''));
+    % remove the unprintable character and space when compare to the
+    % tomocat database
+    wh = ismember(hdr.KSTNM, 33:126);
+    station_index = strcmp(mermaid.KSTNM, hdr.KSTNM(wh));
     mermaid_index = and(begin_time_index, station_index);
     
     if sum(mermaid_index) ~= 1
