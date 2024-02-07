@@ -39,9 +39,11 @@ function updateheader_from_tomocat(sacfiles, tomofile, ddirout)
 % Last modified by sirawich-at-princeton.edu, 02/06/2024
 
 mermaid = read_tomocat1(tomofile);
-for ii = 1:length(mermaid.seismogram_time)
-    mermaid.seismogram_time{ii} = indeks(mermaid.seismogram_time{ii}, '1:end-3');
-end
+
+% convert datestring to datetime for easy conparison
+mermaid_dateime = datetime(mermaid.seismogram_time, 'InputFormat', ...
+    'uuuu-MM-dd''T''HH:mm:ss.SSSSSS', 'TimeZone', 'UTC', 'Format', ...
+    'uuuu-MM-dd''T''HH:mm:ss.SSSSSS');
 
 for ii = 1:length(sacfiles)
     % read the seismogram and metadata from the original SAC file
@@ -50,10 +52,8 @@ for ii = 1:length(sacfiles)
     
     % determines which tomocat file entry used for updating the header
     % It uses begin time and staion ID to identify the entry
-    dt_B.Format = 'uuuu-MM-dd''T''HH:mm:ss';
-    %dt_B.Format = 'uuuu-MM-dd''T''HH:mm:ss.SS';
-    dt_B_string = string(dt_B);
-    begin_time_index = strcmp(mermaid.seismogram_time, dt_B_string);
+    dt_B.Format = 'uuuu-MM-dd''T''HH:mm:ss.SSSSSS';
+    begin_time_index = (abs(mermaid_dateime - dt_B) <= seconds(0.1));
     % remove the unprintable character and space when compare to the
     % tomocat database
     wh = ismember(hdr.KSTNM, 33:126);
