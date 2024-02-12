@@ -48,7 +48,7 @@ function outputdirs = runfluidsolidsim_routine(obsmasterdir, ...
 % SEE ALSO:
 % RUNFLATSIM, CCTRANSPLOT, COMPAREPRESSURE
 %
-% Last modified by sirawich-at-princeton.edu, 02/06/2024
+% Last modified by sirawich-at-princeton.edu, 02/14/2024
 
 defval('obsmasterdir', '/home/sirawich/research/processed_data/MERMAID_reports_updated/')
 defval('synmasterdir', '/home/sirawich/research/SYNTHETICS/')
@@ -85,6 +85,9 @@ for ii = i_begin:i_end
         % convert all ID to 4 digits for the consistency
         receiverid{jj} = sprintf('%04s', receiverid{jj});
     end
+    % removes the identical receiver ID (most likely DET vs REQ) and sorts
+    % by receiver ID which happens to be the same order as the synthetic 
+    % SAC files from the same event.
     [~, ia, ~] = unique(receiverid);
     allobsfiles = allobsfiles(ia);
     for jj = 1:sndex
