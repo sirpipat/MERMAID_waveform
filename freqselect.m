@@ -29,7 +29,7 @@ function [fc, s, tmax] = freqselect(t, x, fs, plt, titlename, savename, option, 
 % tmax          timeshift to maximize signal-to-noise ratio given the band
 %               [0.4--10 Hz , bandpass fc , bandstop fc]
 %
-% Last modified by sirawich-at-princeton.edu, 01/31/2024
+% Last modified by sirawich-at-princeton.edu, 02/12/2024
 
 defval('option', 4)
 defval('plt_all', false)
@@ -42,7 +42,9 @@ fNq = fs/2;
 
 % list of corner frequency candidates
 delf=0.05;
-fcs = 0.4:delf:2.05;
+fcs_min = 0.10;
+fcs_max = 2.05;
+fcs = fcs_min:delf:fcs_max; % previously 0.40:delf:2.05
 
 % spread i.e. minimum bandwidth
 fspread = 0.4995;
@@ -267,7 +269,7 @@ end
     
 %% visualize the result
 if plt
-    freqselect_plot(t, x, fs, fc, npoles, npasss, A, T, B ,U, ...
+    freqselect_plot(t, x, fs, fcs, fc, npoles, npasss, A, T, B ,U, ...
         titlename, option);
     
     figdisp(sprintf('%s_%s', mfilename, savename), [], [], 2, [], ...
@@ -279,7 +281,7 @@ if plt
             for jj = (ii+1):length(fcs)
                 if fcs(ii) > 0 && jj < length(fcs) && fcs(jj) - fcs(ii) >= fspread
                     fcp = [fcs(ii) fcs(jj)];
-                    freqselect_plot(t, x, fs, fcp, npoles, npasss, A, T, B ,...
+                    freqselect_plot(t, x, fs, fcs, fcp, npoles, npasss, A, T, B ,...
                         U, titlename, option);
 
                     figname = sprintf('%s_%s_%.2f_%.2f.eps', mfilename, ...
@@ -325,24 +327,23 @@ end
 %
 % INPUT:
 % ax        target axes
-function add_fc_grid(ax)
-min_lower_fc = 0.375;
-max_lower_fc = 1.525;
-min_upper_fc = 0.875;
-max_upper_fc = 2.025;
-df = 0.05;
+function add_fc_grid(ax, fcs, delf)
+min_lower_fc = fcs(1) - delf/2; %0.375;
+max_lower_fc = fcs(end) - 0.5 - delf/2; %1.525;
+min_upper_fc = fcs(1) + 0.5 - delf/2; %0.875;
+max_upper_fc = fcs(end) - delf/2; %2.025;
 
 x = [];
 y = [];
 
 % vertical grid
-for freq = min_lower_fc:df:max_lower_fc
+for freq = min_lower_fc:delf:max_lower_fc
     x = [x freq freq NaN];
     y = [y max_upper_fc max(min_upper_fc, freq) NaN];
 end
 
 % horizontal grid
-for freq = min_upper_fc:df:max_upper_fc
+for freq = min_upper_fc:delf:max_upper_fc
     x = [x min_lower_fc min(max_lower_fc, freq) NaN];
     y = [y freq freq NaN];
 end
@@ -350,13 +351,11 @@ end
 plot(ax, x, y, 'LineWidth', 0.5, 'Color', 'k')
 end
 
-function freqselect_plot(t, x, fs, fc, npoles, npasss, A, T, B, U, ...
+function freqselect_plot(t, x, fs, fcs, fc, npoles, npasss, A, T, B, U, ...
     titlename, option)
-% determine the indices for A, T, B, U
-% list of corner frequency candidates
-delf=0.05;
-fcs = 0.4:delf:2.05;
+delf = fcs(2) - fcs(1);
 
+% determine the indices for A, T, B, U
 II = find(fcs == fc(1));
 JJ = find(fcs == fc(2));
 
@@ -519,10 +518,16 @@ end
 cc4.Label.FontSize = 12;
 hold on
 plot(sp4, [0 2], [0 2], 'Color', 'k', 'LineWidth', 2)
-add_fc_grid(sp4)
+add_fc_grid(sp4, fcs, delf)
 plot(sp4, xx, yy, '-r', 'LineWidth', 2)
-sp4.XLim = [0.375 1.525];
-sp4.YLim = [0.875 2.025];
+sp4.XLim = [fcs(1) fcs(end)-0.5] - delf/2;
+sp4.YLim = [fcs(1)+0.5 fcs(end)] - delf/2;
+if min(sp4.XTick) - fcs(1) >= 0.2
+    sp4.XTick = [fcs(1) sp4.XTick];
+end
+if min(sp4.YTick) - (fcs(1) + 0.5) >= 0.2
+    sp4.YTick = [fcs(1)+0.5 sp4.YTick];
+end
 set(sp4, 'FontSize', 12, 'TickDir', 'out')
 set(gcf, 'Renderer', 'painters')
 
