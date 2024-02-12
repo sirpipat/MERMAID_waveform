@@ -20,21 +20,13 @@ function [tims, seisdata] = getarrivaltemplate(ddir, station, r)
 % SEE ALSO:
 % READ_SEISMOGRAM, SPECFEM2D_INPUT_SETUP_FLAT
 %
-% Last modified by sirawich-at-princeton.edu, 05/24/2023
+% Last modified by sirawich-at-princeton.edu, 02/12/2024
 
 defval('station', 'bottom')
 defval('r', 0.1)
 
-% read source-time function file
-fid = fopen(sprintf('%sOUTPUT_FILES/plot_source_time_function.txt', ddir), 'r');
-data = fscanf(fid, '%f %f\n', [2 Inf]);
-fclose(fid);
-t = data(1,:)';
-s = data(2,:)';
-
-% identify the end of the earthquake
-%wh = (abs(s) > 0);
-t_end = 1; %max(t(wh));
+% the end of the earthquake relative to the centroid time
+t_end = 1;
 
 % read source file
 sources = loadsource(sprintf('%sDATA/SOURCE', ddir));
