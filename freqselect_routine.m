@@ -1,5 +1,5 @@
 function [fc, s] = freqselect_routine(sacfiles, plt, option)
-% [fc, s] = FREQSELECT_ROUTINE(sacfiles, plt)
+% [fc, s] = FREQSELECT_ROUTINE(sacfiles, plt, option)
 %
 % Figures out the frequency band where the signal stands out the most from
 % the background noise in multiple seismograms.
