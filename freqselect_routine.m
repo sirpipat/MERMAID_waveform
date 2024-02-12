@@ -20,15 +20,15 @@ function [fc, s] = freqselect_routine(sacfiles, plt, option)
 % fc            best corner frequency for each seismogram
 % s             best signal-to-noise ratio for each seismogram
 %
-% Last modified by sirawich-at-princeton.edu, 12/07/2023
+% Last modified by sirawich-at-princeton.edu, 02/12/2024
 
-defval('option', 5)
+defval('option', 4)
 
 badval = -12345;
 
 fc = zeros(length(sacfiles), 2);
 s = zeros(length(sacfiles), 3);
-for ii = 1:length(sacfiles)
+parfor ii = 1:length(sacfiles)
     [seisdata, hdrdata] = readsac(sacfiles{ii});
     [dt_ref, dt_B, ~, fs, ~, dts] = gethdrinfo(hdrdata);
     
@@ -61,8 +61,8 @@ for ii = 1:length(sacfiles)
     t = seconds(dts - dt_ref) - hdrdata.T0;
     pa = real(counts2pa(seisdata, fs, [0.01 0.02 10 20], [], 'sacpz', false));
     titlename = sprintf('Event ID: %d, Magnitude: %.2f, Distance: %.2f^{\\circ}, Station: %s', ...
-        hdrdata.USER7, hdrdata.MAG, hdrdata.GCARC, hdrdata.KSTNM);
-    savename = sprintf('%d_%s', hdrdata.USER7, replace(hdrdata.KSTNM, ' ', ''));
+        hdrdata.USER7, hdrdata.MAG, hdrdata.GCARC, strtrim(hdrdata.KSTNM));
+    savename = sprintf('%d_%s', hdrdata.USER7, strtrim(hdrdata.KSTNM));
     try
         [fc(ii,:), s(ii,:)] = freqselect(t, pa, fs, plt, titlename, ...
             savename, option);
