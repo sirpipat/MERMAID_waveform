@@ -15,6 +15,12 @@ function ascii2bin(ddir, precision)
 %
 % Last modified by sirawich-at-princeton.edu, 02/15/2024
 
+% verfity inputs
+defval('precision', 'single')
+if ddir(end) ~= '/'
+    ddir = [ddir '/'];
+end
+
 % seismotype 1-3: displacement, velocity, acceleration
 seismotypes = {'d', 'v', 'a'};
 channels = {'BXX', 'BXY', 'BXZ'};
