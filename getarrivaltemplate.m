@@ -20,7 +20,7 @@ function [tims, seisdata] = getarrivaltemplate(ddir, station, r)
 % SEE ALSO:
 % READ_SEISMOGRAM, SPECFEM2D_INPUT_SETUP_FLAT
 %
-% Last modified by sirawich-at-princeton.edu, 02/12/2024
+% Last modified by sirawich-at-princeton.edu, 02/16/2024
 
 defval('station', 'bottom')
 defval('r', 0.1)
@@ -49,12 +49,27 @@ theta = asin(dt * vp / dx);
 if strcmpi(station, 'bottom')
     t_travel = ((x(2) - x0) * sin(theta) + (z(2) - z0) * cos(theta)) / vp;
     % read the seismogram
+    % try to read the binary file output first then try to read ASCII
     try
-        [tims, seisdata] = read_seismogram(sprintf('%sOUTPUT_FILES/%s.%s.BXZ.semd', ...
-            ddir, network{2}, name{2}));
+        tims = specfem2dtime(sprintf('%sDATA/Par_tile', ddir), 2, ...
+            sprintf('%sDATA/SOURCES', ddir));
+        try
+            data = freadseismograms(sprintf('%s/OUTPUT_FILES/Uz_file_single_d.bin', ddir));
+        catch
+            try
+                data = freadseismograms(sprintf('%s/OUTPUT_FILES/Uz_file_double_d.bin', ddir));
+            catch
+            end
+        end
+        seisdata = data(:,2);
     catch
-        [tims, seisdata] = read_seismogram(sprintf('%sOUTPUT_FILES/%s.%s.PRE.semp', ...
-            ddir, network{2}, name{2}));
+        try
+            [tims, seisdata] = read_seismogram(sprintf('%sOUTPUT_FILES/%s.%s.BXZ.semd', ...
+                ddir, network{2}, name{2}));
+        catch
+            [tims, seisdata] = read_seismogram(sprintf('%sOUTPUT_FILES/%s.%s.PRE.semp', ...
+                ddir, network{2}, name{2}));
+        end
     end
 else
     theta_w = asin(vc / vp * sin(theta));
