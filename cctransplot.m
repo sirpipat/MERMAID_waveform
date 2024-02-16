@@ -37,13 +37,13 @@ function [t_cc, cc, t_rf, rf, d] = cctransplot(ddir1, ddir2, example, channel1, 
 % cc        cross correlation coefficient
 % t_rf      time for response function
 % rf        response funtion
-% d         damping value for spectral divisio
+% d         damping value for spectral division
 %
 % SEE ALSO:
 % SPECFEM2D_INPUT_SETUP_FLAT, SPECFEM2D_INPUT_SETUP_RESPONSE, RUNFLATSIM,
 % SPECTRALDIVISION
 % 
-% Last modified by sirawich-at-princeton.edu, 05/24/2023
+% Last modified by sirawich-at-princeton.edu, 02/16/2024
 
 defval('channel1', {'bottom' 'displacement'})
 defval('channel2', {'hydrophone' 'pressure'})
@@ -69,8 +69,21 @@ if strcmpi(channel2{1}, 'bottom')
 else
     network = 'AA';
 end
-[tims_o, seisdata_o] = read_seismogram(sprintf('%sOUTPUT_FILES/%s.%s.%s', ...
-    ddir, network, 'S0001', chan));
+% try to read the binary file output first then try to read ASCII
+try
+    par_file = sprintf('%sDATA/Par_tile', ddir);
+    tims_o = specfem2dtime(par_file, 2, sprintf('%sDATA/SOURCES', ddir));
+    binfile = ls2cell(sprintf('%sOUTPUT_FILES/Ux_file_*_d.bin', ddir), 1);
+    data = freadseismograms(binfile{1}, par_file);
+    if strcmpi(network, 'AA')
+        seisdata_o = data(:, 1);
+    else
+        seisdata_o = data(:, 2);
+    end
+catch
+    [tims_o, seisdata_o] = read_seismogram(sprintf('%sOUTPUT_FILES/%s.%s.%s', ...
+        ddir, network, 'S0001', chan));
+end
 
 % lowpass the signals
 dt = tims_i(2) - tims_i(1);
