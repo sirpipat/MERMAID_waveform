@@ -12,24 +12,21 @@ function updatesynthetics_routine(synmasterdir, plt)
 % SEE ALSO:
 % UPDATESYNTHETICS
 %
-% Last modified by sirawich-at-princeton.edu, 11/01/2021
+% Last modified by sirawich-at-princeton.edu, 02/16/2024
 
 defval('synmasterdir', '/Users/sirawich/research/processed_data/SYNTHETICS/')
 defval('plt', false)
 
-[allsyndirs, dndex] = allfile(synmasterdir);
+[allsynfiles, sndex] = allfilen(synmasterdir, 2);
 
-for ii = 1:dndex
-    [allsynfiles, sndex] = allfile([allsyndirs{ii} '/']);
-    for jj = 1:3:sndex
-        updatesynthetics(allsynfiles{jj}, 'ak135');
-        if plt
-            [SeisData, HdrData] = readsac(allsynfiles{jj});
-            plotsac2(SeisData, HdrData, 'Color', 'k');
-            savename = sprintf('plotsynthetic_%d_%s.eps', ...
-                HdrData.USER7, replace(HdrData.KSTNM, ' ', ''));
-            figdisp(savename,[],[],2,[],'epstopdf');
-        end
+for ii = 1:sndex
+    updatesynthetics(allsynfiles{ii}, 'ak135');
+    if plt
+        [SeisData, HdrData] = readsac(allsynfiles{ii});
+        plotsac2(SeisData, HdrData, 'Color', 'k');
+        savename = sprintf('%s_%d_%s.eps', mfilename, HdrData.USER7, ...
+            HdrData.KSTNM(ismember(HdrData.KSTNM, 33:116)));
+        figdisp(savename,[],[],2,[],'epstopdf');
     end
 end
 end
