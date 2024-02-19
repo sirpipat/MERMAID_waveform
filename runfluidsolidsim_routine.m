@@ -48,7 +48,7 @@ function outputdirs = runfluidsolidsim_routine(obsmasterdir, ...
 % SEE ALSO:
 % RUNFLATSIM, CCTRANSPLOT, COMPAREPRESSURE
 %
-% Last modified by sirawich-at-princeton.edu, 02/14/2024
+% Last modified by sirawich-at-princeton.edu, 02/19/2024
 
 defval('obsmasterdir', '/home/sirawich/research/processed_data/MERMAID_reports_updated/')
 defval('synmasterdir', '/home/sirawich/research/SYNTHETICS/')
@@ -97,7 +97,7 @@ for ii = i_begin:i_end
         if is_create
             if ~use_bathymetry
                 example = sprintf('flat_%d_%s', hdr_o.USER7, ...
-                    replace(hdr_o.KSTNM, ' ', ''));
+                    hdr_o.KSTNM(ismember(hdr_o.KSTNM, 33:126)));
                 outputdirs = runflatsim(allobsfiles{jj}, outmasterdir, [], is_run, false, branch, gpu_mode);
                 
                 % plot the bathymetry
@@ -168,7 +168,7 @@ for ii = i_begin:i_end
                     depth = hdr_s.STDP;
                 end
                 example = sprintf('bath_%d_%s', hdr_o.USER7, ...
-                    replace(hdr_o.KSTNM, ' ', ''));
+                    hdr_o.KSTNM(ismember(hdr_o.KSTNM, 33:126)));
                 outputdir = sprintf('%s%s/', outmasterdir, example);
                 outputdirs = specfem2d_input_setup_response(example, ...
                     'custom', tparams, depth, 'munk', ...

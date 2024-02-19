@@ -46,7 +46,7 @@ function [t_shift1, t_shift2, CCmax1, CCmax2, bath1, bath2, fcorners, ...
 % s1            scaling to minimize the misfit for first  SPECFEM2D 
 % s2            scaling to minimize the misfit for second SPECFEM2D 
 %
-% Last modified by sirawich-at-princeton.edu, 12/04/2023
+% Last modified by sirawich-at-princeton.edu, 02/19/2024
 
 defval('fopt', 2)
 defval('plt', true)
@@ -73,6 +73,7 @@ if length(opt) == 1 && opt == 1
     snr = nan;
 elseif length(opt) == 1 && opt == 2
     [fcorners, snr] = freqselect(t_relative, pres_o, fs_o, false);
+    snr = snr(2);
     fcorners(1) = max(fcorners(1), 0.05);
     fcorners(2) = min(fcorners(2), 2);
 elseif length(opt) == 2
