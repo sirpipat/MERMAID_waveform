@@ -51,22 +51,24 @@ if strcmpi(station, 'bottom')
     % read the seismogram
     % try to read the binary file output first then try to read ASCII
     try
-        tims = specfem2dtime(sprintf('%sDATA/Par_tile', ddir), 2, ...
-            sprintf('%sDATA/SOURCES', ddir));
+        par_file = sprintf('%sDATA/Par_file', ddir);
+        tims = specfem2dtime(par_file, 2, sprintf('%sDATA/SOURCE', ddir));
         try
-            data = freadseismograms(sprintf('%s/OUTPUT_FILES/Uz_file_single_d.bin', ddir));
-        catch
+            data = freadseismograms(sprintf(...
+                '%s/OUTPUT_FILES/Uz_file_single_d.bin', ddir), par_file);
+        catch ME
             try
-                data = freadseismograms(sprintf('%s/OUTPUT_FILES/Uz_file_double_d.bin', ddir));
+                data = freadseismograms(sprintf(...
+                    '%s/OUTPUT_FILES/Uz_file_double_d.bin', ddir), par_file);
             catch
             end
         end
         seisdata = data(:,2);
-    catch
+    catch ME
         try
             [tims, seisdata] = read_seismogram(sprintf('%sOUTPUT_FILES/%s.%s.BXZ.semd', ...
                 ddir, network{2}, name{2}));
-        catch
+        catch ME
             [tims, seisdata] = read_seismogram(sprintf('%sOUTPUT_FILES/%s.%s.PRE.semp', ...
                 ddir, network{2}, name{2}));
         end

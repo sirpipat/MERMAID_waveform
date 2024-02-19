@@ -71,8 +71,8 @@ else
 end
 % try to read the binary file output first then try to read ASCII
 try
-    par_file = sprintf('%sDATA/Par_tile', ddir);
-    tims_o = specfem2dtime(par_file, 2, sprintf('%sDATA/SOURCES', ddir));
+    par_file = sprintf('%sDATA/Par_file', ddir);
+    tims_o = specfem2dtime(par_file, 2, sprintf('%sDATA/SOURCE', ddir));
     binfile = ls2cell(sprintf('%sOUTPUT_FILES/Ux_file_*_d.bin', ddir), 1);
     data = freadseismograms(binfile{1}, par_file);
     if strcmpi(network, 'AA')
@@ -80,7 +80,8 @@ try
     else
         seisdata_o = data(:, 2);
     end
-catch
+catch ME
+    keyboard;
     [tims_o, seisdata_o] = read_seismogram(sprintf('%sOUTPUT_FILES/%s.%s.%s', ...
         ddir, network, 'S0001', chan));
 end
