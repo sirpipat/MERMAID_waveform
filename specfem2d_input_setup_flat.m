@@ -34,7 +34,7 @@ function outputdirs = specfem2d_input_setup_flat(name, bottom, depth, water, fre
 % SPECFEM2D_INPUT_SETUP, SPECFEM2D_INPUT_SETUP_RESPONSE, 
 % SPECFEM2D_INPUT_SETUP_TPHASE, RUNFLATSIM
 %
-% Last modified by sirawich-at-princeton.edu, 01/31/2024
+% Last modified by sirawich-at-princeton.edu, 02/16/2024
 
 defval('bottom', 4800)
 defval('depth', 1500)
@@ -298,6 +298,10 @@ for kk = index_list
     params.NSTEP = 65000;
     params.DT = 5e-4;
     params.subsamp_seismos = round(1 /params.DT / 100); % reduce to 100 Hz
+    params.save_ASCII_seismograms = 0;
+    params.save_binary_seismograms_single = 1;
+    params.save_binary_seismograms_double = 0;
+    params.SU_FORMAT = 0;
     params.NTSTEP_BETWEEN_OUTPUT_ENERGY = 1000;
     params.PML_BOUNDARY_CONDITIONS = false;
     params.STACEY_ABSORBING_CONDITIONS = true;
