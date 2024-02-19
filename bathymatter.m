@@ -64,7 +64,7 @@ function [t_shifts, CCmaxs, fcorners, snr, s, depthstats, slopestats, ...
 % SEE ALSO
 % RUNFLATSIM, COMPARERESPONSEFUNCTIONS
 %
-% Last modified by sirawich-at-princeton.edu, 12/05/2023
+% Last modified by sirawich-at-princeton.edu, 02/19/2024
 
 defval('opt', 2)
 defval('true', plt)
@@ -106,11 +106,27 @@ if plt || ~exist(pname, 'file')
     for ii = 1:fndex
         dir = removepath(allflatdirs{ii});
         eventid = cindeks(split(dir, '_'), 2);
-        stationid = indeks(cindeks(split(dir, '_'), 3), 4:5);
-        obsfile = cindeks(ls2cell(sprintf('%s%s/*.%s_*.sac', ...
-            obsmasterdir, eventid, stationid), 1), 1);
-        synfile = cindeks(ls2cell(sprintf('%s%s/*_%s_0_*.sac', ...
-            synmasterdir, eventid, stationid), 1), 1);
+        % keep all 4-digit station ID at first even if the files may
+        % contain only the last 2 digits
+        stationid = indeks(cindeks(split(dir, '_'), 3), 2:5);
+        try
+            obsfile = cindeks(ls2cell(sprintf('%s%s/*.%s_*.sac', ...
+                obsmasterdir, eventid, stationid), 1), 1);
+        catch ME
+            if strcmp(ME.message, 'This directory or file does not exist')
+                obsfile = cindeks(ls2cell(sprintf('%s%s/*.%s_*.sac', ...
+                    obsmasterdir, eventid, stationid(end-1:end)), 1), 1);
+            end
+        end
+        try
+            synfile = cindeks(ls2cell(sprintf('%s%s/*_%s_0_*.sac', ...
+                synmasterdir, eventid, stationid), 1), 1);
+        catch ME
+            if strcmp(ME.message, 'This directory or file does not exist')
+                synfile = cindeks(ls2cell(sprintf('%s%s/*_%s_0_*.sac', ...
+                    synmasterdir, eventid, stationid(end-1:end)), 1), 1);
+            end
+        end
         try
             if size(opt, 1) == 1
                 [t_shift1, t_shift2, CCmax1, CCmax2, bath1, bath2, fcs, ...
