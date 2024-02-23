@@ -37,7 +37,7 @@ function outputdirs = runflatsim(sacfile, ddir, specfembin, is_run, keepproc, br
 % SEE ALSO:
 % SPECFEM2D_INPUT_SETUP, RUNTHISEXAMPLE, UPDATEHEADER, UPDATESYNTHETICS
 %
-% Last modified by sirawich-at-princeton.edu, 02/08/2023
+% Last modified by sirawich-at-princeton.edu, 02/23/2024
 
 % specify where you want to keep the simulations input/output files
 defval('ddir', getenv('REMOTE2D'))
@@ -99,7 +99,7 @@ end
 
 % create a name for the output directories
 example = sprintf('flat_%d_%s', HdrData.USER7, ...
-    replace(HdrData.KSTNM, ' ', ''));
+    HdrData.KSTNM(ismember(HdrData.KSTNM, 33:126)));
 outputdir = sprintf('%s%s/', ddir, example);
 
 if HdrData.STDP == badval
