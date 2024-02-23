@@ -46,7 +46,7 @@ function [t_shift1, t_shift2, CCmax1, CCmax2, bath1, bath2, fcorners, ...
 % s1            scaling to minimize the misfit for first  SPECFEM2D 
 % s2            scaling to minimize the misfit for second SPECFEM2D 
 %
-% Last modified by sirawich-at-princeton.edu, 02/19/2024
+% Last modified by sirawich-at-princeton.edu, 02/23/2024
 
 defval('fopt', 2)
 defval('plt', true)
@@ -263,7 +263,7 @@ if plt
     ylabel('u_z (m)')
     set(ax3, 'FontSize', 8, 'Box', 'on', 'TickDir', 'both', ...
         'XTickLabel', {})
-    title(sprintf('synthetic vertical displacement: bp%.1f-%.1f', ...
+    title(sprintf('synthetic vertical displacement: bp%.2f-%.2f', ...
         fcorners(1), fcorners(2)), 'Interpreter', 'latex', 'FontSize', 11)
     axb3 = boxedlabel(ax3, 'northwest', 0.18, [], 'c');
 
@@ -310,7 +310,7 @@ if plt
     
     % fix the title
     axes(ax4);
-    title(sprintf(['acoustic pressure record: bp%.1f-%.1f W$^E$[%d %d]' ...
+    title(sprintf(['acoustic pressure record: bp%.2f-%.2f W$^E$[%d %d]' ...
         ' W$^W$[%d %d]'], fcorners(1), fcorners(2), window_envelope(1), ...
         window_envelope(2), window_waveform(1), window_waveform(2)), ...
         'Interpreter', 'latex', 'FontSize', 11)
