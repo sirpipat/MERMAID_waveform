@@ -43,7 +43,7 @@ function [t_cc, cc, t_rf, rf, d] = cctransplot(ddir1, ddir2, example, channel1, 
 % SPECFEM2D_INPUT_SETUP_FLAT, SPECFEM2D_INPUT_SETUP_RESPONSE, RUNFLATSIM,
 % SPECTRALDIVISION
 % 
-% Last modified by sirawich-at-princeton.edu, 02/16/2024
+% Last modified by sirawich-at-princeton.edu, 02/23/2024
 
 defval('channel1', {'bottom' 'displacement'})
 defval('channel2', {'hydrophone' 'pressure'})
@@ -73,7 +73,11 @@ end
 try
     par_file = sprintf('%sDATA/Par_file', ddir);
     tims_o = specfem2dtime(par_file, 2, sprintf('%sDATA/SOURCE', ddir));
-    binfile = ls2cell(sprintf('%sOUTPUT_FILES/Ux_file_*_d.bin', ddir), 1);
+    if strcmpi(chan, 'BXZ.semd')
+        binfile = ls2cell(sprintf('%sOUTPUT_FILES/Ux_file_*_d.bin', ddir), 1);
+    else
+        binfile = ls2cell(sprintf('%sOUTPUT_FILES/Up_file_*_p.bin', ddir), 1);
+    end
     data = freadseismograms(binfile{1}, par_file);
     if strcmpi(network, 'AA')
         seisdata_o = data(:, 1);
@@ -81,7 +85,6 @@ try
         seisdata_o = data(:, 2);
     end
 catch ME
-    keyboard;
     [tims_o, seisdata_o] = read_seismogram(sprintf('%sOUTPUT_FILES/%s.%s.%s', ...
         ddir, network, 'S0001', chan));
 end
