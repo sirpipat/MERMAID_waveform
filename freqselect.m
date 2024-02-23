@@ -29,7 +29,7 @@ function [fc, s, tmax] = freqselect(t, x, fs, plt, titlename, savename, option, 
 % tmax          timeshift to maximize signal-to-noise ratio given the band
 %               [0.4--10 Hz , bandpass fc , bandstop fc]
 %
-% Last modified by sirawich-at-princeton.edu, 02/12/2024
+% Last modified by sirawich-at-princeton.edu, 02/23/2024
 
 defval('option', 4)
 defval('plt_all', false)
@@ -42,7 +42,7 @@ fNq = fs/2;
 
 % list of corner frequency candidates
 delf=0.05;
-fcs_min = 0.10;
+fcs_min = 0.40;
 fcs_max = 2.05;
 fcs = fcs_min:delf:fcs_max; % previously 0.40:delf:2.05
 
