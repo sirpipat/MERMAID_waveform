@@ -46,7 +46,7 @@ function [t_shift1, t_shift2, CCmax1, CCmax2, bath1, bath2, fcorners, ...
 % s1            scaling to minimize the misfit for first  SPECFEM2D 
 % s2            scaling to minimize the misfit for second SPECFEM2D 
 %
-% Last modified by sirawich-at-princeton.edu, 02/23/2024
+% Last modified by sirawich-at-princeton.edu, 02/26/2024
 
 defval('fopt', 2)
 defval('plt', true)
@@ -185,7 +185,7 @@ if plt
     text(x_pos0, y_pos0, txtstr0, 'FontSize', 11, 'Interpreter', 'latex');
     % LaTeX string reporting the receiver
     txtstr1 = ['$$ \textnormal{MH-' ...
-               replace(hdr_o.KSTNM, ' ', '') ...
+               hdr_o.KSTNM(ismember(hdr_o.KSTNM, 33:126)) ...
                ', lat} = ' ...
                sprintf('%.2f', hdr_o.STLA) ...
                '^{\circ},~\textnormal{lon} = ' ...
@@ -323,7 +323,7 @@ if plt
     grid on
     ylim([-1 1])
     ylabel('X^W')
-    set(ax5, 'FontSize', 8, 'Box', 'on', 'TickDir', 'both', ...
+    set(ax5, 'FontSize', 8, 'Box', 'on', 'TickDir', 'both', ...ed
         'XTickLabel', {})
     title(sprintf('correlation coefficients (red - %s, blue - %s)', ...
         la{1}, la{2}), 'Interpreter', 'latex', 'FontSize', 11)
@@ -358,7 +358,7 @@ if plt
 
     set(gcf, 'Renderer', 'painters')
     savename = sprintf('%s_%d_%s.eps', mfilename, hdr_o.USER7, ...
-        replace(hdr_o.KSTNM, ' ', ''));
+        hdr_o.KSTNM(ismember(hdr_o.KSTNM, 33:126)));
     figdisp(savename, [], [], 2, [], 'epstopdf');
 end
 end

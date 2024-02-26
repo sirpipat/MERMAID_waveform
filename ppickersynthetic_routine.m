@@ -23,7 +23,7 @@ function ppickersynthetic_routine(sacfiles, option, method)
 % signal (any data points after the instance) to noise (any data points
 % before the instance) is the greatest.
 %
-% Last modified by sirawich-at-princeton.edu, 01/13/2022
+% Last modified by sirawich-at-princeton.edu, 02/26/2024
 
 % option 1: picking from raw seismogram
 if option == 1
@@ -88,7 +88,8 @@ if option == 1
             method_phrase = 'simplepicker_snr';
         end
         savename = sprintf('%s_raw_%s_%d_%s.eps', mfilename, ...
-            method_phrase, HdrData.USER7, replace(HdrData.KSTNM, ' ', ''));
+            method_phrase, HdrData.USER7, ...
+            HdrData.KSTNM(ismember(HdrData.KSTNM, 33:126)));
         figdisp(savename, [], [], 2, [], 'epstopdf');
         delete(gcf)
     end
@@ -176,7 +177,8 @@ else
             method_phrase = 'simplepicker_snr';
         end
         savename = sprintf('%s_filtered_%s_%d_%s.eps', mfilename, ...
-            method_phrase, HdrData.USER7, replace(HdrData.KSTNM, ' ', ''));
+            method_phrase, HdrData.USER7, ...
+            HdrData.KSTNM(ismember(HdrData.KSTNM, 33:126)));
         figdisp(savename, [], [], 2, [], 'epstopdf');
         delete(gcf)
     end

@@ -15,7 +15,7 @@ function fig = plotsac2(SeisData, HdrData, varargin)
 % SEE ALSO:
 % ARRIVAL2SAC, READSAC, PLOTSAC
 %
-% Last modified by Sirawich Pipatprathanporn, 12/08/2023
+% Last modified by Sirawich Pipatprathanporn, 02/26/2024
 
 % gets the information from SAC header
 [dt_ref, dt_B, dt_E, fs, npts, dts, tims] = gethdrinfo(HdrData);
@@ -106,7 +106,7 @@ ax1.Children = ax1.Children([end 1:(end-1)]);
 % adds title
 ax1.Title.String = sprintf('Origin: %s, ID: %d, Mw = %5.2f, Station: %s', ...
     string(dt_ref), HdrData.USER7, HdrData.MAG, ...
-    replace(HdrData.KSTNM, ' ', ''));
+    HdrData.KSTNM(ismember(HdrData.KSTNM, 33:126)));
 ax1.XLabel.String = 'time (s)';
 
 % move the title up a little bit

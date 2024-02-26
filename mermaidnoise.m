@@ -41,7 +41,7 @@ function noise = mermaidnoise(sacfiles, cutoff, fcorners, plt)
 % SEE ALSO:
 % FREQSELECT, PCHAVE
 %
-% Last modified by sirawich-at-princeton.edu, 02/02/2024
+% Last modified by sirawich-at-princeton.edu, 02/26/2024
 
 % bad value for a SAC header field
 badval = -12345;
@@ -155,7 +155,7 @@ for ii = 1:length(sacfiles)
         % title of the figure
         ax0 = subplot('Position', [0.15 0.93 0.70 0.01]);
         title_str = sprintf(['Event ID: %d, Station: %s, f_{corner}: ' ...
-            '%.2f--%.2f Hz'], hdr.USER7, replace(hdr.KSTNM, ' ', ''), ...
+            '%.2f--%.2f Hz'], hdr.USER7, hdr.KSTNM(ismember(hdr.KSTNM, 33:126)), ...
             fcorners(ii, 1), fcorners(ii, 2));
         title(ax0, title_str, 'FontSize', 12)
         set(ax0, 'Color', 'none')
@@ -207,7 +207,7 @@ for ii = 1:length(sacfiles)
         % save the figure
         set(gcf, 'Renderer', 'painters')
         savename = sprintf('%s_%d_%s', mfilename, hdr.USER7, ...
-            replace(hdr.KSTNM, ' ', ''));
+            hdr.KSTNM(ismember(hdr.KSTNM, 33:126)));
         figdisp(savename, [], [], 2, [], 'epstopdf')
     end
 end

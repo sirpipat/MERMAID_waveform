@@ -21,7 +21,7 @@ function [r, a] = presiduestat(sacfiles, fcs, plt)
 % r             residuals
 % a             amplitude (signed absolute maximum)
 %
-% Last modified by sirawich-at-princeton.edu, 11/26/2023
+% Last modified by sirawich-at-princeton.edu, 02/26/2024
 
 defval('fcs', [])
 defval('plt', false)
@@ -126,7 +126,7 @@ for ii = 1:n
         axes(axb)
         
         savename = sprintf('%s_seis_%d_%s.eps', mfilename, ...
-            HdrData.USER7, replace(HdrData.KSTNM, ' ', ''));
+            HdrData.USER7, HdrData.KSTNM(ismember(HdrData.KSTNM, 33:126)));
         figdisp(savename,[],[],2,[],'epstopdf');
         delete(fig)
     end

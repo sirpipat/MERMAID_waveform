@@ -40,7 +40,7 @@ function [t_shift, CCmax, lag, cc, s] = ...
 % CC            Vector of CC for every time shift in lag
 % s             Scaling to minimize the misfit
 %
-% Last modified by sirawich-at-princeton.edu, 10/13/2023
+% Last modified by sirawich-at-princeton.edu, 02/26/2024
 
 defval('envelope_window', [-20 20])
 defval('waveform_window', [-5 5])
@@ -211,11 +211,12 @@ if false
         sprintf('%.2f s', t_shift(3)), sprintf('%.2f s', t_shift(4)), ...
         sprintf('%.2f s', t_shift(5)));
     title(sprintf('Event ID: %d, Magnitude: %.2f, Distance: %.2f\\circ, Station: %s', ...
-        hdr_o.USER7, hdr_o.MAG, hdr_o.GCARC, replace(hdr_o.KSTNM, ' ', '')));
+        hdr_o.USER7, hdr_o.MAG, hdr_o.GCARC, ...
+        hdr_o.KSTNM(ismember(hdr_o.KSTNM, 33:126))));
 
     set(gcf, 'Renderer', 'painters')
     savename = sprintf('%s_%d_%s_extended.eps', mfilename, hdr_o.USER7, ...
-        replace(hdr_o.KSTNM, ' ', ''));
+        hdr_o.KSTNM(ismember(hdr_o.KSTNM, 33:126)));
     figdisp(savename, [], [], 2, [], 'epstopdf');
 end
 
@@ -347,10 +348,10 @@ if plt
         set(gcf, 'Renderer', 'painters')
         if ii == 0
             savename = sprintf('%s_%d_%s.eps', mfilename, hdr_o.USER7, ...
-                replace(hdr_o.KSTNM, ' ', ''));
+                hdr_o.KSTNM(ismember(hdr_o.KSTNM, 33:126)));
         else
             savename = sprintf('%s_%d_%s_rank%d.eps', mfilename, hdr_o.USER7, ...
-                replace(hdr_o.KSTNM, ' ', ''), ii);
+                hdr_o.KSTNM(ismember(hdr_o.KSTNM, 33:126)), ii);
         end
         figdisp(savename, [], [], 2, [], 'epstopdf');
     end

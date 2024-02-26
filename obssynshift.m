@@ -22,7 +22,7 @@ function [t_shift, CCmax, lag, CC, x_o, x_s, dts] = obssynshift(obs, syn)
 % SEE ALSO:
 % CCSHIFT
 %
-% Last modified by sirawich-at-princeton.edu, 10/20/2021
+% Last modified by sirawich-at-princeton.edu, 02/26/2024
 
 badval = -12345;
 
@@ -132,7 +132,7 @@ title('applied best timeshift for envelope functions')
 
 % save the figure to $EPS
 savename = sprintf('%s_%d_%s', mfilename, HdrData_o.USER7, ...
-    replace(HdrData_o.KSTNM, ' ', ''));
+    HdrData_o.KSTNM(ismember(HdrData_o.KSTNM, 33:126)));
 % check whether the filename is already taken
 if exist([getenv('EPS') savename '.pdf'], 'file')
     % append 01, 02, ... if the filename is already taken

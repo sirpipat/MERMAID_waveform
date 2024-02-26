@@ -11,7 +11,7 @@ function plotfreqbands(sacfiles, is_pass)
 % is_pass       true  : bandpass                [default]
 %               false : original - bandpass
 %
-% Last modified by sirawich-at-princeton.edu, 05/31/2022
+% Last modified by sirawich-at-princeton.edu, 02/26/2024
 
 defval('is_pass', true)
 
@@ -110,7 +110,7 @@ for ii = 1:length(sacfiles)
             if jj == 1
                 title(sprintf('Event ID: %d, Magnitude: %.2f, Distance: %.2f^{\\circ}, Station: %s', ...
                     hdrdata.USER7, hdrdata.MAG, hdrdata.GCARC, ...
-                    replace(hdrdata.KSTNM, ' ', '')));
+                    hdrdata.KSTNM(ismember(hdrdata.KSTNM, 33:126))));
             end
 
             % label frequency bands
@@ -206,7 +206,7 @@ for ii = 1:length(sacfiles)
         % save a figure
         set(gcf, 'Renderer', 'painters')
         savename = sprintf('%s_%d_%s', mfilename, hdrdata.USER7, ...
-            replace(hdrdata.KSTNM, ' ', ''));
+            hdrdata.KSTNM(ismember(hdrdata.KSTNM, 33:126)));
         figdisp(savename, [], [], 2, [], 'epstopdf');
     catch ME
         fprintf('%s\n', ME.getReport);
