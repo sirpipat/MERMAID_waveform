@@ -35,7 +35,7 @@ function plotmermaid(obsmasterdir, synmasterdir, fcorners, CCmaxs, ...
 % SEE ALSO:
 % PLOTINSTASEIS, PLOTSYNTHETICS, PLOTRECORDS, ARRAYCCSHIFTPLOT
 %
-% Last modified by sirawich-at-princeton.edu, 07/05/2023
+% Last modified by sirawich-at-princeton.edu, 02/28/2024
 
 defval('op1', 2)
 defval('op2', 2)
@@ -55,6 +55,8 @@ end
 % get station number
 metadata.STNM = zeros(size(metadata.T0));
 for ii = 1:length(metadata.STNM)
+    % remove whitespace first
+    metadata.KSTNM{ii} = indeks(metadata.KSTNM{ii},1:5);
     metadata.STNM(ii) = str2double(indeks(metadata.KSTNM{ii},4:5));
 end
 
@@ -208,6 +210,7 @@ for ii = 1:length(uniqevent)
         %% list metadata for plotting traces
         % filter out the data from other events
         stationid = metadata.STNM(whevent);
+        stationname = metadata.KSTNM(whevent);
         CCmax = CCmaxs(whevent);
         t_shift = t_shifts(whevent);
         fcs = fcorners(whevent, :);
@@ -222,6 +225,7 @@ for ii = 1:length(uniqevent)
             % sort everything by epicentral distance
             [gcarc, i_gcarc] = sort(gcarc);
             stationid = stationid(i_gcarc);
+            stationname = stationname(i_gcarc);
             CCmax = CCmax(i_gcarc);
             t_shift = t_shift(i_gcarc);
             fcs = fcs(i_gcarc, :);
@@ -232,6 +236,7 @@ for ii = 1:length(uniqevent)
             [azim, i_azim] = sort(azim);
             gcarc = gcarc(i_azim);
             stationid = stationid(i_azim);
+            stationname = stationname(i_azim);
             CCmax = CCmax(i_azim);
             t_shift = t_shift(i_azim);
             fcs = fcs(i_azim, :);
@@ -297,9 +302,15 @@ for ii = 1:length(uniqevent)
         
         for jj = 1:sum(whevent)
             % read the observed seismogram
-            obsfile = cindeks(ls2cell(sprintf('%s%d/*.%02d_*.sac', ...
-                obsmasterdir, uniqevent(ii), stationid(jj)), 1), 1);
-            [seis_o, hdr_o, ~, ~, tims_o] = readsac(obsfile);
+            try
+                obsfile = cindeks(ls2cell(sprintf('%s%d/*.%02d_*.sac', ...
+                    obsmasterdir, uniqevent(ii), stationid(jj)), 1), 1);
+                [seis_o, hdr_o, ~, ~, tims_o] = readsac(obsfile);
+            catch ME
+                obsfile = cindeks(ls2cell(sprintf('%s%d/*.%04d_*.sac', ...
+                    obsmasterdir, uniqevent(ii), stationid(jj)), 1), 1);
+                [seis_o, hdr_o, ~, ~, tims_o] = readsac(obsfile);
+            end
             [~, ~, ~, fs_o] = gethdrinfo(hdr_o);
             tims_o = tims_o - hdr_o.T0;
             
@@ -309,9 +320,15 @@ for ii = 1:length(uniqevent)
             pres_o = real(pres_o);
             
             % read the synthetic vertical dispalcement at the ocean bottom
-            synfile = cindeks(ls2cell(sprintf('%s%d/*_%02d_0_*.sac', ...
-                synmasterdir, uniqevent(ii), stationid(jj)), 1), 1);
-            [~, hdr_s, ~, ~, tims_s] = readsac(synfile);
+            try
+                synfile = cindeks(ls2cell(sprintf('%s%d/*_%02d_0_*.sac', ...
+                    synmasterdir, uniqevent(ii), stationid(jj)), 1), 1);
+                [~, hdr_s, ~, ~, tims_s] = readsac(synfile);
+            catch ME
+                synfile = cindeks(ls2cell(sprintf('%s%d/*_%04d_0_*.sac', ...
+                    synmasterdir, uniqevent(ii), stationid(jj)), 1), 1);
+                [~, hdr_s, ~, ~, tims_s] = readsac(synfile);
+            end
             
             % filter using the chosen corner frequencies
             if op4 == 2
@@ -420,11 +437,11 @@ for ii = 1:length(uniqevent)
             
             % add MERMAID number text (and corner frequencies)
             if op4 == 1
-                number_str = sprintf('$$ \\textnormal{P%04d} $$', ...
-                    stationid(jj));
+                number_str = sprintf('$$ \\textnormal{%s} $$', ...
+                    stationname{jj});
             else
-                number_str = sprintf('$$ \\textnormal{P%04d}, %4.2f-%4.2f\\textnormal{~Hz}$$', ...
-                    stationid(jj), fcs(jj,1), fcs(jj,2));
+                number_str = sprintf('$$ \\textnormal{%s}, %4.2f-%4.2f\\textnormal{~Hz}$$', ...
+                    stationname{jj}, fcs(jj,1), fcs(jj,2));
             end
             
             if is_label_left
