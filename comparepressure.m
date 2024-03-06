@@ -40,7 +40,7 @@ function [t_shift, CCmax, lag, cc, s] = ...
 % CC            Vector of CC for every time shift in lag
 % s             Scaling to minimize the misfit
 %
-% Last modified by sirawich-at-princeton.edu, 02/26/2024
+% Last modified by sirawich-at-princeton.edu, 03/06/2024
 
 defval('envelope_window', [-20 20])
 defval('waveform_window', [-5 5])
@@ -238,6 +238,11 @@ if plt
         mod(dt_origin.Year, 100));
     [~,~,CMT] = readCMT(fname, strcat(getenv('IFILES'),'CMT'), tbeg, ...
         tend, mblo, mbhi, depmin, depmax, 'hypocenter');
+    % check centroid moment tensor if readCMT did not reutrn anything
+    if isempty(CMT)
+        [~,~,CMT] = readCMT(fname, strcat(getenv('IFILES'),'CMT'), tbeg, ...
+            tend, mblo, mbhi, depmin, depmax, 'centroid');
+    end
     
     for ii = 1:min(numpicks, length(pks))
         figure(1)
