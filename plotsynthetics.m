@@ -31,7 +31,7 @@ function plotsynthetics(obsmasterdir, synmasterdir, specmasterdir, ...
 % SEE ALSO:
 % PLOTMERMAID, PLOTINSTASEIS, PLOTRECORDS, ARRAYCCSHIFTPLOT
 %
-% Last modified by sirawich-at-princeton.edu, 02/28/2024
+% Last modified by sirawich-at-princeton.edu, 03/06/2024
 
 defval('op1', 2)
 defval('op2', 2)
@@ -63,7 +63,7 @@ metadata.DLNT = t_shifts ./ (metadata.T0 - metadata.USER8);
 for ii = 1:length(uniqevent)
     whevent = (metadata.USER7 == uniqevent(ii));
     
-    if uniqevent(ii) <= 11618973
+    if uniqevent(ii) ~= 11618973
         continue
     end
     
