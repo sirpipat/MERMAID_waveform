@@ -1,22 +1,27 @@
 function filename = writepp2024catalog(objstruct, filename)
-% filename = WRITEPP2023CATALOG(obsstruct, filename)
+% filename = WRITEPP2024CATALOG(obsstruct, filename)
 %
-% Write the catalog as plain text to a file
+% Write the catalog as plain text to a file.
 %
 % INPUT:
 % objstruct         a struct containing
-%   bla
-%   bla
+%   t_shift             output from BATHYMATTER
+%   CCmaxs              output from BAHTYMATTER
+%   fcorners            output from FREQSELECT or BAHTYMATTER
+%   metadata            output from BATHYMATTER, containing sac headers
+%   snr                 output from FREQSELECT
+%   cmt                 CMT solution from readCMT
+%   presiduals          first output from PRESIDUESTAT
 % filename          which file to write the catalog
-%                   [Default: ...
+%                   [Default: $MERMAID2/DATA/pp2024catalog.txt]
 %
 % OUTPUT:
 % filename          name of the file where the catalog is written
 %
 % SEE ALSO:
-% READPP2024CATALOG
+% BATHYMATTER, FREQSELECT, PRESIDUESTAT, READCMT, READPP2024CATALOG
 %
-% Last modified by sirawich-at-princeton.edu, 12/08/2023
+% Last modified by sirawich-at-princeton.edu, 03/01/2024
 
 defval('filename', fullfile(getenv('MERMAID2'), 'DATA','pp2024catalog.txt'))
 
@@ -78,7 +83,7 @@ baz_fmt           = gcarc_fmt        ; baz_hdr = gcarc_hdr;
 
 fcorner_lower_fmt = '%4.2f      '    ; fcorner_lower_hdr = '%10s';
 fcorner_upper_fmt = fcorner_lower_fmt; fcorner_upper_hdr = fcorner_lower_hdr;
-snr_all_fmt       = '%10.4f      '   ; snr_all_hdr = '%16s';
+snr_all_fmt       = '%11.4f      '   ; snr_all_hdr = '%16s';
 snr_pass_fmt      = snr_all_fmt      ; snr_pass_hdr = snr_all_hdr;
 snr_stop_fmt      = snr_all_fmt      ; snr_stop_hdr = snr_all_hdr;
 
@@ -228,24 +233,31 @@ fprintf(fid, hdr, hdr_unit{:});
 for ii = 1:n
     % Use the information from CMT solution first. If CMT solution does not
     % exist, use the information from SAC metadata header
-    if strcmp(objstruct.cmt.DateTime{ii}, '')
-        % calculate the origin time
-        dt_ref = datetime(objstruct.metadata.NZYEAR(ii), 1, 0, ...
-                          objstruct.metadata.NZHOUR(ii), ...
-                          objstruct.metadata.NZMIN(ii), ...
-                          objstruct.metadata.NZSEC(ii), ...
-                          objstruct.metadata.NZMSEC(ii), ...
-                          'TimeZone', 'UTC', ...
-                          'Format', 'uuuu-MM-dd HH:mm:ss.SSSSSS') ...
-                 + days(objstruct.metadata.NZJDAY(ii));
-        dt_origin = dt_ref + seconds(objstruct.metadata.USER8(ii));
-        origin_date_time = split(string(dt_origin), ' ');
-        mag = objstruct.metadata.MAG(ii);
-        ev = irisFetch.Events('eventID', string(objstruct.metadata.USER7(ii)));
-        mag_type = ev.PreferredMagnitudeType;
-    else
-        origin_date_time = split(objstruct.cmt.DateTime{ii}, ' ');
-        mag = objstruct.cmt.Mw(ii);
+    try
+        if strcmp(objstruct.cmt.DateTime{ii}, '')
+            % set eventname to N/A
+            objstruct.cmt.EventName{ii} = 'N/A';
+            % calculate the origin time
+            dt_ref = datetime(objstruct.metadata.NZYEAR(ii), 1, 0, ...
+                              objstruct.metadata.NZHOUR(ii), ...
+                              objstruct.metadata.NZMIN(ii), ...
+                              objstruct.metadata.NZSEC(ii), ...
+                              objstruct.metadata.NZMSEC(ii), ...
+                              'TimeZone', 'UTC', ...
+                              'Format', 'uuuu-MM-dd HH:mm:ss.SSSSSS') ...
+                     + days(objstruct.metadata.NZJDAY(ii));
+            dt_origin = dt_ref + seconds(objstruct.metadata.USER8(ii));
+            origin_date_time = split(string(dt_origin), ' ');
+            mag = objstruct.metadata.MAG(ii);
+            ev = irisFetch.Events('eventID', string(objstruct.metadata.USER7(ii)));
+            mag_type = ev.PreferredMagnitudeType;
+        else
+            origin_date_time = split(objstruct.cmt.DateTime{ii}, ' ');
+            mag = objstruct.cmt.Mw(ii);
+            mag_type = 'Mww';
+        end
+    catch ME
+        % ERROR for eventID 11618973
         mag_type = 'Mww';
     end
     origin_date = replace(origin_date_time{1}, '/', '-');
