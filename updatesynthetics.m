@@ -15,7 +15,7 @@ function updatesynthetics(fname, model)
 % KTn           phase name of n-th phase
 % USER9         ray parameter of the first arrival phase
 %
-% Last modified by sirawich-at-princeton.edu, 10/04/2023
+% Last modified by sirawich-at-princeton.edu, 03/14/2024
 
 defval('model', 'ak135')
 
@@ -71,6 +71,45 @@ for ii = 1:length(tp)
 end
 [~, is] = sort(tp);
 tt = tt(is);
+
+if new_version
+    HdrData.USER9 = tt(1).rayparameter;
+else
+    HdrData.USER9 = tt(1).rayParam;
+end
+
+% compute the time adjustment to account for receiver in Instaseis 
+% is at the surface instead of the ocean bottom.
+if strcmpi(model, 'ak135')
+    vp = ak135('depths', -HdrData.STEL / 1000, 'dcbelow', false).vp;
+elseif strcmpi(model, 'iasp91')
+    vp = iasp91('depths', -HdrData.STEL / 1000, 'dcbelow', false).vp;
+elseif strcmpi(model, 'prem')
+    vp = prem('depths', -HdrData.STEL / 1000, 'dcbelow', false).vp;
+else
+    warning(['This model (%s) is not implemented for this function' ...
+            'yet. PREM is used instead.\n'], model);
+    vp = prem('depths', -HdrData.STEL / 1000, 'dcbelow', false).vp;
+end
+R_Earth = 6371;
+theta_i = real(asin(HdrData.USER9 * vp / (R_Earth + HdrData.STEL / 1000)));
+t_adjust = (HdrData.STEL / 1000) / (vp * cos(theta_i));
+
+% adjust the reference time, begin time, and end time accordingly
+% we use dt_B output here to acount for fractions of MSEC as well
+[~, dt_ref_true] = gethdrinfo(HdrData);
+dt_ref_true = dt_ref_true + seconds(t_adjust);
+HdrData.NZYEAR = dt_ref_true.Year;
+HdrData.NZJDAY = floor(days(dt_ref_true - datetime(dt_ref_true.Year, 1, ...
+    0, 0, 0, 0, 0, 'TimeZone', 'UTC')));
+HdrData.NZHOUR = dt_ref_true.Hour;
+HdrData.NZMIN = dt_ref_true.Minute;
+HdrData.NZSEC = floor(dt_ref_true.Second);
+HdrData.NZMSEC = floor((dt_ref_true.Second - HdrData.NZSEC) * 1000);
+B = dt_ref_true.Second - HdrData.NZSEC - (HdrData.NZMSEC / 1000);
+E = HdrData.E + (B - HdrData.B);
+HdrData.B = B;
+HdrData.E = E;
 
 % clear the existing arrival-time tags
 HdrData.T0 = -12345;
@@ -131,11 +170,6 @@ for ii = 1:length(tt)
         otherwise
             break
     end
-end
-if new_version
-    HdrData.USER9 = tt(1).rayparameter;
-else
-    HdrData.USER9 = tt(1).rayParam;
 end
 
 % save SAC file
