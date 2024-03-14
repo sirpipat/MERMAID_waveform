@@ -46,7 +46,7 @@ function [t_shift1, t_shift2, CCmax1, CCmax2, bath1, bath2, fcorners, ...
 % s1            scaling to minimize the misfit for first  SPECFEM2D 
 % s2            scaling to minimize the misfit for second SPECFEM2D 
 %
-% Last modified by sirawich-at-princeton.edu, 03/06/2024
+% Last modified by sirawich-at-princeton.edu, 03/13/2024
 
 defval('fopt', 2)
 defval('plt', true)
@@ -168,6 +168,9 @@ if plt
     % get CMT solution to report
     fname = sprintf('%s%02d.ndk', monthname{dt_origin.Month}, ...
         mod(dt_origin.Year, 100));
+    if ~exist(fullfile(getenv('IFILES'), 'CMT', fname), 'file')
+        fname = 'qcmt.ndk';
+    end
     [~,~,CMT] = readCMT(fname, strcat(getenv('IFILES'),'CMT'), tbeg, ...
         tend, mblo, mbhi, depmin, depmax, 'hypocenter');
     % check centroid moment tensor if readCMT did not reutrn anything
