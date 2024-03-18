@@ -27,13 +27,15 @@ function updateheader(ddirin, arrfile, evtfile, ddirout)
 % - STEL        elevation of the seafloor at MERMAID
 % - USER4       travel time residue: pick - synthetic
 % - USER5       theoretical travel time of the first arrival phase using
-%               taupTime.m and ak135 model
+%               taupTime.m and ak135 model w/o bathymetry
 % - USER6       Time difference between reference model with bathymetry and
-%               reference model w/o bathymetry
+%               reference model w/o bathymetry -- Note that the theoretical
+%               trevel time with ak135 reference model w/ bathymetry is
+%               USER5 + USER6
 % - USER7       IRIS event ID
 % - USER8       event rupture time relatve to reference time in seconds
 %
-% Last modified by sirawich-at-princeton.edu, 09/13/2021
+% Last modified by sirawich-at-princeton.edu, 03/17/2024
 
 [allfiles, fndex] = gatherrecords(ddirin, [], [], 'sac', []);
 
