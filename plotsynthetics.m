@@ -63,7 +63,7 @@ metadata.DLNT = t_shifts ./ (metadata.T0 - metadata.USER8);
 for ii = 1:length(uniqevent)
     whevent = (metadata.USER7 == uniqevent(ii));
     
-    if uniqevent(ii) ~= 11618973
+    if uniqevent(ii) == 11618973
         continue
     end
     
