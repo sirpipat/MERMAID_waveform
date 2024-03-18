@@ -17,7 +17,7 @@ function plotmeasurementstats(obs_struct, min_cc, min_snr, min_gcarc)
 % min_snr           Signal-to-noise ratio cut-off   [default: 0]
 % min_gcarc         Epicentral distance cut-off     [default: 0]
 %
-% Last modified by sirawich-at-princeton.edu: 11/09/2023
+% Last modified by sirawich-at-princeton.edu: 03/17/2024
 
 defval('min_cc', 0)
 defval('min_snr', 0)
@@ -29,7 +29,7 @@ dlnt = obs_struct.t_shifts(:,2) ./ ...
     (obs_struct.metadata.T0 - obs_struct.metadata.USER8);
 
 % travel time
-ttravel = obs_struct.metadata.USER5;
+ttravel = obs_struct.metadata.USER5 + obs_struct.metadata.USER6;
 
 % corrected time shift
 t_shift_corrected = obs_struct.t_shifts(:,2) + obs_struct.presiduals;
@@ -41,7 +41,8 @@ dlnt_corrected = t_shift_corrected ./ ttravel;
 
 %% filter out for some variables
 % remove outliers for SNR
-[~, i_snr] = rmoutliers(obs_struct.snr);
+snr = obs_struct.snr(:, 2);
+[~, i_snr] = rmoutliers(snr);
 i_snr = ~i_snr;
 
 % remove outliers for relative travel time
@@ -69,7 +70,7 @@ i_dlnt_corrected4 = and(dlnt_corrected >= -0.03, dlnt_corrected <= 0.03);
 
 % limit to only good match
 i_cc = (obs_struct.CCmaxs(:,2) >= min_cc);
-i_snr2 = (obs_struct.snr >= min_snr);
+i_snr2 = (snr >= min_snr);
 i_gcarc = (obs_struct.metadata.GCARC >= min_gcarc);
 i_dlnt = and(dlnt >= prctile(dlnt, 5), dlnt <= prctile(dlnt, 95));
 i_mask = and(and(i_cc, i_snr2), i_gcarc);
@@ -78,8 +79,8 @@ i_mask = and(and(i_cc, i_snr2), i_gcarc);
 variables = [...
     variableconstructor('t_shift', obs_struct.t_shifts(:,2), 'time shift (s)', [], 1, []);
     variableconstructor('cc', obs_struct.CCmaxs(:,2), 'correlation coefficient', [min_cc 1], 0.05, []);
-    variableconstructor('log10snr', log10(obs_struct.snr), 'log_{10} signal-to-noise ratio', [], 0.1, []);
-    variableconstructor('snr', obs_struct.snr, 'signal-to-noise ratio', [], 10, i_snr);
+    variableconstructor('log10snr', log10(snr), 'log_{10} signal-to-noise ratio', [], 0.1, []);
+    variableconstructor('snr', snr, 'signal-to-noise ratio', [], 10, i_snr);
     variableconstructor('dlnt', dlnt * 100, 'relative time shift (%)', [], 10, []);
     variableconstructor('dlnt2', dlnt * 100, 'relative time shift, outliers removed (%)', [-3 3], 0.2, i_dlnt2);
     variableconstructor('ttravel', ttravel, 'travel time (s)', [], 100, i_ttravel);
