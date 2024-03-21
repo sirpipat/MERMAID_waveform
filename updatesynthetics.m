@@ -15,7 +15,7 @@ function updatesynthetics(fname, model)
 % KTn           phase name of n-th phase
 % USER9         ray parameter of the first arrival phase
 %
-% Last modified by sirawich-at-princeton.edu, 03/14/2024
+% Last modified by sirawich-at-princeton.edu, 03/20/2024
 
 defval('model', 'ak135')
 
@@ -97,8 +97,8 @@ t_adjust = (HdrData.STEL / 1000) / (vp * cos(theta_i));
 
 % adjust the reference time, begin time, and end time accordingly
 % we use dt_B output here to acount for fractions of MSEC as well
-[~, dt_ref_true] = gethdrinfo(HdrData);
-dt_ref_true = dt_ref_true + seconds(t_adjust);
+[~, dt_origin] = gethdrinfo(HdrData);
+dt_ref_true = dt_origin + seconds(t_adjust);
 HdrData.NZYEAR = dt_ref_true.Year;
 HdrData.NZJDAY = floor(days(dt_ref_true - datetime(dt_ref_true.Year, 1, ...
     0, 0, 0, 0, 0, 'TimeZone', 'UTC')));
@@ -110,6 +110,10 @@ B = dt_ref_true.Second - HdrData.NZSEC - (HdrData.NZMSEC / 1000);
 E = HdrData.E + (B - HdrData.B);
 HdrData.B = B;
 HdrData.E = E;
+
+% event rupture time relatve to reference time in seconds
+t_rupture = seconds(dt_origin - dt_ref_true) - HdrData.B;
+HdrData.USER8 = t_rupture;
 
 % clear the existing arrival-time tags
 HdrData.T0 = -12345;
@@ -135,42 +139,47 @@ HdrData.KT8 = '-12345  ';
 HdrData.KT9 = '-12345  ';
 
 % update header
+% Since tt(ii).time is relative to the event rupture time (USER8) not the
+% reference time, but Tn is relative to the reference time, then Tn has to
+% be updated as well.
 for ii = 1:length(tt)
     switch ii
         case 1
-            HdrData.T0 = tt(ii).time;
+            HdrData.T0 = tt(ii).time + t_rupture;
             HdrData.KT0 = tt(ii).phaseName;
         case 2
-            HdrData.T1 = tt(ii).time;
+            HdrData.T1 = tt(ii).time + t_rupture;
             HdrData.KT1 = tt(ii).phaseName;
         case 3
-            HdrData.T2 = tt(ii).time;
+            HdrData.T2 = tt(ii).time + t_rupture;
             HdrData.KT2 = tt(ii).phaseName;
         case 4
-            HdrData.T3 = tt(ii).time;
+            HdrData.T3 = tt(ii).time + t_rupture;
             HdrData.KT3 = tt(ii).phaseName;
         case 5
-            HdrData.T4 = tt(ii).time;
+            HdrData.T4 = tt(ii).time + t_rupture;
             HdrData.KT4 = tt(ii).phaseName;
         case 6
-            HdrData.T5 = tt(ii).time;
+            HdrData.T5 = tt(ii).time + t_rupture;
             HdrData.KT5 = tt(ii).phaseName;
         case 7
-            HdrData.T6 = tt(ii).time;
+            HdrData.T6 = tt(ii).time + t_rupture;
             HdrData.KT6 = tt(ii).phaseName;
         case 8
-            HdrData.T7 = tt(ii).time;
+            HdrData.T7 = tt(ii).time + t_rupture;
             HdrData.KT7 = tt(ii).phaseName;
         case 9
-            HdrData.T8 = tt(ii).time;
+            HdrData.T8 = tt(ii).time + t_rupture;
             HdrData.KT8 = tt(ii).phaseName;
         case 10
-            HdrData.T9 = tt(ii).time;
+            HdrData.T9 = tt(ii).time + t_rupture;
             HdrData.KT9 = tt(ii).phaseName;
         otherwise
             break
     end
 end
+
+
 
 % save SAC file
 writesac(SeisData, HdrData, fname);
