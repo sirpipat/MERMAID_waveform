@@ -81,15 +81,15 @@ end
 % compute the time adjustment to account for receiver in Instaseis 
 % is at the surface instead of the ocean bottom.
 if strcmpi(model, 'ak135')
-    vp = ak135('depths', -HdrData.STEL / 1000, 'dcbelow', false).vp;
+    vp = getfield(ak135('depths', -HdrData.STEL / 1000, 'dcbelow', false), 'vp');
 elseif strcmpi(model, 'iasp91')
-    vp = iasp91('depths', -HdrData.STEL / 1000, 'dcbelow', false).vp;
+    vp = getfield(iasp91('depths', -HdrData.STEL / 1000, 'dcbelow', false), 'vp');
 elseif strcmpi(model, 'prem')
-    vp = prem('depths', -HdrData.STEL / 1000, 'dcbelow', false).vp;
+    vp = getfield(prem('depths', -HdrData.STEL / 1000, 'dcbelow', false), 'vp');
 else
     warning(['This model (%s) is not implemented for this function' ...
             'yet. PREM is used instead.\n'], model);
-    vp = prem('depths', -HdrData.STEL / 1000, 'dcbelow', false).vp;
+    vp = getfield(prem('depths', -HdrData.STEL / 1000, 'dcbelow', false), 'vp');
 end
 R_Earth = 6371;
 theta_i = real(asin(HdrData.USER9 * vp / (R_Earth + HdrData.STEL / 1000)));
