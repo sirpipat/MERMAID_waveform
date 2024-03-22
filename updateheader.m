@@ -16,6 +16,8 @@ function updateheader(ddirin, arrfile, evtfile, ddirout)
 % EventID. It updates the following header fields:
 % - T0          time of the first arrival pick 
 % - KT0         name of the first arrival phase
+% - T1          time of the first P-wave arrival at ocean bottom
+% - KT1         name of the first P-wave arrival at ocean bottom
 % - AZ          azimuth
 % - BAZ         back azimuth
 % - DIST        epicentral distance in km
@@ -27,15 +29,19 @@ function updateheader(ddirin, arrfile, evtfile, ddirout)
 % - STEL        elevation of the seafloor at MERMAID
 % - USER4       travel time residue: pick - synthetic
 % - USER5       theoretical travel time of the first arrival phase using
-%               taupTime.m and ak135 model
+%               taupTime.m and ak135 model w/o bathymetry
 % - USER6       Time difference between reference model with bathymetry and
-%               reference model w/o bathymetry
+%               reference model w/o bathymetry -- Note that the theoretical
+%               trevel time with ak135 reference model w/ bathymetry is
+%               USER5 + USER6
 % - USER7       IRIS event ID
 % - USER8       event rupture time relatve to reference time in seconds
+% - USER9       ray parameter of the first P-wave arrival phase (KT1)
 %
-% Last modified by sirawich-at-princeton.edu, 09/13/2021
+% Last modified by sirawich-at-princeton.edu, 03/18/2024
 
-[allfiles, fndex] = gatherrecords(ddirin, [], [], 'sac', []);
+%[allfiles, fndex] = gatherrecords(ddirin, [], [], 'sac', []);
+[allfiles, fndex] = allfilen('/Users/sirawich/research/processed_data/MERMAID_reports_updated/', 2);
 
 [sac, eqtime, eqlat, eqlon, eqregion, eqdepth, eqdist, eqmag, ...
     eqphase1, eqid, sacdate, eqdate] = readevt2txt(evtfile, [], ...
@@ -46,12 +52,16 @@ function updateheader(ddirin, arrfile, evtfile, ddirout)
     
 
 for ii = 1:fndex
+    % load the SAC file we want to update
     [SeisData, HdrData, ~, ~, ~] = readsac(allfiles{ii});
     [dt_ref, ~, ~, ~, ~, ~, ~] = gethdrinfo(HdrData);
+    
+    % determine which entries from the first arrival pick files and event
+    % files for the update
     firstarrival_index = strcmp(s, removepath(allfiles{ii}));
     event_index = strcmp(sac, removepath(allfiles{ii}));
     
-    % update header
+    %% update header
     if any(firstarrival_index)
         HdrData.T0 = dat(firstarrival_index);   % first arrival time
         HdrData.KT0 = ph{firstarrival_index};   % first arrival phase
@@ -90,7 +100,69 @@ for ii = 1:fndex
     HdrData.STEL = interp2(lats, lons, elev, HdrData.STLA, ...
         mod(HdrData.STLO, 360));
     
-    % write the updated sac file
+    %% determine the ray parameter of the first arrival phase
+    % Try to use TauP 1.3.0 or newer where we can specify receiver depth
+    if any(event_index)
+        try
+            tt = tauptime('mod', 'ak135', ...
+                          'depth', HdrData.EVDP, ...
+                          'gcarc', HdrData.GCARC, ...
+                          'ph', 'p,P,PP,PKP,PKIKP', ...
+                          'stadepth', -HdrData.STEL/1000);
+            new_version = true;
+        catch ME
+        % OLD VERSION
+        % compute theoretical travel times at the ocean bottom below MERMAID.
+        % [lat lon] of the receiver is slightly shifted if incident angle is not
+        % close to zero.
+            tt = taupPierce('ak135', HdrData.EVDP, ...
+                'p,P,PP,PKP,PKIKP', ...
+                'sta', [HdrData.STLA HdrData.STLO], ...
+                'evt', [HdrData.EVLA HdrData.EVLO], ...
+                'pierce', -HdrData.STEL/1000, 'nodiscon');
+
+            % remove all zero piercings
+            for jj = 1:length(tt)
+                index = length(tt(jj).pierce.p);
+                while tt(jj).pierce.time(index) <= 0 && index > 1
+                    index = index - 1;
+                end
+                tt(jj).time = tt(jj).pierce.time(index);
+                tt(jj).distance = tt(jj).pierce.distance(index);
+            end
+            new_version = false;
+        end
+
+        % keep only one arrival for each phase
+        phases = cell(size(tt));
+        for jj = 1:length(phases)
+            if new_version
+                tt(jj).phaseName = tt(jj).phase;
+            end
+            phases{jj} = tt(jj).phaseName;
+        end
+        [~, ia] = unique(phases);
+        tt = tt(ia);
+
+        % sort the arrivals by time
+        tp = zeros(size(tt));
+        for jj = 1:length(tp)
+            tp(jj) = tt(jj).time;
+        end
+        [~, is] = sort(tp);
+        tt = tt(is);
+
+        if new_version
+            HdrData.USER9 = tt(1).rayparameter;
+        else
+            HdrData.USER9 = tt(1).rayParam;
+        end
+
+        HdrData.T1 = tt(1).time;
+        HdrData.KT1 = tt(1).phaseName;
+    end
+    
+    %% write the updated sac file
     system(sprintf('mkdir -p %s%s', ddirout, foldername));
     sacfile = strcat(ddirout, foldername, '/', removepath(allfiles{ii}));
     writesac(SeisData, HdrData, sacfile);

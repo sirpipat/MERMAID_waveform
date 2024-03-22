@@ -31,7 +31,7 @@ function plotsynthetics(obsmasterdir, synmasterdir, specmasterdir, ...
 % SEE ALSO:
 % PLOTMERMAID, PLOTINSTASEIS, PLOTRECORDS, ARRAYCCSHIFTPLOT
 %
-% Last modified by sirawich-at-princeton.edu, 03/06/2024
+% Last modified by sirawich-at-princeton.edu, 03/20/2024
 
 defval('op1', 2)
 defval('op2', 2)
@@ -63,7 +63,7 @@ metadata.DLNT = t_shifts ./ (metadata.T0 - metadata.USER8);
 for ii = 1:length(uniqevent)
     whevent = (metadata.USER7 == uniqevent(ii));
     
-    if uniqevent(ii) ~= 11618973
+    if uniqevent(ii) == 11618973
         continue
     end
     
@@ -485,9 +485,9 @@ for ii = 1:length(uniqevent)
             
             if is_label_left && prev_label_top > y_norm
                 if op3 == 1
-                    [x_norm, y_norm] = true2normposition(ax2, 32.5, y_values(jj));
+                    [x_norm, y_norm] = true2normposition(ax2, 29.5, y_values(jj));
                 else
-                    [x_norm, y_norm] = true2normposition(ax2, 27.5, y_values(jj));
+                    [x_norm, y_norm] = true2normposition(ax2, 26.0, y_values(jj));
                 end
                 is_label_left = false;
             else
@@ -496,11 +496,11 @@ for ii = 1:length(uniqevent)
             prev_label_top = y_norm + 0.075;
             
             if op3 == 1
-                axb1 = addbox(ax2, [max(x_norm,0) y_norm+0.01 0.27 0.03]);
-                axb2 = addbox(ax2, [max(x_norm,0) y_norm-0.04 0.27 0.03]);
+                axb1 = addbox(ax2, [max(x_norm,0) y_norm+0.01 0.30 0.03]);
+                axb2 = addbox(ax2, [max(x_norm,0) y_norm-0.04 0.30 0.03]);
             else
-                axb1 = addbox(ax2, [max(x_norm,0) y_norm+0.01 0.20 0.03]);
-                axb2 = addbox(ax2, [max(x_norm,0) y_norm-0.04 0.20 0.03]);
+                axb1 = addbox(ax2, [max(x_norm,0) y_norm+0.01 0.225 0.03]);
+                axb2 = addbox(ax2, [max(x_norm,0) y_norm-0.04 0.225 0.03]);
             end
             axes_collection = [axes_collection; axb1; axb2];
             priority_values = [priority_values; 2+CCmax(jj); ...
@@ -518,7 +518,7 @@ for ii = 1:length(uniqevent)
                     '%.2f, \\Delta \\tau / \\tau = %.2f \\%% $$'], ...
                     t_shift(jj), CCmax(jj), dlnt(jj) * 100);
                 number_str = sprintf('$$ \\textnormal{%s}, %4.2f-%4.2f\\textnormal{~Hz}$$', ...
-                    stationname{jj});
+                    stationname{jj}, fcs(jj,1), fcs(jj,2));
             else
                 label_str = sprintf(['$$ %.2f\\ \\textnormal{s}, ' ... 
                     '%.2f, %.2f \\%% $$'], t_shift(jj), CCmax(jj), ...
@@ -541,13 +541,13 @@ for ii = 1:length(uniqevent)
                 top_text_xposition = 0.99;
                 bottom_text_xposition = 0.99;
                 if op3 == 1
-                    icon_xposition = 0.14;
+                    icon_xposition = 0.28;
                 else
-                    icon_xposition = 0.06;
+                    icon_xposition = 0.04;
                 end
             end
             text(top_text_xposition, 0.35, label_str, 'Interpreter', ...
-                'latex', 'FontSize', 10, 'Color', color_txt, ...
+                'latex', 'FontSize', 11.5, 'Color', color_txt, ...
                 'HorizontalAlignment', alignment);
             axb1.XAxis.Visible = 'off';
             axb1.YAxis.Visible = 'off';
@@ -555,7 +555,7 @@ for ii = 1:length(uniqevent)
             % label MERMAID number with colored icon
             axes(axb2)
             text(bottom_text_xposition, 0.35, number_str, 'Interpreter', ...
-                'latex', 'FontSize', 10, 'Color', color_txt, ...
+                'latex', 'FontSize', 11.5, 'Color', color_txt, ...
                 'HorizontalAlignment', alignment);
             hold on
             % get color icon
