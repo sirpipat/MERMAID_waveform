@@ -9,7 +9,7 @@ function catalog = readpp2024catalog(fname)
 % OUTPUT:
 % catalog       a struct containing these variables
 % - IRIS_ID         IRIS Event ID
-% - CMT_ID          Global CMT Solution ID
+% - CMT_ID          Global CMT Solution ID (N/A when CMT_ID does not exist)
 % - EVLA            event latitude
 % - EVLO            event longitude
 % - EVDP            event depth (km)
@@ -41,11 +41,20 @@ function catalog = readpp2024catalog(fname)
 % - TSHIFT_REL      time shift divided by the ray-theoretical travel time
 % - ADJUSTMENT      Instaseis ak135f_1s pick arrival minus ray-theoretical
 %                   arrival time based on the same Earth model
+% - TRAV_AK135F_1S  predicted travel time of the first arrival phase
+%                   using taupTime.m and ak135 model with bathymetry and 
+%                   cruise depth adjustment
+% - ARRIVAL_DATE    predicted arrival date assuming event occured at
+%                   ORIGIN_TIME on ORIGIN_DATE and TRAV_AK135F_1S travel
+%                   time
+% - ARRIVAL_TIME    predicted arrival time assuming event occured at
+%                   ORIGIN_TIME on ORIGIN_DATE and TRAV_AK135F_1S travel
+%                   time
 %
 % SEE ALSO:
 % WRITEPP2024CATALOG, FREQSELECT, PRESIDUESTAT, COMPAREPRESSURE
 %
-% Last modified by sirawich-at-princeton.edu, 03/06/2023
+% Last modified by sirawich-at-princeton.edu, 03/26/2024
 
 % header names
 fid = fopen(fname, 'r');
@@ -89,6 +98,11 @@ tshift_fmt        = '%7.2f      '    ;
 tshift_ratio_fmt  = '%9.4f      '    ;
 correction_fmt    = '%6.2f'          ;
 
+ttravel_fmt       = '%10.2f     '    ;
+arrival_date_fmt  = origin_date_fmt  ;
+arrival_time_fmt  = origin_time_fmt  ;
+
+
 fmt =  [irisid_fmt ...
         cmtid_fmt ...
         evla_fmt ...
@@ -120,6 +134,10 @@ fmt =  [irisid_fmt ...
         tshift_fmt ...
         tshift_ratio_fmt ...
         correction_fmt ...
+        ...
+        ttravel_fmt ...
+        arrival_date_fmt ...
+        arrival_time_fmt ...
         '\n'];
     
 fid = fopen(fname, 'r');
