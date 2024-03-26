@@ -1,5 +1,5 @@
 function getdatapoint(src, ax, data, name)
-% GETDATAPOINT(src, ~ ,ax, data, name)
+% GETDATAPOINT(src, ax, data, name)
 %
 % Display a data point on the scatter plot. Call this function to the 
 % scatter plot's button down function. Then, click one of the point to get
@@ -10,7 +10,7 @@ function getdatapoint(src, ax, data, name)
 % src       selected object
 % ax        parent axes of the selected object
 % data      data structure containing the plotted data [optional]
-%           it could be a matrix, cell arry, or struct.
+%           it could be a matrix, cell array, or struct.
 % name      name of the data [optional]
 %
 % EXAMPLE:
@@ -40,7 +40,7 @@ function getdatapoint(src, ax, data, name)
 %   SelfAssessedHealthStatus: Good
 % ----------------------------------------
 %
-% Last modified by sirawich-at-princeton.edu: 09/25/2023
+% Last modified by sirawich-at-princeton.edu: 03/26/2024
 
 defval('data', [])
 defval('name', 'value')
