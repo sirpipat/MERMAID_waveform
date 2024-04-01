@@ -4,21 +4,23 @@ function timedefinitionfigure
 % Makes a figure that visually defines terms for travel-time measurements
 % for the paper
 %
-% Last modified by sirawich-at-princeton.edu, 12/07/2023
+% Last modified by sirawich-at-princeton.edu, 04/01/2024
 
 % TODO: Move to $MERMAID2/FIGURE??
-obsfile = '/Users/sirawich/research/processed_data/MERMAID_reports_updated/10936816/20180817T154351.09_5B77394A.MER.DET.WLT5.sac';
-synfile = '/Users/sirawich/research/processed_data/SYNTHETICS/10936816/20180817T153501_09_0_SYNTHETIC.sac';
-bathdir = '/Users/sirawich/research/remote_specfem2d/AK135_RUNS_BATHYMETRY_HOMOGENEOUS/flat_10936816_P0009/';
+obsfile = fullfile(getenv('MERMAID2'), 'DATA', 'Figure9', ...
+    '20180817T154351.09_5B77394A.MER.DET.WLT5.sac');
+synfile = fullfile(getenv('MERMAID2'), 'DATA', 'Figure9', ...
+    '20180817T153501_09_0_SYNTHETIC.sac');
+bathdir = fullfile(getenv('MERMAID2'), 'DATA', 'Figure8', 'bathymetry/');
 
 % corner frequency
 fcorners = [0.4 2];
 
 % travel time anomaly
-t_shift = 4.1003;
+t_shift = 4.8501;
 
 % dT = Instaseis - TauP
-presidue = -0.7769;
+presidue = -1.6004;
 
 % define color here
 BLUE = [0 0.4 1];
