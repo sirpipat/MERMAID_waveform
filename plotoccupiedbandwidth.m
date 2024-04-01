@@ -12,7 +12,7 @@ function plotoccupiedbandwidth(obs_struct)
 %                       [flat bath] cases
 %   - metadata          SAC Headers associated to the obsfile
 %
-% Last modified by sirawich-at-princeton.edu: 11/03/2023
+% Last modified by sirawich-at-princeton.edu: 04/01/2024
 
 % largest acceptable error for value comparisons
 epsilon = 1e-6;
@@ -29,7 +29,7 @@ OB_cc  = nan(size(obs_struct.fcorners,1), size(fc_bin_mid,2));
 for ii = 1:size(obs_struct.fcorners,1)
     wh = and(fc_bin_lower - obs_struct.fcorners(ii, 1) >= -epsilon, ...
         obs_struct.fcorners(ii, 2) - fc_bin_upper >= -epsilon);
-    OB_snr(ii, wh) = obs_struct.snr(ii);
+    OB_snr(ii, wh) = obs_struct.snr(ii, 2);
     OB_cc(ii, wh)  = obs_struct.CCmaxs(ii, 2);
 end
 
@@ -48,10 +48,10 @@ midband = (obs_struct.fcorners(:,2) + obs_struct.fcorners(:,1)) / 2;
 highcorner = obs_struct.fcorners(:,2);
 [~,~,BAZ_bin] = histcounts(obs_struct.metadata.BAZ, 'BinWidth', 45);
 [~,~,MAG_bin] = histcounts(obs_struct.metadata.MAG, 'BinWidth', 1);
-snr = obs_struct.snr;
+snr = obs_struct.snr(:,2);
 cc = obs_struct.CCmaxs(:,2);
 
-polarity = nan(size(obs_struct.snr));
+polarity = nan(size(obs_struct.fcorners, 1), 1);
 for ii = 1:length(obs_struct.snr)
     try
         cmtp = cmtpolarity([obs_struct.cmt.Mrr(ii), ...
@@ -94,7 +94,7 @@ plotter(OB_snr, OB_cc, fc_bin_mid, I, ...
 plotter(OB_snr, OB_cc, fc_bin_mid, I, ...
         'occupied bandwidth - midband - cc', 'occupied_bandwidth-midband-cc');
     
-[~,I] = sort(obs_struct.snr);
+[~,I] = sort(obs_struct.snr(:,2));
 plotter(OB_snr, OB_cc, fc_bin_mid, I, ...
     'signal-to-noise ratio', 'snr');
 
@@ -110,7 +110,7 @@ if true
     plotter(OB_snr, OB_cc, fc_bin_mid, (1:size(obs_struct.fcorners,1))', ...
         'event id and station id', 'nosort');
 
-    [~,I] = sort(obs_struct.snr);
+    [~,I] = sort(obs_struct.snr(:,2));
     plotter(OB_snr, OB_cc, fc_bin_mid, I, ...
         'signal-to-noise ratio', 'snr');
 
