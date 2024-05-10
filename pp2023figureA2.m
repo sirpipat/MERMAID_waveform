@@ -20,16 +20,16 @@ function fig = pp2023figureA2(obs_struct)
 % OUTPUT:
 % fig               figure handle to the plots
 %
-% Last modified by sirawich-at-princeton.edu: 12/07/2023
+% Last modified by sirawich-at-princeton.edu: 04/25/2024
 
 fig = figure(2);
 set(gcf, 'Units', 'inches', 'Position', [2 2 10 6])
 ax1 = subplot('Position', [0.06 0.62 0.42 0.36]);
 histogram(obs_struct.presiduals, 'BinWidth', 0.1, 'FaceColor', [1 1 1] * 0.75)
-xlim([-4.5 1.5])
-ylim([0 160])
-xticks(-4:1)
-yticks(0:40:160)
+xlim([-5 1])
+ylim([0 200])
+xticks(-5:1)
+yticks(0:40:200)
 xlabel('travel-time adjustment (s)')
 ylabel('counts')
 grid on
