@@ -28,7 +28,7 @@ badval = -12345;
 
 fc = zeros(length(sacfiles), 2);
 s = zeros(length(sacfiles), 3);
-parfor ii = 1:length(sacfiles)
+for ii = 1:length(sacfiles)
     [seisdata, hdrdata] = readsac(sacfiles{ii});
     [dt_ref, dt_B, ~, fs, ~, dts] = gethdrinfo(hdrdata);
     
