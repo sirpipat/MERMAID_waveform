@@ -6,7 +6,7 @@ function varargout = pp2023figure9
 % OUTPUT:
 % fig       figure handle to the plots
 %
-% Last modified by sirawich-at-princeton.edu: 04/01/2024
+% Last modified by sirawich-at-princeton.edu: 05/10/2024
 
 %% load data
 
@@ -146,6 +146,7 @@ set(ax2, 'Box', 'on', 'FontSize', 12, 'TickDir', 'out')
 boxedlabel(ax2, 'northwest', 0.28, [], 'b', 'FontSize', 14);
 
 ax3 = subplot('Position', [0.09 0.14 0.88 0.24]);
+hold on
 plot(ax3, [-10 -5 -1 t_r_interp 33 35], ...
     [0; 0; 0; seis_r / max(abs(seis_r)); 0; 0], 'k', 'LineWidth', 1)
 grid on
@@ -177,6 +178,41 @@ yticklabels({'', '', ''})
 set(ax3, 'Box', 'on', 'FontSize', 12, 'TickDir', 'out')
 
 boxedlabel(ax3, 'northwest', 0.28, [], 'c', 'FontSize', 14);
+
+%% Loop over false bathymetry
+if true
+    dirlist = {...
+        fullfile(getenv('MERMAID2'), 'DATA', 'Figure8', 'bath_10936816_P0009_shift045deg/'), ...
+        fullfile(getenv('MERMAID2'), 'DATA', 'Figure8', 'bath_10936816_P0009_shift315deg/') ...
+        };
+    COLOR_FOR_FALSES = [0.7 0.7 0.7; 0.7 0.7 0.7] .^ 1;
+    Y_SHIFT = [0 0] * 1.0;
+
+    for ii = 1:length(dirlist)
+        [~, ~, t_r, seis_r] = cctransplot(dirlist{ii}, dirlist{ii}, ...
+            'bath_10936816_P0009', {'bottom', 'displacement'}, ...
+            {'hydrophone', 'pressure'}, [], fs, false);
+        plot(ax3, [-10; -5; -1; t_r; 33; 35], ...
+            [0; 0; 0; seis_r / max(abs(seis_r)); 0; 0] + Y_SHIFT(ii), ...
+            'Color', COLOR_FOR_FALSES(ii,:), 'LineWidth', 0.5)
+        ax3.Children = ax3.Children([2:end 1]);
+        
+%         % resample to MERMAID datetimes
+%         t_r_interp = (0:(1/fs_o):t_r(end))';
+%         seis_r = shannon(t_r, seis_r, t_r_interp);
+% 
+%         % convolve for the synthetic pressure
+%         pres_s = conv(seis_s_interp, seis_r);
+%         pres_s = pres_s(1:length(seis_o), 1);
+%         pres_s = bandpass(pres_s, fs_o, fcorners(1), fcorners(2), 4, 2, ...
+%             'butter', 'linear');
+%         
+%         plot(ax1, t_relative + timeshift, ...
+%             pres_s / max(abs(pres_s)) + Y_SHIFT(ii), ...
+%             'LineWidth', 0.5, 'Color', COLOR_FOR_FALSES(ii,:))
+%         ax1.Children = ax1.Children([2:end 1]);
+    end
+end
 
 set(gcf, 'Renderer', 'painters')
 
