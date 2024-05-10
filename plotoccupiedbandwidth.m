@@ -178,20 +178,21 @@ function plotter(OB_snr, OB_cc, fc_bin_mid, sortindex, sortedby, savename)
     c2.TickDirection = 'out';
     axis xy
 
-    set(ax1.Parent.Children(1), 'FontSize', 11)
-    set(ax1.Parent.Children(2), 'FontSize', 11)
-    set(ax1.Parent.Children(3), 'FontSize', 11)
-    set(ax1.Parent.Children(4), 'FontSize', 11)
+    set(ax1.Parent.Children(1), 'FontSize', 14)
+    set(ax1.Parent.Children(2), 'FontSize', 14)
+    set(ax1.Parent.Children(3), 'FontSize', 14)
+    set(ax1.Parent.Children(4), 'FontSize', 14)
     
     set(ax1.Parent.Children(2), 'TickDir', 'out', 'Box', 'on')
     set(ax1.Parent.Children(4), 'TickDir', 'out', 'Box', 'on')
 
     c1.Label.String = 'SNR';
     c2.Label.String = 'maximum correlation coefficient';
+    c2.Label.FontSize = 14;
 
     % throwaway title axes
     axt = subplot('Position', [0 0.96 1 0.01]);
-    title(sprintf('Sorted by %s', sortedby), 'FontSize', 12)
+    title(sprintf('Sorted by %s', sortedby), 'FontSize', 14)
     [axt.Title.Position(1), axt.Title.Position(2)] = ...
             norm2trueposition(axt, 0.5, 1.06);
     axt.XAxis.Visible = 'off';
@@ -201,10 +202,10 @@ function plotter(OB_snr, OB_cc, fc_bin_mid, sortindex, sortedby, savename)
     % boxed labels
     ax1b = boxedlabel(ax1, 'northwest', 0.03, 'norm', 'a', ...
             'FontSize', 14);
-    ax1b.Position = [0.01 0.915 0.03 0.0375];
+    ax1b.Position = [0.01 0.925 0.03 0.0375];
     ax2b = boxedlabel(ax2, 'northwest', 0.03, 'norm', 'b', ...
             'FontSize', 14);
-    ax2b.Position = [0.01 0.415 0.03 0.0375];
+    ax2b.Position = [0.01 0.425 0.03 0.0375];
     
     set(gcf, 'Renderer', 'painters')
     filename = sprintf('%s_%s.eps', mfilename, savename);
