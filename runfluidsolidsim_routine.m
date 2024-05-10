@@ -48,7 +48,7 @@ function outputdirs = runfluidsolidsim_routine(obsmasterdir, ...
 % SEE ALSO:
 % RUNFLATSIM, CCTRANSPLOT, COMPAREPRESSURE
 %
-% Last modified by sirawich-at-princeton.edu, 02/19/2024
+% Last modified by sirawich-at-princeton.edu, 04/02/2024
 
 defval('obsmasterdir', '/home/sirawich/research/processed_data/MERMAID_reports_updated/')
 defval('synmasterdir', '/home/sirawich/research/SYNTHETICS/')
@@ -61,6 +61,10 @@ defval('branch', 'master')
 defval('gpu_mode', false)
 
 badval = -12345;
+
+% Adjust this value to change the azimuthal direction of propagation
+% Leave this value as zero unless you know what you are doing.
+offset_angle = 0;
 
 [allsyndirs, dndex] = allfile(synmasterdir);
 
@@ -116,7 +120,7 @@ for ii = i_begin:i_end
             else
                 % use GEBCO bathymetry instead
                 [x, z] = bathymetryprofile(20000, 401, ...
-                    [hdr_s.STLO hdr_s.STLA], mod(180 + hdr_s.BAZ, 360));
+                    [hdr_s.STLO hdr_s.STLA], mod(180 + hdr_s.BAZ + offset_angle, 360));
                 tparams.X = x;
                 tparams.Z = z + 9600;
                 
