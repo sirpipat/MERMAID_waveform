@@ -1,5 +1,5 @@
-function plotmeasurementstats(obs_struct, min_cc, min_snr, min_gcarc)
-% PLOTMEASUREMENTSTATS(obs_struct, min_cc, min_snr, min_gcarc)
+function plotmeasurementstats(obs_struct, min_cc, min_snr, min_gcarc, depth_range)
+% PLOTMEASUREMENTSTATS(obs_struct, min_cc, min_snr, min_gcarc, depth_range)
 %
 % Plots various travel time measurement statistics and the metadata for
 % further analysis.
@@ -16,12 +16,14 @@ function plotmeasurementstats(obs_struct, min_cc, min_snr, min_gcarc)
 % min_cc            Correlation coefficient cut-off [default: -1]
 % min_snr           Signal-to-noise ratio cut-off   [default: 0]
 % min_gcarc         Epicentral distance cut-off     [default: 0]
+% depth_range       Event depth range               [default: [0 1000]]
 %
-% Last modified by sirawich-at-princeton.edu: 03/17/2024
+% Last modified by sirawich-at-princeton.edu: 05/10/2024
 
 defval('min_cc', 0)
 defval('min_snr', 0)
 defval('min_gcarc', 0)
+defval('depth_range', [0 1000])
 
 %% calculate the derived variables
 % relative travel time from correlation travel time
@@ -68,12 +70,16 @@ i_dlnt_corrected4 = and(dlnt_corrected >= -0.03, dlnt_corrected <= 0.03);
 
 % ANOTHER WAY TO LIMIT: using percentile maybe from 5th to 95th
 
+% limit by event depth
+i_depth = and(obs_struct.metadata.EVDP >= depth_range(1), ...
+    obs_struct.metadata.EVDP <= depth_range(2));
+
 % limit to only good match
 i_cc = (obs_struct.CCmaxs(:,2) >= min_cc);
 i_snr2 = (snr >= min_snr);
 i_gcarc = (obs_struct.metadata.GCARC >= min_gcarc);
 i_dlnt = and(dlnt >= prctile(dlnt, 5), dlnt <= prctile(dlnt, 95));
-i_mask = and(and(i_cc, i_snr2), i_gcarc);
+i_mask = and(and(i_cc, i_snr2), and(i_gcarc, i_depth));
 
 %% list of things to plot
 variables = [...
