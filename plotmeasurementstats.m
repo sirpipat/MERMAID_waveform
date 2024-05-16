@@ -18,7 +18,7 @@ function plotmeasurementstats(obs_struct, min_cc, min_snr, min_gcarc, depth_rang
 % min_gcarc         Epicentral distance cut-off     [default: 0]
 % depth_range       Event depth range               [default: [0 1000]]
 %
-% Last modified by sirawich-at-princeton.edu: 05/10/2024
+% Last modified by sirawich-at-princeton.edu: 05/16/2024
 
 defval('min_cc', 0)
 defval('min_snr', 0)
@@ -109,7 +109,8 @@ variables = [...
     variableconstructor('gcarc', obs_struct.metadata.GCARC, 'great-circle epicentral distance (degree)', [min_gcarc 180], 5, []);
     variableconstructor('log10gcarc', log10(obs_struct.metadata.GCARC), 'log_{10}great-circle epicentral distance (degree)', [], 0.1, []);
     variableconstructor('baz', obs_struct.metadata.BAZ, 'back azimuth (degree)', [0 360], 0:30:360, []);
-    variableconstructor('evdp', obs_struct.metadata.EVDP', 'event depth (km)', [0 700], 25, []);
+    variableconstructor('evdp', obs_struct.metadata.EVDP, 'event depth (km)', [0 700], 25, []);
+    variableconstructor('log10scaling', log10(obs_struct.scalings(:,2)), 'log_{10} scaling', [-4.5 4.5], 0.25, []);
 ];
 
 variable_pairs = [...
@@ -128,6 +129,8 @@ variable_pairs = [...
     9 8 3;
     9 8 4;
     9 8 24;
+    9 8 27;
+    9 8 28;
     10 12 nan;
     10 13 nan;
     10 14 nan;
@@ -156,6 +159,14 @@ variable_pairs = [...
     19 18 25;
     21 20 25;
     23 22 25;
+    17 16 27;
+    19 18 27;
+    21 20 27;
+    23 22 27;
+    17 16 28;
+    19 18 28;
+    21 20 28;
+    23 22 28;
     24 16 2;
     24 17 2;
     24 7 1;
@@ -270,6 +281,8 @@ for ii = 1:size(variable_pairs, 1)
             var3.axlimit, histx_arg, histy_arg, {'SizeData', 9});
         if strcmp(var3.name, 'baz')
             colormap(ax_scat, 'hsv');
+        elseif strcmp(var3.name, 'log10scaling')
+            colormap(ax_scat, kelicol)
         else
             colormap(ax_scat, 'parula');
         end
