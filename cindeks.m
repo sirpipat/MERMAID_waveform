@@ -21,9 +21,9 @@ function x = cindeks(C, i, j)
 % cindeks(C, 1, 2)
 % cindeks(C,'end', 1)
 %
-% See also INDEKS, RINDEKS, KINDEKS, TINDEKS, DINDEKS, SQUEEZE
+% See also INDEKS, SINDEKS, RINDEKS, KINDEKS, TINDEKS, DINDEKS, SQUEEZE
 %
-% Last modified by sirawich-at-princeton.edu, 10/04/2021
+% Last modified by sirawich-at-princeton.edu, 05/16/2024
 
 defval('i', 1)
 
