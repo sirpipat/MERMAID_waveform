@@ -6,7 +6,7 @@ function varargout = pp2023figure9
 % OUTPUT:
 % fig       figure handle to the plots
 %
-% Last modified by sirawich-at-princeton.edu: 05/10/2024
+% Last modified by sirawich-at-princeton.edu: 05/16/2024
 
 %% load data
 
@@ -94,20 +94,6 @@ text(ax1, 19, 1.0, 'observed pressure ($$p$$)', ...
     'FontSize', 14, 'HorizontalAlignment', 'right', 'Color', 'b', ...
     'Interpreter', 'latex')
 
-% label scale
-% scalelabel = sprintf('%.2g', max(abs(pres_o)));
-% if contains(scalelabel, 'e')
-%     if str2double(scalelabel(end-1:end)) > 0
-%         scalelabel = replace(scalelabel, '+', '');
-%     end
-%     if abs(str2double(scalelabel(end-1:end))) < 10
-%         scalelabel(end-1) = '';
-%     end
-%     scalelabel = [scalelabel '}'];
-%     scalelabel = replace(scalelabel, 'e', '\times10^{');
-%     scalelabel = replace(scalelabel, 'x', '\times');
-% end
-% yticklabels({['-' scalelabel], 0 ,scalelabel})
 yticklabels({'', '', ''})
 
 set(ax1, 'Box', 'on', 'FontSize', 12, 'TickDir', 'out')
@@ -126,20 +112,6 @@ text(ax2, 19, 1.0, 'synthetic displacement ($$s$$)', 'FontSize', 14, ...
     'HorizontalAlignment', 'right', 'Color', [0 0.4 0], ...
     'Interpreter', 'latex')
 
-% label scale
-% scalelabel = sprintf('%.2g', max(abs(seis_s_interp)));
-% if contains(scalelabel, 'e')
-%     if str2double(scalelabel(end-1:end)) > 0
-%         scalelabel = replace(scalelabel, '+', '');
-%     end
-%     if abs(str2double(scalelabel(end-1:end))) < 10
-%         scalelabel(end-1) = '';
-%     end
-%     scalelabel = [scalelabel '}'];
-%     scalelabel = replace(scalelabel, 'e', '\times10^{');
-%     scalelabel = replace(scalelabel, 'x', '\times');
-% end
-% yticklabels({['-' scalelabel], 0 ,scalelabel})
 yticklabels({'', '', ''})
 
 set(ax2, 'Box', 'on', 'FontSize', 12, 'TickDir', 'out')
@@ -159,20 +131,6 @@ ylabel('resp. (Pa/m)')
 text(ax3, 29, 1.05, 'response function ($$r$$)', 'FontSize', 14, ...
     'HorizontalAlignment', 'right', 'Interpreter', 'latex')
 
-% label scale
-% scalelabel = sprintf('%.2g', max(abs(seis_r)));
-% if contains(scalelabel, 'e')
-%     if str2double(scalelabel(end-1:end)) > 0
-%         scalelabel = replace(scalelabel, '+', '');
-%     end
-%     if abs(str2double(scalelabel(end-1:end))) < 10
-%         scalelabel(end-1) = '';
-%     end
-%     scalelabel = [scalelabel '}'];
-%     scalelabel = replace(scalelabel, 'e', '\times10^{');
-%     scalelabel = replace(scalelabel, 'x', '\times');
-% end
-% yticklabels({['-' scalelabel], 0 ,scalelabel})
 yticklabels({'', '', ''})
 
 set(ax3, 'Box', 'on', 'FontSize', 12, 'TickDir', 'out')
@@ -197,20 +155,20 @@ if true
             'Color', COLOR_FOR_FALSES(ii,:), 'LineWidth', 0.5)
         ax3.Children = ax3.Children([2:end 1]);
         
-%         % resample to MERMAID datetimes
-%         t_r_interp = (0:(1/fs_o):t_r(end))';
-%         seis_r = shannon(t_r, seis_r, t_r_interp);
-% 
-%         % convolve for the synthetic pressure
-%         pres_s = conv(seis_s_interp, seis_r);
-%         pres_s = pres_s(1:length(seis_o), 1);
-%         pres_s = bandpass(pres_s, fs_o, fcorners(1), fcorners(2), 4, 2, ...
-%             'butter', 'linear');
-%         
-%         plot(ax1, t_relative + timeshift, ...
-%             pres_s / max(abs(pres_s)) + Y_SHIFT(ii), ...
-%             'LineWidth', 0.5, 'Color', COLOR_FOR_FALSES(ii,:))
-%         ax1.Children = ax1.Children([2:end 1]);
+        % resample to MERMAID datetimes
+        t_r_interp = (0:(1/fs_o):t_r(end))';
+        seis_r = shannon(t_r, seis_r, t_r_interp);
+
+        % convolve for the synthetic pressure
+        pres_s = conv(seis_s_interp, seis_r);
+        pres_s = pres_s(1:length(seis_o), 1);
+        pres_s = bandpass(pres_s, fs_o, fcorners(1), fcorners(2), 4, 2, ...
+            'butter', 'linear');
+        
+        plot(ax1, t_relative + timeshift, ...
+            pres_s / max(abs(pres_s)) + Y_SHIFT(ii), ...
+            'LineWidth', 0.5, 'Color', [1 0.7 0.7])
+        ax1.Children = ax1.Children([2:end 1]);
     end
 end
 
