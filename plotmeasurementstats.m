@@ -1,5 +1,5 @@
-function plotmeasurementstats(obs_struct, min_cc, min_snr, min_gcarc, depth_range)
-% PLOTMEASUREMENTSTATS(obs_struct, min_cc, min_snr, min_gcarc, depth_range)
+function plotmeasurementstats(obs_struct, min_cc, min_snr, min_gcarc, depth_range, mask_histogram)
+% PLOTMEASUREMENTSTATS(obs_struct, min_cc, min_snr, min_gcarc, depth_range, mask_histogram)
 %
 % Plots various travel time measurement statistics and the metadata for
 % further analysis.
@@ -17,13 +17,15 @@ function plotmeasurementstats(obs_struct, min_cc, min_snr, min_gcarc, depth_rang
 % min_snr           Signal-to-noise ratio cut-off   [default: 0]
 % min_gcarc         Epicentral distance cut-off     [default: 0]
 % depth_range       Event depth range               [default: [0 1000]]
+% mask_histogram    Whether to mask the histogram   [default: false]
 %
-% Last modified by sirawich-at-princeton.edu: 05/16/2024
+% Last modified by sirawich-at-princeton.edu: 05/20/2024
 
 defval('min_cc', 0)
 defval('min_snr', 0)
 defval('min_gcarc', 0)
 defval('depth_range', [0 1000])
+defval('mask_histogram', false)
 
 %% calculate the derived variables
 % relative travel time from correlation travel time
@@ -81,36 +83,42 @@ i_gcarc = (obs_struct.metadata.GCARC >= min_gcarc);
 i_dlnt = and(dlnt >= prctile(dlnt, 5), dlnt <= prctile(dlnt, 95));
 i_mask = and(and(i_cc, i_snr2), and(i_gcarc, i_depth));
 
+if mask_histogram
+    i_hist = i_mask;
+else
+    i_hist = true(size(i_mask));
+end
+
 %% list of things to plot
 variables = [...
-    variableconstructor('t_shift', obs_struct.t_shifts(:,2), 'time shift (s)', [], 1, []);
-    variableconstructor('cc', obs_struct.CCmaxs(:,2), 'correlation coefficient', [min_cc 1], 0.05, []);
-    variableconstructor('log10snr', log10(snr), 'log_{10} signal-to-noise ratio', [], 0.1, []);
-    variableconstructor('snr', snr, 'signal-to-noise ratio', [], 10, i_snr);
-    variableconstructor('dlnt', dlnt * 100, 'relative time shift (%)', [], 10, []);
-    variableconstructor('dlnt2', dlnt * 100, 'relative time shift, outliers removed (%)', [-3 3], 0.2, i_dlnt2);
-    variableconstructor('ttravel', ttravel, 'travel time (s)', [], 100, i_ttravel);
-    variableconstructor('t_res_joel', obs_struct.metadata.USER4, 'travel time residual from Simon et al. 2022 (s)', [-10 20], 1, i_ttravel);
-    variableconstructor('t_res_correct', t_shift_corrected, 'adjusted correlation travel time residual (s)', [-10 20], 1, i_ttravel);
-    variableconstructor('presidual', obs_struct.presiduals, 'InstaSeis - ray theory prediction of P-wave arrival on AK135 model (s)', [], 1, []);
-    variableconstructor('presidual_limit', obs_struct.presiduals, 'InstaSeis - ray theory prediction of P-wave arrival on AK135 model (s)', [-4 4], 0.2, i_presiduals);
-    variableconstructor('fc_lower', obs_struct.fcorners(:,1), 'lower corner frequency (Hz)', [0.375 1.525], 0.375:0.05:1.525, []);
-    variableconstructor('fc_upper', obs_struct.fcorners(:,2), 'upper corner frequency (Hz)', [0.875 2.025], 0.875:0.05:2.025, []);
-    variableconstructor('fc_mid', (obs_struct.fcorners(:,1) + obs_struct.fcorners(:,2)) / 2, 'median of frequency band (Hz)', [0.6375 1.7625], 0.6325:0.025:1.7625, []);
-    variableconstructor('bandwidth', obs_struct.fcorners(:,2) - obs_struct.fcorners(:,1), 'bandwidth (Hz)', [0.475 1.625], 0.475:0.05:1.625, []);
-    variableconstructor('t_rel_joel', dlnt_joel * 100, 'relative travel time residual from Simon et al. 2022 (%)', [-40 40], 2, i_ttravel);
-    variableconstructor('t_rel_correct', dlnt_corrected * 100, 'adjusted relative correlation travel time residual (%)', [-40 40], 2, i_ttravel);
-    variableconstructor('t_rel_joel2', dlnt_joel * 100, 'relative travel time residual from Simon et al. 2022 (%)', [-20 20], 1, and(i_ttravel, i_dlnt_joel2));
-    variableconstructor('t_rel_correct2', dlnt_corrected * 100, 'adjusted relative correlation travel time residual (%)', [-20 20], 1, and(i_ttravel, i_dlnt_corrected2));
-    variableconstructor('t_rel_joel3', dlnt_joel * 100, 'relative travel time residual from Simon et al. 2022 (%)', [-10 10], 0.5, and(i_ttravel, i_dlnt_joel3));
-    variableconstructor('t_rel_correct3', dlnt_corrected * 100, 'adjusted relative correlation travel time residual (%)', [-10 10], 0.5, and(i_ttravel, i_dlnt_corrected3));
-    variableconstructor('t_rel_joel4', dlnt_joel * 100, 'relative travel time residual from Simon et al. 2022 (%)', [-1.5 3], 0.2, and(i_ttravel, i_dlnt_joel4));
-    variableconstructor('t_rel_correct4', dlnt_corrected * 100, 'adjusted relative correlation travel time residual (%)', [-1.5 3], 0.2, and(i_ttravel, i_dlnt_corrected4));
-    variableconstructor('gcarc', obs_struct.metadata.GCARC, 'great-circle epicentral distance (degree)', [min_gcarc 180], 5, []);
-    variableconstructor('log10gcarc', log10(obs_struct.metadata.GCARC), 'log_{10}great-circle epicentral distance (degree)', [], 0.1, []);
-    variableconstructor('baz', obs_struct.metadata.BAZ, 'back azimuth (degree)', [0 360], 0:30:360, []);
-    variableconstructor('evdp', obs_struct.metadata.EVDP, 'event depth (km)', [0 700], 25, []);
-    variableconstructor('log10scaling', log10(obs_struct.scalings(:,2)), 'log_{10} scaling', [-4.5 4.5], 0.25, []);
+    variableconstructor('t_shift', obs_struct.t_shifts(:,2), 'time shift (s)', [], 1, i_hist);
+    variableconstructor('cc', obs_struct.CCmaxs(:,2), 'correlation coefficient', [min_cc 1], 0.05, i_hist);
+    variableconstructor('log10snr', log10(snr), 'log_{10} signal-to-noise ratio', [], 0.1, i_hist);
+    variableconstructor('snr', snr, 'signal-to-noise ratio', [], 10, and(i_hist, i_snr));
+    variableconstructor('dlnt', dlnt * 100, 'relative time shift (%)', [], 10, i_hist);
+    variableconstructor('dlnt2', dlnt * 100, 'relative time shift, outliers removed (%)', [-3 3], 0.2, and(i_hist, i_dlnt2));
+    variableconstructor('ttravel', ttravel, 'travel time (s)', [], 100, and(i_hist, i_ttravel));
+    variableconstructor('t_res_joel', obs_struct.metadata.USER4, 'travel time residual from Simon et al. 2022 (s)', [-10 20], 1, and(i_hist, i_ttravel));
+    variableconstructor('t_res_correct', t_shift_corrected, 'adjusted correlation travel time residual (s)', [-10 20], 1, and(i_hist, i_ttravel));
+    variableconstructor('presidual', obs_struct.presiduals, 'InstaSeis - ray theory prediction of P-wave arrival on AK135 model (s)', [], 1, i_hist);
+    variableconstructor('presidual_limit', obs_struct.presiduals, 'InstaSeis - ray theory prediction of P-wave arrival on AK135 model (s)', [-4 4], 0.2, and(i_hist, i_presiduals));
+    variableconstructor('fc_lower', obs_struct.fcorners(:,1), 'lower corner frequency (Hz)', [0.375 1.525], 0.375:0.05:1.525, i_hist);
+    variableconstructor('fc_upper', obs_struct.fcorners(:,2), 'upper corner frequency (Hz)', [0.875 2.025], 0.875:0.05:2.025, i_hist);
+    variableconstructor('fc_mid', (obs_struct.fcorners(:,1) + obs_struct.fcorners(:,2)) / 2, 'median of frequency band (Hz)', [0.6375 1.7625], 0.6325:0.025:1.7625, i_hist);
+    variableconstructor('bandwidth', obs_struct.fcorners(:,2) - obs_struct.fcorners(:,1), 'bandwidth (Hz)', [0.475 1.625], 0.475:0.05:1.625, i_hist);
+    variableconstructor('t_rel_joel', dlnt_joel * 100, 'relative travel time residual from Simon et al. 2022 (%)', [-40 40], 2, and(i_hist, i_ttravel));
+    variableconstructor('t_rel_correct', dlnt_corrected * 100, 'adjusted relative correlation travel time residual (%)', [-40 40], 2, and(i_hist, i_ttravel));
+    variableconstructor('t_rel_joel2', dlnt_joel * 100, 'relative travel time residual from Simon et al. 2022 (%)', [-20 20], 1, and(i_hist, and(i_ttravel, i_dlnt_joel2)));
+    variableconstructor('t_rel_correct2', dlnt_corrected * 100, 'adjusted relative correlation travel time residual (%)', [-20 20], 1, and(i_hist, and(i_ttravel, i_dlnt_corrected2)));
+    variableconstructor('t_rel_joel3', dlnt_joel * 100, 'relative travel time residual from Simon et al. 2022 (%)', [-10 10], 0.5, and(i_hist, and(i_ttravel, i_dlnt_joel3)));
+    variableconstructor('t_rel_correct3', dlnt_corrected * 100, 'adjusted relative correlation travel time residual (%)', [-10 10], 0.5, and(i_hist, and(i_ttravel, i_dlnt_corrected3)));
+    variableconstructor('t_rel_joel4', dlnt_joel * 100, 'relative travel time residual from Simon et al. 2022 (%)', [-1.5 3], 0.2, and(i_hist, and(i_ttravel, i_dlnt_joel4)));
+    variableconstructor('t_rel_correct4', dlnt_corrected * 100, 'adjusted relative correlation travel time residual (%)', [-1.5 3], 0.2, and(i_hist, and(i_ttravel, i_dlnt_corrected4)));
+    variableconstructor('gcarc', obs_struct.metadata.GCARC, 'great-circle epicentral distance (degree)', [min_gcarc 180], 5, i_hist);
+    variableconstructor('log10gcarc', log10(obs_struct.metadata.GCARC), 'log_{10}great-circle epicentral distance (degree)', [], 0.1, i_hist);
+    variableconstructor('baz', obs_struct.metadata.BAZ, 'back azimuth (degree)', [0 360], 0:30:360, i_hist);
+    variableconstructor('evdp', obs_struct.metadata.EVDP, 'event depth (km)', [0 700], 25, i_hist);
+    variableconstructor('log10scaling', log10(obs_struct.scalings(:,2)), 'log_{10} scaling', [-4.5 4.5], 0.25, i_hist);
 ];
 
 variable_pairs = [...
