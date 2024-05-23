@@ -1,7 +1,7 @@
 function plotsynthetics(obsmasterdir, synmasterdir, specmasterdir, ...
-    fcorners, CCmaxs, t_shifts, metadata, op1, op2, op3)
+    fcorners, CCmaxs, t_shifts, metadata, op1, op2, op3, op4)
 % PLOTSYNTHETICS(obsmasterdir, synmasterdir, specmasterdir, fcorners, ...
-%     CCmaxs, t_shifts, metadata, op1, op2, op3)
+%     CCmaxs, t_shifts, metadata, op1, op2, op3, op4 )
 %
 % A cross-breed function between PLOTRECORDS and ARRAYCCSHIFTPLOT
 %
@@ -27,15 +27,19 @@ function plotsynthetics(obsmasterdir, synmasterdir, specmasterdir, ...
 % op3               options for zoom-in verions [Default: 2]
 %                   1  --   no zoom in
 %                   2  --   zoom in
+% op4               options for having plot labels [Default: 2]
+%                   1  --   have no plot labels
+%                   2  --   have plot labels
 %
 % SEE ALSO:
 % PLOTMERMAID, PLOTINSTASEIS, PLOTRECORDS, ARRAYCCSHIFTPLOT
 %
-% Last modified by sirawich-at-princeton.edu, 03/20/2024
+% Last modified by sirawich-at-princeton.edu, 05/20/2024
 
 defval('op1', 2)
 defval('op2', 2)
 defval('op3', 2)
+defval('op4', 2)
 
 %% window lengths
 window_waveform = [-5 5];
@@ -200,10 +204,12 @@ for ii = 1:length(uniqevent)
         ax1s.TickDir = 'both';
         
         %% added plot label
-        ax1b = boxedlabel(ax1s, 'northwest', 0.03, 'norm', 'a', ...
-            'FontSize', 12);
-        axes(ax1b)
-        ax1b.Position = [0.08 0.941 0.03 0.03];
+        if op4 == 2
+            ax1b = boxedlabel(ax1s, 'northwest', 0.03, 'norm', 'a', ...
+                'FontSize', 12);
+            axes(ax1b)
+            ax1b.Position = [0.08 0.941 0.03 0.03];
+        end
         
         %% list metadata for plotting traces
         % filter out the data from other events
@@ -283,11 +289,13 @@ for ii = 1:length(uniqevent)
             'YLim', ylimit, 'FontSize', 12, 'Color', 'none');
         
         %% added plot label
-        ax2b = boxedlabel(ax2, 'northwest', 0.03, 'norm', 'b', ...
-            'FontSize', 12);
-        ax2b.Position = [0.08 0.64 0.03 0.03];
-        priority_values = [priority_values; 4];
-        axes_collection = [axes_collection; ax2b];
+        if op4 == 2
+            ax2b = boxedlabel(ax2, 'northwest', 0.03, 'norm', 'b', ...
+                'FontSize', 12);
+            ax2b.Position = [0.08 0.64 0.03 0.03];
+            priority_values = [priority_values; 4];
+            axes_collection = [axes_collection; ax2b];
+        end
         
         for jj = 1:sum(whevent)
             % read the observed seismogram

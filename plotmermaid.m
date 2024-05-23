@@ -1,7 +1,7 @@
 function plotmermaid(obsmasterdir, synmasterdir, fcorners, CCmaxs, ...
-    t_shifts, metadata, op1, op2, op3, op4, op5)
+    t_shifts, metadata, op1, op2, op3, op4, op5, op6)
 % PLOTMERMAID(obsmasterdir, synmasterdir, fcorners, CCmaxs, ...
-%     t_shifts, metadata, op1, op2, op3, op4, op5)
+%     t_shifts, metadata, op1, op2, op3, op4, op5, op6)
 %
 % Plots a source-receiver map with the focal mechanism and the radiation
 % pattern as well as the pressure records from MERMAIDs
@@ -31,17 +31,21 @@ function plotmermaid(obsmasterdir, synmasterdir, fcorners, CCmaxs, ...
 % op5               options for graying out traces if CCmaxs <= 0.6
 %                   1  --   no graying out
 %                   2  --   graying out
+% op6               options for having plot labels [Default: 2]
+%                   1  --   have no plot labels
+%                   2  --   have plot labels
 %
 % SEE ALSO:
 % PLOTINSTASEIS, PLOTSYNTHETICS, PLOTRECORDS, ARRAYCCSHIFTPLOT
 %
-% Last modified by sirawich-at-princeton.edu, 03/20/2024
+% Last modified by sirawich-at-princeton.edu, 05/21/2024
 
 defval('op1', 2)
 defval('op2', 2)
 defval('op3', 2)
 defval('op4', 2)
 defval('op5', 2)
+defval('op6', 2)
 
 tsmul = 0;
 
@@ -206,10 +210,12 @@ for ii = 1:length(uniqevent)
         ax1s.TickDir = 'both';
         
         %% added plot label
-        ax1b = boxedlabel(ax1s, 'northwest', 0.03, 'norm', 'a', ...
-            'FontSize', 12);
-        axes(ax1b)
-        ax1b.Position = [0.08 0.941 0.03 0.03];
+        if op6 == 2
+            ax1b = boxedlabel(ax1s, 'northwest', 0.03, 'norm', 'a', ...
+                'FontSize', 12);
+            axes(ax1b)
+            ax1b.Position = [0.08 0.941 0.03 0.03];
+        end
         
         %% list metadata for plotting traces
         % filter out the data from other events
@@ -294,11 +300,13 @@ for ii = 1:length(uniqevent)
             'YLim', ylimit, 'FontSize', 12);
         
         %% added plot label
-        ax2b = boxedlabel(ax2, 'northwest', 0.03, 'norm', 'b', ...
-            'FontSize', 12);
-        ax2b.Position = [0.08 0.64 0.03 0.03];
-        priority_values = [priority_values; 4];
-        axes_collection = [axes_collection; ax2b];
+        if op6 == 2
+            ax2b = boxedlabel(ax2, 'northwest', 0.03, 'norm', 'b', ...
+                'FontSize', 12);
+            ax2b.Position = [0.08 0.64 0.03 0.03];
+            priority_values = [priority_values; 4];
+            axes_collection = [axes_collection; ax2b];
+        end
         
         % positional parameters description labels
         is_label_left = true;
