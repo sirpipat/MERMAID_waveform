@@ -38,9 +38,9 @@ function [t_shift, CCmax, lag, cc, s] = ...
 % CCmax         N maximum correlation coefficients
 % lag           Vector of all time shifts
 % CC            Vector of CC for every time shift in lag
-% s             Scaling to minimize the misfit
+% s             N scaling to minimize the misfit
 %
-% Last modified by sirawich-at-princeton.edu, 03/13/2024
+% Last modified by sirawich-at-princeton.edu, 05/20/2024
 
 defval('envelope_window', [-20 20])
 defval('waveform_window', [-5 5])
@@ -220,7 +220,20 @@ if false
     figdisp(savename, [], [], 2, [], 'epstopdf');
 end
 
-%% Part 3: plot the result
+%% Part 3: optimal scaling (rms ratio)
+if numpicks > 1
+    for ii = 1:numpicks
+         pres_s3 = pres_s(and(geq(dts_o, dt_start2 - ...
+             seconds(t_shift(ii)), ep), leq(dts_o, dt_end2 - ...
+             seconds(t_shift(ii)), ep)));
+         if ii == 1 && abs(log10(s / (std(pres_o2) / std(pres_s3)))) >= log10(2)
+             keyboard
+         end
+         s(ii) = std(pres_o2) / std(pres_s3);
+    end
+end
+
+%% Part 4: plot the result
 if plt
     % criteria for CMT solution searching
     dt_origin = dt_ref_o + seconds(hdr_o.USER8);
