@@ -1,5 +1,5 @@
 function [x, z] = bathymetryprofile(width, npts, lonlat, az)
-% [x, z] = bathymetryprofile(width, npts, lonlat, az)
+% [x, z] = bathymetryprofile(width, npts, [lon lat], az)
 %
 % Generate a bathymetry profile centered at [LON LAT] along a straight path
 % in a specified azimuthal direction. The azimuth will be the direction
@@ -31,9 +31,9 @@ function [x, z] = bathymetryprofile(width, npts, lonlat, az)
 % plot(x, z)
 %
 % SEE ALSO
-% BATHYMETRY
+% BATHYMETRY, BATHYMETRYPROFILE2D
 % 
-% Last modified by sirawich-at-princeton.edu, 02/06/2024
+% Last modified by sirawich-at-princeton.edu, 07/01/2024
 
 % Earth's radius in meter
 R = 6371000;
