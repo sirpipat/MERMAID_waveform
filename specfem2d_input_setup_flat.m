@@ -34,7 +34,7 @@ function outputdirs = specfem2d_input_setup_flat(name, bottom, depth, water, fre
 % SPECFEM2D_INPUT_SETUP, SPECFEM2D_INPUT_SETUP_RESPONSE, 
 % SPECFEM2D_INPUT_SETUP_TPHASE, RUNFLATSIM
 %
-% Last modified by sirawich-at-princeton.edu, 02/16/2024
+% Last modified by sirawich-at-princeton.edu, 07/01/2024
 
 defval('bottom', 4800)
 defval('depth', 1500)
@@ -127,7 +127,7 @@ for kk = index_list
     itf1.npts = 2;
     itf1.pts = [xmin 0; xmax 0];
     % ocean bottom
-    itf2.npts = 401;
+    itf2.npts = 501;
     x = linspace(xmin, xmax, itf2.npts)';
     z = 9600 - bottom * ones(size(x));
 

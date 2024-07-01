@@ -48,7 +48,7 @@ function specfem2d_input_setup(name, topo, tparams, water, solid, source, freq, 
 % SPECFEM2D_INPUT_SETUP_FLAT, SPECFEM2D_INPUT_SETUP_RESPONSE, 
 % SPECFEM2D_INPUT_TPHASE, RUNFLATSIM
 %
-% Last modified by sirawich-at-princeton.edu, 01/31/2024
+% Last modified by sirawich-at-princeton.edu, 07/01/2024
 
 defval('topo', 'flat')
 defval('water', 'homogeneous')
@@ -129,7 +129,7 @@ nx = width / elemsize;
 itf1.npts = 2;
 itf1.pts = [xmin 0; xmax 0];
 % ocean bottom
-itf2.npts = 401;
+itf2.npts = 501;
 x = linspace(xmin, xmax, itf2.npts)';
 switch lower(topo)
     case 'incline'
@@ -231,7 +231,7 @@ itf3.pts = [xmin zmax; xmax zmax];
 switch lower(solid)
     case 'layered'
         % solid-solid interface for layered crust model
-        itf4.npts = 401;
+        itf4.npts = 501;
         x = linspace(xmin, xmax, itf4.npts)';
         switch lower(topo)
             case 'sinusoidal'

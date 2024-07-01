@@ -48,7 +48,7 @@ function outputdirs = runfluidsolidsim_routine(obsmasterdir, ...
 % SEE ALSO:
 % RUNFLATSIM, CCTRANSPLOT, COMPAREPRESSURE
 %
-% Last modified by sirawich-at-princeton.edu, 04/02/2024
+% Last modified by sirawich-at-princeton.edu, 07/01/2024
 
 defval('obsmasterdir', '/home/sirawich/research/processed_data/MERMAID_reports_updated/')
 defval('synmasterdir', '/home/sirawich/research/SYNTHETICS/')
@@ -119,7 +119,7 @@ for ii = i_begin:i_end
                 end
             else
                 % use GEBCO bathymetry instead
-                [x, z] = bathymetryprofile(20000, 401, ...
+                [x, z] = bathymetryprofile(20000, 501, ...
                     [hdr_s.STLO hdr_s.STLA], mod(180 + hdr_s.BAZ + offset_angle, 360));
                 tparams.X = x;
                 tparams.Z = z + 9600;

@@ -56,7 +56,7 @@ function outputdirs = specfem2d_input_setup_response(name, topo, tparams, depth,
 % SPECFEM2D_INPUT_SETUP, SPECFEM2D_INPUT_SETUP_FLAT, 
 % SPECFEM2D_INPUT_SETUP_TPHASE, RUNFLATSIM
 %
-% Last modified by sirawich-at-princeton.edu, 02/16/2024
+% Last modified by sirawich-at-princeton.edu, 07/01/2024
 
 defval('bottom', 4800)
 defval('depth', 1500)
@@ -191,7 +191,7 @@ for kk = index_list
     itf1.npts = 2;
     itf1.pts = [xmin 0; xmax 0];
     % ocean bottom
-    itf2.npts = 401;
+    itf2.npts = 501;
     x = linspace(xmin, xmax, itf2.npts)';
     
     switch lower(topo)
@@ -293,7 +293,7 @@ for kk = index_list
     switch lower(solid)
         case 'layered'
             % solid-solid interface for layered crust model
-            itf4.npts = 401;
+            itf4.npts = 501;
             x = linspace(xmin, xmax, itf4.npts)';
             switch lower(topo)
                 case 'sinusoidal'
