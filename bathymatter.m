@@ -1,5 +1,5 @@
 function [t_shifts, CCmaxs, fcorners, snr, s, depthstats, slopestats, ...
-    peakstats, n, metadata] = ...
+    peakstats, shiftstats, n, metadata] = ...
     bathymatter(obsmasterdir, synmasterdir, flatmasterdir, ...
     bathmasterdir, opt, plt)
 % [t_shifts, CCmaxs, fcorners, snr, s, depthstats, slopestats, ...
@@ -58,6 +58,11 @@ function [t_shifts, CCmaxs, fcorners, snr, s, depthstats, slopestats, ...
 %       prominence_max      maximum prominence of the peaks (0 if N == 0)
 %       prominence_avg      average prominence of the peaks (0 if N == 0)
 %       width_avg           avarage width of the peaks      (0 if N == 0)
+% shiftstats        struct containing the following fields
+%       t_shifts_flat       5 best time shifts for flat ocean bottom
+%       CCmaxs_flat         5 highest CC for flat ocean bottom
+%       t_shifts_bath       5 best time shifts for bathymetry
+%       CCmaxs_bath         5 highest CC for bathymetry
 % n                 the number of data points
 % metadata          SAC header variables sorted by variable names
 %
@@ -79,8 +84,10 @@ defval('sname', sprintf('%s_%s.mat', mfilename, ...
 pname = fullfile(getenv('IFILES'), 'HASHES', sname);
 
 if plt || ~exist(pname, 'file')
+    CCmaxs = [];
     CCmaxs_flat = [];
     CCmaxs_bath = [];
+    t_shifts = [];
     t_shifts_flat = [];
     t_shifts_bath = [];
     fcorners = [];
@@ -141,14 +148,14 @@ if plt || ~exist(pname, 'file')
             end
             bath1(:,2) = bath1(:,2) - 9600;
             bath2(:,2) = bath2(:,2) - 9600;
-            t_shifts_flat(n,1) = t_shift1;
-            t_shifts_bath(n,1) = t_shift2;
+            t_shifts(n,1) = t_shift1(1);
+            t_shifts(n,2) = t_shift2(1);
             fcorners(n,:) = fcs;
             snr(n) = snrr;
-            s(n,1) = s1;
-            s(n,2) = s2;
-            CCmaxs_flat(n,1) = CCmax1;
-            CCmaxs_bath(n,1) = CCmax2;
+            s(n,1) = s1(1);
+            s(n,2) = s2(1);
+            CCmaxs(n,1) = CCmax1(1);
+            CCmaxs(n,2) = CCmax2(1);
             
             % statistics of the bathymetry
             depth_mid(n,1) = bath2((size(bath2,1)+1)/2,2);
@@ -194,6 +201,14 @@ if plt || ~exist(pname, 'file')
                 width_avg(n,1) = mean(w);
             end
             
+            % statistics of (time)shift
+            t_shifts_flat(n,:) = t_shift1;
+            CCmaxs_flat(n,:) = CCmax1;
+            s_flat(n,:) = s1;
+            t_shifts_bath(n,:) = t_shift2;
+            CCmaxs_bath(n,:) = CCmax2;
+            s_bath(n,:) = s2;
+            
             fileused{n,1} = synfile;
             n = n + 1;
         catch ME
@@ -206,8 +221,6 @@ if plt || ~exist(pname, 'file')
     n = n - 1;
 
     % gather stats
-    t_shifts = [t_shifts_flat, t_shifts_bath];
-    CCmaxs = [CCmaxs_flat, CCmaxs_bath];
     depthstats = struct('depth_mid', depth_mid, 'depth_avg', depth_avg, ...
         'depth_std', depth_std, 'depth_range', depth_range);
     slopestats = struct('slope_full', slope_full, ...
@@ -215,6 +228,10 @@ if plt || ~exist(pname, 'file')
         'slope_right', slope_right, 'slope_extreme', slope_extreme);
     peakstats = struct('N', N, 'prominence_max', prominence_max, ...
         'prominence_avg', prominence_avg, 'width_avg', width_avg');
+    shiftstats = struct('t_shifts_flat', t_shifts_flat, 'CCmax_flat', ...
+        CCmaxs_flat, 's_flat', s_flat, 't_shifts_bath', t_shifts_bath, ...
+        'CCmax_bath', CCmaxs_bath, 's_bath', s_bath);
+    
 
     % gather metadata
     metadata = getheaderarray(fileused);
@@ -222,12 +239,14 @@ if plt || ~exist(pname, 'file')
     % save
     fprintf('save the output to a file to %s ...\n', pname);
     save(pname, 't_shifts', 'CCmaxs', 'fcorners', 'snr', 's', ...
-        'depthstats', 'slopestats', 'peakstats', 'n', 'metadata');
+        'depthstats', 'slopestats', 'peakstats', 'shiftstats', 'n', ...
+        'metadata');
 else
     % load
     fprintf('found the save in a file in %s\n', pname);
     fprintf('load the variables ...\n');
     load(pname, 't_shifts', 'CCmaxs', 'fcorners', 'snr', 's', ...
-        'depthstats', 'slopestats', 'peakstats', 'n', 'metadata');
+        'depthstats', 'slopestats', 'peakstats', 'shiftstats', 'n', ...
+        'metadata');
 end
 end
