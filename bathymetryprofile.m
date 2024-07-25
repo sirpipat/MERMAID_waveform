@@ -33,7 +33,7 @@ function [x, z] = bathymetryprofile(width, npts, lonlat, az)
 % SEE ALSO
 % BATHYMETRY, BATHYMETRYPROFILE2D
 % 
-% Last modified by sirawich-at-princeton.edu, 07/01/2024
+% Last modified by sirawich-at-princeton.edu, 07/24/2024
 
 % Earth's radius in meter
 R = 6371000;
@@ -149,7 +149,7 @@ x = linspace(-width/2, width/2, npts)';
 % This handles cases where lons span across 180 E/W longitude
 % Determine if there is any jump in lons
 difflons = lons(2:end) - lons(1:(end-1));
-if ~or(all(difflons < 0), all(difflons > 0))
+if and(~or(all(difflons < 0), all(difflons > 0)), ~all(difflons == 0))
     lons = mod(lons, 360);
     is_across180 = true;
 else
