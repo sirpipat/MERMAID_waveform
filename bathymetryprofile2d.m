@@ -37,19 +37,19 @@ m2deg = 180 / pi / R;
 % STEP 1: Compute the central points of the 1D profiles along the
 % longitudinal direction
 % coordinates of the bathymetry
-x = linspace(-size(2)/2, size(2)/2, npts(2))';
-y = linspace(-size(1)/2, size(1)/2, npts(1))';
+y = linspace(-size(2)/2, size(2)/2, npts(2))';
+x = linspace(-size(1)/2, size(1)/2, npts(1))';
 [ll, tt] = meshgrid(x, y);
 tt = flip(tt, 1);
 
 % latitude and longitude of the bathymetry
-[lats_center, lons_center] = reckon(lonlat(2), lonlat(1), x * m2deg, az-90);
+[lats_center, lons_center] = reckon(lonlat(2), lonlat(1), y * m2deg, az-90);
 
 llons = nan(npts(2), npts(1));
 llats = nan(npts(2), npts(1));
 
 for ii = 1:npts(2)
-    [lats, lons] = reckon(lats_center(ii), lons_center(ii), y * m2deg, az);
+    [lats, lons] = reckon(lats_center(ii), lons_center(ii), x * m2deg, az);
     llons(ii, :) = lons';
     llats(ii, :) = lats';
 end
