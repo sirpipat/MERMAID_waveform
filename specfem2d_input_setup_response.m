@@ -217,6 +217,11 @@ for kk = index_list
     x = linspace(xmin, xmax, itf2.npts)';
     
     switch lower(topo)
+        case 'flat'
+            if ~isfield(tparams, 'B') || isempty(tparams.B)
+                tparams.B = 4800 * random('unif', 0.9, 1.1);
+            end
+            z = tparams.B * ones(size(x));
         case 'incline'
             if ~isfield(tparams, 'A') || isempty(tparams.A)
                 tparams.A = 1200 * random('unif', 0.9, 1.1);
