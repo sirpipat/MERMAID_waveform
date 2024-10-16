@@ -1,11 +1,14 @@
 # MERMAID_waveform
 
 Software to conduct the analysis and make the figures
-in the paper **Waveform modeling of hydroacoustic teleseismic earthquake records from autonomous MERMAID floats**, by Sirawich Pipatprathanporn and Frederik J Simons
+in the paper **Waveform modelling of hydroacoustic teleseismic earthquake records from autonomous MERMAID floats**, by Sirawich Pipatprathanporn and Frederik J Simons
 
 ### Cited as
 
-To be announced
+Pipatprathanporn S., Simons F.J., 2024. Waveform modelling of
+hydroacoustic teleseismic earthquake records from autonomous
+mermaid floats, *Geophys. J. Int.*, **239**(1), 136--154,
+doi: [10.1093/gji/ggae238](https://dx.doi.org/10.1093/gji/ggae238).
 
 Author: Sirawich Pipatprathanporn
 
