@@ -1,5 +1,5 @@
-function outputdirs = specfem2d_input_setup_response(name, topo, tparams, depth, water, solid, freq, theta, Par_file_base, outputdir, saveimage, branch, gpu_mode)
-% outputdirs = SPECFEM2D_INPUT_SETUP_RESPONSE(name, topo, tparams, depth, water, solid, freq, theta, Par_file_base, outputdir, saveimage, branch, gpu_mode)
+function outputdirs = specfem2d_input_setup_response(name, topo, tparams, depth, water, solid, freq, theta, stf_type, Par_file_base, outputdir, saveimage, branch, gpu_mode)
+% outputdirs = SPECFEM2D_INPUT_SETUP_RESPONSE(name, topo, tparams, depth, water, solid, freq, theta, stf_type, Par_file_base, outputdir, saveimage, branch, gpu_mode)
 % Generates Par_file, source file, and interface file for a fluid-solid
 % simulation.
 %
@@ -28,13 +28,25 @@ function outputdirs = specfem2d_input_setup_response(name, topo, tparams, depth,
 %                   to random values.
 % depth             depth of the hydrophone
 % water             sound speed profile of the water. Options are the followings:
-%                       'homogenous'
+%                       'homogeneous'
 %                       'Munk'          Munk sound speed profile
 % solid             seismic structure of the solid. Options are the followings:
 %                       'homogeneous'   [Default]
 %                       'layered'       2 layers with flat surface
 % freq              source frequency [Default: 10 Hz]
 % theta             incident angle in degrees [Default: 0]
+% stf_type          source-time-function type [Default: 1]
+%                        1 = second derivative of a Gaussian (a.k.a. Ricker),
+%                        2 = first derivative of a Gaussian,
+%                        3 = Gaussian,
+%                        4 = Dirac,
+%                        5 = Heaviside,
+%                        6 = ocean acoustics type I,
+%                        7 = ocean acoustics type II,
+%          'stf_file_name' = external source time function (source read from file),
+%                        9 = burst,
+%                       10 = Sinus source time function,
+%                       11 = Marmousi Ormsby wavelet
 % Par_file_base     base Par_file to setting up Par_file
 % outputdir         directory for the input files
 % saveimage         whether to save the snapshots of not [Default: true]
@@ -56,7 +68,7 @@ function outputdirs = specfem2d_input_setup_response(name, topo, tparams, depth,
 % SPECFEM2D_INPUT_SETUP, SPECFEM2D_INPUT_SETUP_FLAT, 
 % SPECFEM2D_INPUT_SETUP_TPHASE, RUNFLATSIM
 %
-% Last modified by sirawich-at-princeton.edu, 07/01/2024
+% Last modified by sirawich-at-princeton.edu, 10/16/2024
 
 defval('bottom', 4800)
 defval('depth', 1500)
@@ -64,6 +76,7 @@ defval('water', 'homogeneous')
 defval('solid', 'homogeneous')
 defval('freq', 10)
 defval('theta', 0)
+defval('stf_type', 1)
 defval('saveimage', true)
 defval('branch', 'master')
 defval('gpu_mode', false)
@@ -79,6 +92,15 @@ else
     % run 1 loop only for both displacement and pressure
     outputdirs = [];
     index_list = -1;
+end
+
+% Handle stf_file input
+% If it is a string (file name), it is the type 8 source-time function.
+if isstring(stf_type) || ischar(stf_type)
+    stf_file = stf_type;
+    stf_type = 8;
+else
+    stf_file = '""';
 end
 
 for kk = index_list
@@ -409,8 +431,8 @@ for kk = index_list
             'xs'                    , (ii+1) * 100  , ...
             'zs'                    , 720       , ...
             'source_type'           , 2         , ...   % moment tensor
-            'time_function_type'    , 1         , ...   % Ricker
-            'name_of_source_file'   , '""'      , ...   % blank for now
+            'time_function_type'    , stf_type  , ...
+            'name_of_source_file'   , stf_file  , ...
             'burst_band_width'      , 0         , ...
             'f0'                    , freq      , ...   % dominant frequency
             'tshift'                , tshift    , ...
@@ -446,8 +468,8 @@ for kk = index_list
                 'xs'                    , 200       , ...
                 'zs'                    , zs        , ...
                 'source_type'           , 2         , ...   % moment tensor
-                'time_function_type'    , 1         , ...   % Ricker
-                'name_of_source_file'   , '""'      , ...   % blank for now
+                'time_function_type'    , stf_type  , ...
+                'name_of_source_file'   , stf_file  , ...
                 'burst_band_width'      , 0         , ...
                 'f0'                    , freq      , ...   % dominant frequency
                 'tshift'                , tshift    , ...
