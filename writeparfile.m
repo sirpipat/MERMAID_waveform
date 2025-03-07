@@ -13,13 +13,20 @@ function writeparfile(params, fname, branch)
 % branch        SPECFEM2D branch [Default: 'master']
 %               'master' (commit: e937ac2f74f23622f6ebbc8901d30fb33c1a2c38)
 %               'devel'  (commit: cf89366717d9435985ba852ef1d41a10cee97884)
+%               'pp-devel' (commit: TBD) -- calls WRITEPARFILEPP
 %
 % SEE ALSO:
-% LOADPARFILE, MAKEPARAMS
+% LOADPARFILE, MAKEPARAMS, WRITEPARFILEPP
 %
-% Last modified by Sirawich Pipatprathanporn, 02/17/2022
+% Last modified by Sirawich Pipatprathanporn, 11/10/2024
 
 defval('branch', 'master')
+
+if strcmp(branch(1:2), 'pp')
+    % TODO: Implement writeparfile pp
+    % writeparfilepp(params, fname, branch);
+    return
+end
 
 if isempty(fname)
     fid = 1;
