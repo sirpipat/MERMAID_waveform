@@ -10,7 +10,7 @@ function [E, D, P] = fluidsolidcoefficients(rho_f, vp_f, rho_s, vp_s, vs_s, thet
 % rho_s     density of the solid
 % vp_s      P-wave velocity in the solid
 % vs_s      S-wave velocity in the solid
-% theta     incident angle
+% theta     incidence angle
 %
 % OUTPUT:
 % E         energy flux coefficient             : E = [Er Etp Etsv] where
@@ -49,7 +49,7 @@ function [E, D, P] = fluidsolidcoefficients(rho_f, vp_f, rho_s, vp_s, vs_s, thet
 % % input
 % fluidsolidcoefficients('demo3', 5000);
 %
-% Last modified by sirawich-at-princeton.edu, 01/03/2022
+% Last modified by sirawich-at-princeton.edu, 03/07/2025
 
 % demo
 % run a demo from Stein & Wysession (2003) chapter 2 page 83
@@ -83,7 +83,7 @@ if ischar(rho_f) && strcmp(rho_f, 'demo1')
     ylabel('Energy flux ratio')
     xlim([0 90])
     ylim([-0.1 1.1])
-    legend('Relfected P-wave', 'Transmitted P-wave', 'Transmitted S-wave', 'Location', 'best')
+    legend('Reflected P-wave', 'Transmitted P-wave', 'Transmitted S-wave', 'Location', 'best')
     ax2 = subplot(2,1,2);
     plot(theta, E(:,1) + E(:,2) + E(:,3), 'LineWidth', 1, 'Color', [0 0 0])
     xlabel('angle of incidence (^{\circ})')
@@ -128,7 +128,7 @@ elseif ischar(rho_f) && strcmp(rho_f, 'demo2')
     title(sprintf('ray parameter = %.2f rad s', p))
     xlim([2000 10000])
     ylim([-0.1 1.1])
-    legend('Relfected P-wave', 'Transmitted P-wave', 'Transmitted S-wave', 'Location', 'best')
+    legend('Reflected P-wave', 'Transmitted P-wave', 'Transmitted S-wave', 'Location', 'best')
     
     ax2 = subplot(2,1,2);
     plot(vp_s, D(:,1), 'LineWidth', 1, 'Color', [0.1 0.8 0.1])
@@ -140,7 +140,7 @@ elseif ischar(rho_f) && strcmp(rho_f, 'demo2')
     ylabel('Displacement amplitude ratio')
     title(sprintf('ray parameter = %.2f rad s', p))
     xlim([2000 10000])
-    legend('Relfected P-wave', 'Transmitted P-wave', 'Transmitted S-wave', 'Location', 'best')
+    legend('Reflected P-wave', 'Transmitted P-wave', 'Transmitted S-wave', 'Location', 'best')
     return
 % run a demo for varying P-wave ray parameters 
 elseif ischar(rho_f) && strcmp(rho_f, 'demo3')
@@ -178,7 +178,7 @@ elseif ischar(rho_f) && strcmp(rho_f, 'demo3')
     title(sprintf('\x03c1_s = %.2f kg/m^3, \x03b1_s = %.2f m/s, \x03b2_s = %.2f m/s', rho_s, vp_s, vs_s))
     xlim([0 4000])
     ylim([-0.1 1.1])
-    legend('Relfected P-wave', 'Transmitted P-wave', 'Transmitted S-wave', 'Location', 'best')
+    legend('Reflected P-wave', 'Transmitted P-wave', 'Transmitted S-wave', 'Location', 'best')
     ax2 = subplot(2,1,2);
     plot(p, abs(D(:,1)), 'LineWidth', 1, 'Color', [0.1 0.8 0.1])
     hold on
@@ -189,7 +189,7 @@ elseif ischar(rho_f) && strcmp(rho_f, 'demo3')
     ylabel('Displacement amplitude ratio')
     title(sprintf('\x03c1_s = %.2f kg/m^3, \x03b1_s = %.2f m/s, \x03b2_s = %.2f m/s', rho_s, vp_s, vs_s))
     xlim([0 4000])
-    legend('Relfected P-wave', 'Transmitted P-wave', 'Transmitted S-wave', 'Location', 'best')
+    legend('Reflected P-wave', 'Transmitted P-wave', 'Transmitted S-wave', 'Location', 'best')
     return
 end
 
