@@ -130,7 +130,7 @@ if true
     plotter(OB_snr, OB_cc, fc_bin_mid, I, ...
         'event depth', 'evdp');
 
-    [~,I] = sort(obs_struct.metadata.MAG / (obs_struct.metadata.GCARC .^ 2));
+    [~,I] = sort(obs_struct.metadata.MAG ./ (obs_struct.metadata.GCARC .^ 2));
     plotter(OB_snr, OB_cc, fc_bin_mid, I, ...
         'event magnitude / distance^2', 'mag_by_gcarc_squared');
 
