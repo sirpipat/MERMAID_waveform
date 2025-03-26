@@ -34,7 +34,7 @@ function outputdirs = specfem2d_input_setup_flat(name, bottom, depth, water, fre
 % SPECFEM2D_INPUT_SETUP, SPECFEM2D_INPUT_SETUP_RESPONSE, 
 % SPECFEM2D_INPUT_SETUP_TPHASE, RUNFLATSIM
 %
-% Last modified by sirawich-at-princeton.edu, 07/01/2024
+% Last modified by sirawich-at-princeton.edu, 03/26/2025
 
 defval('bottom', 4800)
 defval('depth', 1500)
@@ -207,7 +207,7 @@ for kk = index_list
             'Mxx'                   , 1.0       , ...   % explosion
             'Mzz'                   , 1.0       , ...   % explosion
             'Mxz'                   , 0.0       , ...   % explosion
-            'factor'                , 1e-9 * cos(angle * pi / 180), ...
+            'factor'                , 1e+0 * cos(angle * pi / 180), ...
             'vx'                    , 0.0       , ...
             'vz'                    , 0.0         ...
         );
@@ -242,7 +242,7 @@ for kk = index_list
                 'Mxx'                   , 1.0       , ...   % explosion
                 'Mzz'                   , 1.0       , ...   % explosion
                 'Mxz'                   , 0.0       , ...   % explosion
-                'factor'                , 1e-9 * sin(angle * pi / 180), ...
+                'factor'                , 1e+0 * sin(angle * pi / 180), ...
                 'vx'                    , 0.0       , ...
                 'vz'                    , 0.0         ...
             );
