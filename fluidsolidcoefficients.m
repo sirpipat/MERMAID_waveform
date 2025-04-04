@@ -49,7 +49,7 @@ function [E, D, P] = fluidsolidcoefficients(rho_f, vp_f, rho_s, vp_s, vs_s, thet
 % % input
 % fluidsolidcoefficients('demo3', 5000);
 %
-% Last modified by sirawich-at-princeton.edu, 03/07/2025
+% Last modified by sirawich-at-princeton.edu, 04/03/2025
 
 % demo
 % run a demo from Stein & Wysession (2003) chapter 2 page 83
@@ -215,7 +215,7 @@ q = d * (b * n + c * m);
 % potential amplitude ratio
 r_potential_amp_ratio = (p - q) / (p + q);
 tp_potential_amp_ratio = 2 * a * d * n / (p + q);
-tsv_potential_amp_ratio = 2 * a * d * m / (p + q);
+tsv_potential_amp_ratio = -2 * a * d * m / (p + q);
 
 P = [r_potential_amp_ratio, tp_potential_amp_ratio, tsv_potential_amp_ratio];
 
