@@ -68,7 +68,7 @@ function outputdirs = specfem2d_input_setup_response(name, topo, tparams, depth,
 % SPECFEM2D_INPUT_SETUP, SPECFEM2D_INPUT_SETUP_FLAT, 
 % SPECFEM2D_INPUT_SETUP_TPHASE, RUNFLATSIM
 %
-% Last modified by sirawich-at-princeton.edu, 10/16/2024
+% Last modified by sirawich-at-princeton.edu, 04/21/2025
 
 defval('bottom', 4800)
 defval('depth', 1500)
@@ -536,7 +536,7 @@ for kk = index_list
     params.title = sprintf('fluid/solid interface : %s -- on %s branch', ...
         name, upper(branch));
     params.time_stepping_scheme = 1;
-    params.NSTEP = 65000;
+    params.NSTEP = 120000;
     params.DT = 5e-4;
     params.subsamp_seismos = round(1 /params.DT / 100); % reduce to 100 Hz
     params.save_ASCII_seismograms = 0;
