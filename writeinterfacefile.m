@@ -13,7 +13,7 @@ function writeinterfacefile(itfs, layers, fname)
 % SEE ALSO:
 % LOADINTERFACEFILE
 %
-% Last modified by Sirawich Pipatprathanporn, 07/22/2021
+% Last modified by Sirawich Pipatprathanporn, 04/21/2025
 
 n = length(itfs);
 
@@ -43,7 +43,7 @@ for ii = 1:n
     fprintf(fid, '# interface number %d%s\n', ii, str);
     fprintf(fid, '#\n');
     fprintf(fid, ' %d\n', itfs{ii}.npts);
-    fprintf(fid, ' %6d %6d\n', round(itfs{ii}.pts'));
+    fprintf(fid, ' %11.4f %11.4f\n', itfs{ii}.pts');
 end
 
 fprintf(fid, '#\n');
