@@ -23,7 +23,7 @@ function params = loadparfile(fname)
 % SEE ALSO:
 % WRITEPARFILE, MAKEPARAMS
 %
-% Last modified by Sirawich Pipatprathanporn, 02/17/2022
+% Last modified by Sirawich Pipatprathanporn, 06/30/2025
 
 names = {};
 values = {};
@@ -374,7 +374,7 @@ end
 
 function value = readstring(line)
 % find equal sign
-where_start = strfind(line, '=');
+where_start = indeks(strfind(line, '='), 1);
 
 % find # where the comment starts
 where_end = strfind(line, '#');
@@ -401,14 +401,14 @@ end
 
 function value = readint(line)
 % find equal sign
-where = strfind(line, '=');
+where = indeks(strfind(line, '='), 1);
 % read the value
 value = sscanf(line((where+1):end), '%d', 1);
 end
 
 function value =  readfloat(line)
 % find equal sign
-where = strfind(line, '=');
+where = indeks(strfind(line, '='), 1);
 % change the exponent notation syntax from 'd' to 'e'
 line = replace(line, 'd', 'e');
 % read the value
