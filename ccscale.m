@@ -1,7 +1,9 @@
-function [t_shift, CCmax, lag, CC, s] = ...
-    ccscale(x1, x2, dt_begin1, dt_begin2, fs, maxmargin, windowtype, cc_env)
-% [t_shift, CCmax, lag, CC, s] = ...
-%   CCSCALE(x1,x2,dt_begin1,dt_begin2,fs,maxmargin, windowtype, cc_env)
+function [t_shift, CCmax, lag, CC, Smax, s] = ...
+    ccscale(x1, x2, dt_begin1, dt_begin2, fs, maxmargin, windowtype, ...
+    cc_env, use_scaling)
+% [t_shift, CCmax, lag, CC, Smax, s] = ...
+%   CCSCALE(x1,x2,dt_begin1,dt_begin2,fs,maxmargin, windowtype, cc_env, ...
+%           use_scaling)
 %
 % Computes correlation coefficients for all lags in [-maxmargin, maxmargin]
 % between two signals. It also finds the scaling to minimize the misfit of
@@ -24,22 +26,26 @@ function [t_shift, CCmax, lag, CC, s] = ...
 %                         variance of (maxmargin / 2)^2
 % cc_env        Whether to compare envelope instead of waveform 
 %               [default: true]
+% use_scaling   Whether to use scaling to assist choosing best time shift
+%               [default: false]
 %
 % OUTPUT:
 % t_shift       Best time shift where CC is maximum
 % CCmax         Maximum correlation coefficient
 % lag           Vector of all time shifts
 % CC            Vector of CC for every time shift in lag
-% s             Scaling to minimize the misfit
+% Smax          Scaling to minimize the misfit at the best time shift
+% s             Scaling to minimize the mistfit at any lag time
 %
 % SEE ALSO:
 % CCSHIFT, XCORR
 %
-% Last modified by Sirawich Pipatprathanporn: 12/05/2023
+% Last modified by Sirawich Pipatprathanporn: 07/03/2025
 
 defval('maxmargin', seconds(inf))
 defval('windowtype', 'hard')
 defval('cc_env', true)
+defval('use_scaling', false)
 
 % convert x1 and x2 to column vectors
 if size(x1, 1) == 1
@@ -75,7 +81,7 @@ if size(x1, 1) == size(x2, 1)
     [CCmax, IImax] = max(CC);
     t_shift = lag(IImax);
 else
-    [t_shift, CCmax, lag, CC] = ccshift(x1, x2, dt_begin1, dt_begin2, ...
+    [t_shift, CCmax, lag, CC, s1, s2] = ccshift(x1, x2, dt_begin1, dt_begin2, ...
         fs, maxmargin, windowtype);
 end
 
@@ -95,9 +101,32 @@ xs2 = x2(and(geq(dt2  + seconds(t_shift), dt_min, ep), ...
     leq(dt2 + seconds(t_shift), dt_max, ep)));
 
 if cc_env
-    s = rms(xs1) / rms(xs2);
+    Smax = rms(xs1) / rms(xs2);
+    s = s1;
 else
-    s = std(xs1) / std(xs2);
+    Smax = std(xs1) / std(xs2);
+    s = s2;
+end
+
+% Use amplitude scaling to choose optimal time shift
+% Sometimes, maximum correlation coefficient is not the best indicator.
+if use_scaling
+    % First, we consider optimal time shift candidates to be ones that give
+    % correlation coefficient greater than 80% of the maximum coefficient.
+    CC2 = CC;
+    CC2(CC2 < 0.8 * max(CC2)) = 0;
+    [pks, ii_locs] = findpeaks(CC2);
+
+    % Then, we pick the one that gives the amplitude scaling closet to 1
+    % i.e. minimum |log(s)|.
+    s_option = s(ii_locs);
+    [~, ii_s] = min(abs(log10(s_option)));
+
+    % Assign new optimal time shift, correlation coefficient, and amplitude
+    % scaling.
+    t_shift = lag(ii_locs(ii_s));
+    CCmax = pks(ii_s);
+    Smax = s_option(ii_s);
 end
 end
 
