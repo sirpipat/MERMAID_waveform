@@ -11,11 +11,17 @@ function updatesynthetics(fname, model)
 % model         name of the model [default: 'ak135']
 %
 % It updates the following header fields:
-% Tn            arrival time of n-th phase
+% NZ*           reference time
+% B, E          beginning and end time w.r.t. to reference time
+% Tn            arrival time of n-th phase since to beginning of seismogram 
 % KTn           phase name of n-th phase
+% USER8         event rupture time relative to beginning of seismogram
 % USER9         ray parameter of the first arrival phase
 %
-% Last modified by sirawich-at-princeton.edu, 03/22/2024
+% SEE ALSO:
+% UPDATEHEADER
+%
+% Last modified by sirawich-at-princeton.edu, 07/01/2025
 
 defval('model', 'ak135')
 
