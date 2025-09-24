@@ -24,14 +24,14 @@ function [allfiles, fndex] = allfilen(ddir, n)
 % SEE ALSO:
 % ALLFILE, LS2CELL, DIR
 %
-% Last modified by Sirawich Pipatprathanporn, 11/01/2021
+% Last modified by Sirawich Pipatprathanporn, 09/24/2025
 
 % make a table of contents
 allfiles = {};
 fndex = 0;
 
 % check input argument
-if ~isint(n) || n < 1
+if mod(n, 1) ~= 0 || n < 1
     fprintf('n must be a positive integer\n');
     return
 end
