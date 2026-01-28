@@ -40,13 +40,19 @@ function getdatapoint(src, ax, data, name)
 %   SelfAssessedHealthStatus: Good
 % ----------------------------------------
 %
-% Last modified by sirawich-at-princeton.edu: 03/26/2024
+% Last modified by sirawich-at-princeton.edu: 01/27/2026
 
 defval('data', [])
 defval('name', 'value')
 
 pt = ax.CurrentPoint(1,1:2);
-ii = knnsearch([src.XData' src.YData'], pt);
+if ~(isempty(src.XData) || isempty(src.YData))
+    ii = knnsearch([src.XData' src.YData'], pt);
+else
+    % Try using polar coordinates
+    % Make sure that theta falls between 0 and 2 * pi radians
+    ii = knnsearch([mod(src.ThetaData', 2*pi) src.RData'], mod(pt, 2*pi));
+end
 if ~isempty(src.UserData)
     ii = src.UserData(ii);
 end
@@ -125,6 +131,8 @@ else
             else
                 fprintf('%s: FALSE\n', fieldname);
             end
+        elseif isa(value, 'datetime')
+            fprintf('%s: %s\n', fieldname, value);
         else
             fprintf('%s: CANNOT PRINT\n', fieldname);
         end
