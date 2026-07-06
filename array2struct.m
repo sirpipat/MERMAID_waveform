@@ -17,10 +17,21 @@ function struct_arr = array2struct(arr_struct)
 % OUTPUT:
 % struct_arr        struct with the same fields as struct in arr_struct
 %
-% Last modified by sirawich-at-princeton.edu, 03/01/2024
+% Last modified by sirawich-at-princeton.edu, 07/06/2026
 
-obj = arr_struct(1);
-objfields = fieldnames(obj);
+try
+    obj = arr_struct(1);
+    objfields = fieldnames(obj);
+catch ME
+    % handle if the input array is a cell array of the same struct
+    if strcmpi(ME.message, "Invalid input argument of type 'cell'. Input must be a structure or a Java or COM object.")
+        arr_struct = cell2mat(arr_struct);
+        obj = arr_struct(1);
+        objfields = fieldnames(obj);
+    else
+        error(ME.identifier, ME.message);
+    end
+end
 
 % construct the header array
 for ii = 1:length(objfields)
